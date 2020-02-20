@@ -68,6 +68,12 @@
 \graphicspath{{figures/}}
 \include{mymacros}
 
+%  BEGIN mini-toc configs
+\mtcsettitle{minitoc}{}
+\setcounter{minitocdepth}{1}
+\dominitoc
+% END mini-toc configs
+
 %%========================================
 %% Start of document
 %%========================================
@@ -157,11 +163,5 @@
 %% Uncomment next command if index is required
 %% don't forget to run ``makeindex thesis'' command
 %\PrintIndex
-
-%  BEGIN mini-toc configs
-\mtcsettitle{minitoc}{}
-\setcounter{minitocdepth}{1}
-\dominitoc
-% END mini-toc configs
 
 \end{document}

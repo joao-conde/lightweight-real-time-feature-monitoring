@@ -42,7 +42,7 @@ Diving deeper in the algorithm presented in \ref{fig:change-detection-2-windows}
 
 The KS structure is built from the reference \textit{W\textsubscript{1}} and sliding \textit{W\textsubscript{2}} windows. Consider the pair \textit{(\textit{W\textsubscript{1}}, \textit{W\textsubscript{2}})} where the size of both windows is \textit{k}. Creating the KS structure \textit{Z} of size \textit{2k} is done by joining the elements from \textit{W\textsubscript{1}} and \textit{W\textsubscript{2}}. As stated in \ref{fig:ks-structure}, each element of \textit{Z} will have a value and a weight. The values will be the actual elements joined. The weights of elements coming from \textit{W\textsubscript{1}} will be \textit{-1/k} while the weights of elements coming from \textit{W\textsubscript{2}} will be \textit{1/k}. The final KS structure \textit{Z} must be sorted in increasing order by value. The KS structure \textit{Z} can be maintained throughout running time by making use of a balanced tree, such as a B-tree, in \textit{O(log(2k))} time. By making use of the KS structure, all of the mentioned statistics can be computed in \textit{O(2k)} time. 
 
-\subsubsection{Time complexity analysis}
+\subsubsection*{Time complexity analysis}
 %k to initialize and when change is detected
 %k * d
 %d 
@@ -56,11 +56,11 @@ In runtime, the algorithm will perform \textit{k} iterations where it computes t
 
 Putting both initialization and runtime complexities we have a total time complexity of \textit{O(P(k + k log(2k)) + k log(2k))}.
 
-\subsubsection{Space complexity analysis}
+\subsubsection*{Space complexity analysis}
 
 The algorithm presented makes use of two \textit{k} sized windows and one balanced tree of size \textit{k} as well. This represents a space complexity of \textit{O(k+k+k)} or \textit{O(3k)}.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 
 The algorithm for change detection presented in Subsection \ref{subsec:2-window} has time complexity of \textit{O(P(k + k log(2k)) + k log(2k))}. and space complexity of \textit{O(3k)}, with \textit{k} as a window size constant. 
 
@@ -113,7 +113,7 @@ The algorithm for constructing and maintaining the FP-Stream structure is given 
 
 The incremental update of the FP-Stream as data arrives is described on a very high level and does not add relevant information to understand time and space complexity without knowledge of the FP-Tree algorithm, on which it heavily relies. Further research will be done to perform a more thorough analysis of this algorithm, starting with the analysis of \cite{Han-FP-tree}.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 
 No definitive conclusions can be made without the full time and space complexity analysis. However, the maintenance of a frequent pattern tree and tilted-time windows for each of the nodes might reveal to memory intensive, discarding this as a valid solution.
 
@@ -181,13 +181,13 @@ Abstract-M still performs range queries (area with $\theta\textsuperscript{range
 
 The authors state that different information is required from different classes of data points (\textit{core}, \textit{edge} or \textit{noise}). For example, maintaining a list of points to neighbors is required for a non-core point while neighbor counts are sufficient for core points. More precisely, Extra-N marks each data point \textit{p\textsubscript{i}} with a \textit{clusterID} in all windows where \textit{p\textsubscript{i}} is predicted to be a core point while keeping the exact list of neighbors (pointers) of \textit{p\textsubscript{i}} for all windows where he is predicted to be noise or an edge point. This way, the Extra-N algorithm stores the amount of information needed to compute both distance-based outliers and density-based clusters according to their definitions, \ref{fig:distance-outlier-def} and \ref{fig:density-cluster-def} respectively.
 
-\subsubsection{Time complexity analysis}
+\subsubsection*{Time complexity analysis}
 Extra-N only performs range queries for incoming data points. This means that for each new data point \textit{p\textsubscript{i}}, Extra-N will search the area of diameter $\theta\textsuperscript{range}$ around it and update on it neighbors. In conclusion, the time complexity of Extra-N is \textit{O(n)} where \textit{n} is the number of new data points. 
 
-\subsubsection{Space complexity analysis}
+\subsubsection*{Space complexity analysis}
 In summary, Extra-N keeps the memory consumption linear to the number of data points in the window without performing unnecessary range queries.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 While a linear complexity fits most of the scenarios, it does not fit ours since we aim to build a low memory footprint solution, ideally with space complexity of \textit{O(1)}. Hence, this algorithm will be of no use to us.
 
 
@@ -202,7 +202,7 @@ In \cite{Ahmad-HTM}, the authors present an anomaly detection technique based on
 
 HTM is also an online learning algorithm, meaning that it adapts to changing statistics of the underlying data stream. In other words, if there is a sudden random increase in a specific data point attribute, the algorithm will produce an alert. However, if that initially thought to be a random spike becomes frequent then the algorithm adapts and assimilates this as "a new reality". Hence, it stops classifying it as an anomaly. Unfortunately, this property is not desirable in our system. Our stream monitoring system must report changes relatively to an initial static configuration and should not accept a new distribution as the new standard.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 Online learning algorithms that adapt to data pattern shifts and eventually consider them regular patterns are not viable methods to accomplish our goal of building a monitoring system that alerts data pattern shifts continuously until they match the initial configuration again. Additionally, insights produced by machine learning models are not human-understandable, rendering the user unable to understand why an anomaly report was made. In conclusion, we do not deem HTM applicable to our solution.
 
 \subsection{DeepAnT}
@@ -211,58 +211,167 @@ DeepAnT \cite{Munir-DeepAnT} is a deep learning-based approach for the detection
 
 DeepAnT employs a Convolutional Neural Network (CNN) as its \textit{time series predictor} module. Before monitoring a data stream, the CNN must be trained. The model can be trained with a small data set while achieving good generalization capabilities due to the effective parameter sharing of the CNN. Additionally, the data set used to train the model thus not require labels and may up to 5\% of the data set may correspond to anomalous data.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 
 Similar to the HTM algorithm presented, DeepAnT adapts to the underlying distribution of the data stream. In other words, if the data patterns shift from the initial configuration but stabilize, DeepAnT will accept it as it is. As mentioned, our goal is to build a monitoring system that alerts data pattern shifts continuously, until they match the initial configuration again. Furthermore, DeepAnT uses deep learning which is actually a subset of machine learning and just as inexplicable. In summary, we do not deem DeepAnT usable for our use case.
 
-\iffalse
 
-\section{Sliding Window Aggregations}
-Aggregations and Sliding Window Aggregations (SWAGs) have been introduced in Section \ref{sec:aggregations}. In this Section, we analyze algorithms that allow for sliding window aggregations utilizing a set of different aggregation operators. In other words, different algorithms work with different aggregation categories based on their properties. The properties of different categories of aggregations were defined in Section \ref{sec:aggregations} and summarized in Table \ref{tbl:operations-properties}.
-
+\section{Sliding Window Aggregation Algorithms} \label{sec:sota-swag-algs}
+As discussed in Section \ref{sec:back-swag-algs} ...
+Besides RFS and SOE other methods were proposed like DABA...
 \subsection{DABA}
-\subsubsection{Time complexity analysis}
-\subsubsection{Space complexity analysis}
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Time complexity analysis}
+\subsubsection*{Space complexity analysis}
+\subsubsection*{Applicability to our Hypothesis}
 
-\fi
 
 \section{Probabilistic Data Structures} \label{sec:pds}
-Probabilistic data structures use hash functions to compactly represent a set of items while approximately answering queries with fixed error bounds. This way, these structures are capable of processing huge volumes of data. They require a single pass through the data, which is appropriate for a streaming scenario. Probabilistic data structures have constant space and time complexity \cite{Singh-PDS-BIGD} making them candidate methods to build our real-time and low memory footprint system.
+In Section \ref{sec:sota-swag-algs} we presented some state-of-the-art algorithms for computing sliding window aggregations (SWAGs). However, if the aggregation we desire to compute can be approximated, there may exist more memory efficient methods. These aggregators are commonly denoted as sketches or probabilistic data structures and produce results orders-of magnitude faster then some exact approaches while keeping the memory consumption constant and providing mathematically proven error bounds. Each probabilistic data structure is used for efficient computation of one approximate aggregation, hence we say they are aggregation-specific.
+
+Probabilistic data structures use hash functions to compactly represent a set of items. They require a single pass through the data, which is appropriate for a streaming scenario. Probabilistic data structures have constant space and time complexity \cite{Singh-PDS-BIGD} making them ideal aggregators to build our real-time and low memory footprint system.
+
+% FOR EACH SKETCH DO:
+% approx aggregation to compute
+% data structures
+% algorithm for insertion
+% algorithm for query
+% error bound related with parameters
+% time complexity analysis
+% space complexity analysis
+% Applicability to our Hypothesis
 
 \subsection{Membership Queries and the Bloom Filter}
-A Bloom filter \cite{BLOOM-BLOOMFILTER} is a probabilistic data structure that allows membership queries on a set of elements. Bloom filters answer the query: "Is element \textit{el} in the set of seen elements so far?". Being a probabilistic data structure, Bloom filters do not always give a certain answer. \textit{False positive} matches are possible --- \textit{i.e.} saying \textit{el} is in the set when it is not --- but \textit{false negatives} are not --- \textit{i.e.} saying \textit{el} is not in the set but it actually is. In other words, a bloom filter will accurately identify all items that do not belong in the set but will misclassify some items as being present in the set. Hence, a query returns either \textit{possibly in set} or \textit{definitely not in set}. 
+% approx aggregation to compute
+A Bloom filter \cite{BLOOM-BLOOMFILTER} aggregator allows the computation of a membership query approximate aggregation on a set of elements. Bloom filters answer the query: "Is element \textit{el} in the set of seen elements so far?". Being a probabilistic data structure and approximate aggregator, Bloom filters' answer has an error associated. \textit{False positive} matches are possible --- \textit{i.e.} saying \textit{el} is in the set when it is not --- but \textit{false negatives} are not --- \textit{i.e.} saying \textit{el} is not in the set but it actually is. In other words, a bloom filter will accurately identify all items that do not belong in the set but will misclassify some items as being present in the set. Hence, a query returns either \textit{possibly in set} or \textit{definitely not in set}.
 
-A Bloom filter is an array of bits of size \textit{m}. A Bloom Filter makes use of \textit{k} hash functions. The choice of the \textit{m} and \textit{k} constants will determine the false positive rate. 
-
-Initially, all bits are set to 0. Adding an element is done by determining which positions should be set to 1. To that end, the new element is fed into each hash function that maps the element to an array position. The resultant \textit{k} outputs are used as the \textit{k} positions of the array to be set to 1.
-
-Performing a membership query --- \textit{i.e.} testing if an element \textit{el} is in the set --- is done by feeding \textit{el} into each one of the \textit{k} hash functions in order to get an array of positions. If \textit{el} was already in the set then all \textit{k} positions should be 1. If any position contains a 0 then the element is \textit{definitely not in set}, as shown in Figure \ref{fig:bloom-filter} from \cite{bloom-filter-wikipedia}. If all positions are 1 then the element is \textit{possibly in the set}. 
-
-The reason a Bloom Filter does not provide 100\% certainty that \textit{el} is in the set in case of all positions being 1 is that hash functions may give the same position for two different elements. For example, hash functions \textit{k\textsubscript{1}}, \textit{k\textsubscript{2}} and \textit{k\textsubscript{3}} may map an element \textit{el1} to positions $[1,2,3]$ and an element \textit{el2} to positions $[4,5,6]$. This way, bits in positions $[1,2,3,4,5,6]$ are set to 1. Given a new element \textit{el3} not yet seen, hash functions \textit{k\textsubscript{1}}, \textit{k\textsubscript{2}} and \textit{k\textsubscript{3}} may map it to $[1,3,5]$ and all of these positions are already 1 because of the previous elements. Thus the Bloom filter returns \textit{"possibly in set"} because all bits are set to 1 when in reality \textit{el3} was not in the set. This is considered a \textit{false positive}.
-
+% data structures
+\subsubsection*{Data structure}
+A Bloom filter is an array of bits of size \textit{m}, initially all set to 0. Figure \ref{fig:initial-bloom-filter} represents a Bloom filter with a bit array of size \textit{m}=7 with all bits initially set to 0.
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.8]{figures/bloom-filter.png}
-      \caption[Bloom filter membership test]{Bloom filter membership test of element 'W'. Finding one '0' indicates that it is not in the set.}
+      \includegraphics[scale=1.1]{figures/initial-bloom.png}
+      \caption[Bloom filter bit array initial state]{Bloom filter bit array initial state of \textit{m}=7}
+      \label{fig:initial-bloom-filter}
+    \end{center}
+\end{figure}
+
+% algorithm for insertion
+\subsubsection*{Element Insertion}
+Element insertion and query answering make use of \textit{k} hash functions, each mapping elements to a position in the bit array. Adding an element is done by determining which positions should be set to 1. To that end, the new element is fed into each hash function that maps the element to an array position. The resultant \textit{k} outputs are used as the \textit{k} positions of the array to be set to 1. 
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/insert-bloom.png}
+      \caption[Bloom filter insertion]{Insertion of element \textit{el} into a Bloom filter with \textit{m}=7 and \textit{k}=3}
+      \label{fig:insertion-bloom-filter}
+    \end{center}
+\end{figure}
+
+% algorithm for query
+\subsubsection*{Membership Query}
+Performing a membership query --- \textit{i.e.} testing if an element \textit{el} is in the set --- is done by feeding \textit{el} into each one of the \textit{k} hash functions in order to get an array of positions. If \textit{el} was already in the set, all \textit{k} positions should be 1. If any position contains a 0 then the element is \textit{definitely not in set}, as shown in Figure \ref{fig:bloom-filter}. 
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/query-bloom.png}
+      \caption[Bloom filter membership test]{Bloom filter membership test of element \textit{el}. Finding at least one '0' indicates that it is not in the set.}
       \label{fig:bloom-filter}
     \end{center}
 \end{figure}
 
+However, if all positions are 1 then the element is said to be \textit{possibly in the set}. The reason a Bloom Filter does not provide 100\% certainty that \textit{el} is in the set in case of all positions being 1 is that hash functions may give the same position for two different elements. For example, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map an element \textit{el1} to positions $[1,2,3]$ as illustrated in Figure \ref{fig:bloom-filter-fp1} and an element \textit{el2} to positions $[4,5,6]$ like in Figure \ref{fig:bloom-filter-fp2}. This way, bits in positions $[1,2,3,4,5,6]$ are set to 1. When querying about the membership of a new element \textit{el3}, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map it to positions $[1,3,5]$ as exemplified in Figure \ref{fig:bloom-filter-fp3}. Since all of these positions are 1 because of the previous elements inserted, the Bloom filter returns \textit{"possibly in set"} when in reality \textit{el3} was not in the set. This is considered a \textit{false positive}.
 
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/fp-bloom-1.png}
+      \caption[Bloom filter insertion]{Insertion of \textit{el1} in the Bloom filter}
+      \label{fig:bloom-filter-fp1}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/fp-bloom-2.png}
+      \caption[Bloom filter insertion]{Insertion of \textit{el2} in the Bloom filter}
+      \label{fig:bloom-filter-fp2}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/fp-bloom-3.png}
+      \caption[Bloom filter false positive]{Membership query of \textit{el3} and false positive result}
+      \label{fig:bloom-filter-fp3}
+    \end{center}
+\end{figure}
+
+
+
+\subsubsection*{False Positive rate}
+% error bound related with parameters
+The false positive rate is a function of the bit array size \textit{m}, the number of hash functions \textit{k} and the number of elements in the set \textit{n}. It is assumed that the hash functions produce an independent and random index value for each element. Mullin presents an analysis of the Bloom filter in \cite{Mullin-Bloom-Analysis} where he details the false positive rate formula. 
+
+The probability of one arbitrary bit being set to 1 is
+\begin{equation}
+    \frac{1}{m}
+\end{equation}
+because there are \textit{m} bits. Likewise, the probability of one bit not being set to 1 is
+\begin{equation}
+    1-\frac{1}{m}
+\end{equation}
+
+Mullin states the probability that an arbitrary bit is not set to 1 after one element insertion and corresponding \textit{k} bit updates is
+\begin{equation}
+    (1-\frac{1}{m})^\textit{k}
+\end{equation}
+
+For \textit{n} insertions, the probability a bit is not set to 1 is
+\begin{equation}
+    (1-\frac{1}{m})^\textit{kn}
+\end{equation}
+
+Therefore, the probability that an arbitrary bit is set to 1 after \textit{n} insertions is 
+\begin{equation}
+    1-(1-\frac{1}{m})^\textit{kn}
+\end{equation}
+
+Hence, the probability of false positive of a membership query for a new element for \textit{k} hash functions is given by
+\begin{equation}
+    (1-(1-\frac{1}{m})^\textit{kn})^\textit{k}
+\end{equation}
+
+This false positive rate can be approximated by 
+\begin{equation}
+    (1-e^\textit{-kn/m})^\textit{k}
+\end{equation}
+
+
+\subsubsection*{Optimal number of hash functions}
+We want to choose the number of hash functions \textit{k} in order to minimize the false positive rate. In order to do so, we must first allocate \textit{m} bits for the Bloom filter, choosing \textit{m} based on available memory. The value of \textit{k} that minimizes the false positive rate is either of the nearest integers given by
+\begin{equation}
+    \frac{m}{n}ln(2)
+\end{equation}
+
+\iffalse
+%TODO hash improvement probably better declared outside of bloom
 An improvement to this structure was defined in \cite{Kirsch-Better-Bloom} where the authors attempt to reduce the overhead of bloom filters operations such as adding a new element or answering a query by focusing on the hash functions. The proposed method is based on hashing literature. It has been shown that multiple hash functions can be created from the combination of only two hash functions. This means that a new hash function \textit{g} can be produced based on  two other independent and uniform existing hash functions, \textit{h1} and \textit{h2}. The new hash function will map elements to a universe ranging from \textit{0} to \textit{p-1} and will be defined as \textit{$g(x) = h1(x) + ih2(x) mod p$}. Since the only nontrivial computations performed by a Bloom filter are the evaluations of pseudo-random hash functions, any reduction in the required number of pseudo-random hash functions yields a reduction in the time required to add an element or query a Bloom filter.
 
 Bloom filters are not the only approximate aggregators that use hash functions as a basis of their algorithm. All of the studied probabilistic data structures do so. Therefore, the technique proposed is beneficial in HyperLogLogs, Count-Min Sketches and Bloom filters.
+\fi
 
-\subsubsection{Time complexity analysis}
-Considering a Bloom filter with \textit{m} bits and \textit{k} hash functions, insertion and search will both take \textit{O(k)} time because all there is to do is run the input through all of the \textit{k} hash functions and set the bits in the given positions to 1. Note the time complexity does not at all depend on the number of elements in it and that \textit{k} will be a rather small constant (magnitude of $10^1$). Hence, the Bloom filter is said to have constant time complexity (\textit{O(1)}).
+\subsubsection*{Time complexity analysis}
+Considering a Bloom filter with \textit{m} bits and \textit{k} hash functions, insertion has \textit{O(k)} time complexity because all there is to do is run the input through all of the \textit{k} hash functions and set the bits in the given positions to 1. Similarly, query answering has \textit{O(k)} time complexity because it needs only to run the input through the \textit{k} hash functions and check if all bits are set to 1. If so, it returns \textit{possibly in set}. Otherwise it returns \textit{definitely not in set}. 
 
-\subsubsection{Space complexity analysis}
-Considering a Bloom filter with \textit{m} bits, the space required is simply the array of \textit{m} bits, thus \textit{O(m)} space complexity. Similarly to the time complexity analysis, we point out that \textit{m} will be constant and that each of the array elements occupies 1 bit. Thus the Bloom filter has a constant space complexity (\textit{O(1)}).
+Note the time complexity does not at all depend on the number of elements in it and that \textit{k} will be a rather small constant. Hence, the Bloom filter is said to have constant time complexity.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Space complexity analysis}
+Considering a Bloom filter with \textit{m} bits, the space required is simply the array of \textit{m} bits, thus \textit{O(m)} space complexity. Similarly to the time complexity analysis, we point out that \textit{m} will be constant and that each of the array elements occupies 1 bit. Thus the Bloom filter has a constant space complexity.
+
+\subsubsection*{Applicability to our Hypothesis}
 Bloom filters exhibit constant space and time complexity making it great methods to test our hypothesis. Their false positive rate is tolerable in most scenarios and can be controlled by tweaking the values of \textit{m} and \textit{k}.
+
 
 \subsection{Item Frequency and the Count-Min Sketch}
 
@@ -286,13 +395,13 @@ for each row \textit{i} of the total \textit{d} rows.
 
 %The CMS is not always correct because...
 
-\subsubsection{Time complexity analysis}
+\subsubsection*{Time complexity analysis}
 When adding an element or querying the frequency of one, the Count-Min Sketch loops through each row and applies a constant in time hash function, proceeding to a position update or retrieval, respectively. Hence, the time complexity is of \textit{O(d)}. Given \textit{d} is a constant, the CMS has constant time complexity --- \textit{O(1)}.
 
-\subsubsection{Space complexity analysis}
+\subsubsection*{Space complexity analysis}
 The Count-Min Sketch relies on a two-dimensional matrix as its only data structure. The memory used will correspond to the \textit{wd} counts, hence \textit{O(wd)} space complexity. Since both \textit{w} and \textit{d} are constants, the CMS has constant space complexity --- \textit{O(1)}.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 Count-Min Sketches are constant in both time and space. Similarly to Bloom filters, this makes them ideal candidates for our solution. 
 
 \subsection{Cardinality Estimation and the HyperLogLog}
@@ -310,21 +419,24 @@ In HyperLogLog, an item is hashed into a binary string. Based on the first \text
 
 Finally, the estimate for the number of distinct elements will be $2^p$, where \textit{p} is the harmonic mean of all bucket values holding the maximum leftmost 1-bit position value. This computation of a harmonic mean over \textit{m} buckets is called stochastic averaging and is the main difference between HyperLogLog and LogLog. Given the nature of streaming systems, it is also important to notice that this algorithm is suitable for a distributed system since each of the buckets can be updated independently.
 
-\subsubsection{Time complexity analysis}
+\subsubsection*{Time complexity analysis}
 Adding an item is tantamount to hashing it, determining the corresponding bucket based on the first \textit{n} bits, count the leftmost 1-bit position and update the bucket value if need be. Estimating the cardinality of the set amounts to finding the maximum value \textit{p} between all buckets and computing $2^p$. Hence, both inserting a new element and estimating the cardinality take constant time --- \textit{O(1)}.
 
-\subsubsection{Space complexity analysis}
+\subsubsection*{Space complexity analysis}
 Quoting Flajolet et al. about the memory consumption and error in the approximations obtained in their experiments in  \cite{Flajolet-HLL}: 
 \say{cardinalities till values over N = $10^9$ can be estimated with a typical accuracy of 2\% using 1.5kB (kilobyte) of storage.}
 
 HyperLogLog uses \textit{m} buckets that store a single integer value. This gives it complexity of \textit{O(m)} where \textit{m} is a small constant. Hence, HyperLogLog has constant space complexity --- \textit{O(1)}.
 
-\subsubsection{Applicability to our Hypothesis}
+\subsubsection*{Applicability to our Hypothesis}
 Similar to the previously studied probabilistic data structures, HyperLogLog (HLL) has constant space and time complexity while giving an approximation of a set's cardinality. Hence, HLLs are considered valuable methods for our work.
 
 
-\iffalse
+% PDS have no way to expire old data (must for SWAG)
+% they could be implemented using one of the previously seen SWAG algorithms but lose the space efficiency
+% present sliding versions as solution
 
+\iffalse
 \section{Sliding Window Aggregation with Probabilistic Data Structures}
 In Section \ref{sec:pds} we presented a set of probabilistic data structures constant in time and space complexity. These structures aggregate an endless stream of data. However, when working under a sliding window context there is the need not only to insert new events but to evict old ones. Probabilistic data structures aggregate all incoming data but have no way of removing elements. 
 
