@@ -230,23 +230,13 @@ In Section \ref{sec:sota-swag-algs} we presented some state-of-the-art algorithm
 
 Probabilistic data structures use hash functions to compactly represent a set of items. They require a single pass through the data, which is appropriate for a streaming scenario. Probabilistic data structures have constant space and time complexity \cite{Singh-PDS-BIGD} making them ideal aggregators to build our real-time and low memory footprint system.
 
-% FOR EACH SKETCH DO:
+\subsection{Membership Queries and the Bloom filter}
 % approx aggregation to compute
-% data structures
-% algorithm for insertion
-% algorithm for query
-% error bound related with parameters
-% time complexity analysis
-% space complexity analysis
-% Applicability to our Hypothesis
-
-\subsection{Membership Queries and the Bloom Filter}
-% approx aggregation to compute
-A Bloom filter \cite{BLOOM-BLOOMFILTER} aggregator allows the computation of a membership query approximate aggregation on a set of elements. Bloom filters answer the query: "Is element \textit{el} in the set of seen elements so far?". Being a probabilistic data structure and approximate aggregator, Bloom filters' answer has an error associated. \textit{False positive} matches are possible --- \textit{i.e.} saying \textit{el} is in the set when it is not --- but \textit{false negatives} are not --- \textit{i.e.} saying \textit{el} is not in the set but it actually is. In other words, a bloom filter will accurately identify all items that do not belong in the set but will misclassify some items as being present in the set. Hence, a query returns either \textit{possibly in set} or \textit{definitely not in set}.
+A Bloom filter \cite{BLOOM-BLOOMFILTER} approximate aggregator allows membership queries on a set of elements. Bloom filters answer the query: "Is element \textit{el} in the set of seen elements so far?". Being a probabilistic data structure and approximate aggregator, Bloom filters' answers have an error associated. \textit{False positive} matches are possible --- \textit{i.e.} saying \textit{el} is in the set when it is not --- but \textit{false negatives} are not --- \textit{i.e.} saying \textit{el} is not in the set but it actually is. In other words, a Bloom filter will accurately identify all items that do not belong in the set but will misclassify some items as being present in the set. Hence, a query returns either \textit{possibly in set} or \textit{definitely not in set}.
 
 % data structures
 \subsubsection*{Data structure}
-A Bloom filter is an array of bits of size \textit{m}, initially all set to 0. Figure \ref{fig:initial-bloom-filter} represents a Bloom filter with a bit array of size \textit{m}=7 with all bits initially set to 0.
+A Bloom filter is an array of bits of size \textit{m}, initially all set to 0. Figure \ref{fig:initial-bloom-filter} represents a Bloom filter with a bit array of size \textit{m}=7 in its initial state.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -258,7 +248,7 @@ A Bloom filter is an array of bits of size \textit{m}, initially all set to 0. F
 
 % algorithm for insertion
 \subsubsection*{Element Insertion}
-Element insertion and query answering make use of \textit{k} hash functions, each mapping elements to a position in the bit array. Adding an element is done by determining which positions should be set to 1. To that end, the new element is fed into each hash function that maps the element to an array position. The resultant \textit{k} outputs are used as the \textit{k} positions of the array to be set to 1. 
+Element insertion and query answering make use of \textit{k} hash functions, each mapping elements to a position in the bit array. Adding an element is done by determining which positions should be set to 1. To that end, the new element is fed into each hash function that maps the element to an array position. The resultant \textit{k} outputs are used as the \textit{k} positions of the array to be set to 1. Figure \ref{fig:insertion-bloom-filter} shows the insertion of element \textit{el} in the Bloom filter, making use of three hash functions (\textit{k}=3), \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}}. The outputs of the hash functions correspond to the array indexes to set to 1.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -280,7 +270,7 @@ Performing a membership query --- \textit{i.e.} testing if an element \textit{el
     \end{center}
 \end{figure}
 
-However, if all positions are 1 then the element is said to be \textit{possibly in the set}. The reason a Bloom Filter does not provide 100\% certainty that \textit{el} is in the set in case of all positions being 1 is that hash functions may give the same position for two different elements. For example, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map an element \textit{el1} to positions $[1,2,3]$ as illustrated in Figure \ref{fig:bloom-filter-fp1} and an element \textit{el2} to positions $[4,5,6]$ like in Figure \ref{fig:bloom-filter-fp2}. This way, bits in positions $[1,2,3,4,5,6]$ are set to 1. When querying about the membership of a new element \textit{el3}, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map it to positions $[1,3,5]$ as exemplified in Figure \ref{fig:bloom-filter-fp3}. Since all of these positions are 1 because of the previous elements inserted, the Bloom filter returns \textit{"possibly in set"} when in reality \textit{el3} was not in the set. This is considered a \textit{false positive}.
+If all positions are 1 then the element is said to be \textit{possibly in the set}. The reason a Bloom filter does not provide 100\% certainty that \textit{el} is in the set in case of all positions being 1 is that hash functions may give the same position for two different elements. For example, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map an element \textit{el1} to positions $[1,2,3]$ as illustrated in Figure \ref{fig:bloom-filter-fp1} and an element \textit{el2} to positions $[4,5,6]$ like in Figure \ref{fig:bloom-filter-fp2}. This way, bits in positions $[1,2,3,4,5,6]$ are set to 1. When querying about the membership of a new element \textit{el3}, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map it to positions $[1,3,5]$ as exemplified in Figure \ref{fig:bloom-filter-fp3}. Since all of these positions are 1 because of the previous elements inserted, the Bloom filter returns \textit{"possibly in set"} when in reality \textit{el3} was not in the set. This is considered a \textit{false positive}.
 
 
 \begin{figure}[!htb]
@@ -373,33 +363,65 @@ Considering a Bloom filter with \textit{m} bits, the space required is simply th
 Bloom filters exhibit constant space and time complexity making it great methods to test our hypothesis. Their false positive rate is tolerable in most scenarios and can be controlled by tweaking the values of \textit{m} and \textit{k}.
 
 
+% FOR EACH SKETCH DO:
+% approx aggregation to compute
+% data structures
+% algorithm for insertion
+% algorithm for query
+% error bound related with parameters
+% time complexity analysis
+% space complexity analysis
+% Applicability to our Hypothesis
 \subsection{Item Frequency and the Count-Min Sketch}
+% approx aggregation to compute
+A Count–Min Sketch (CMS) is an approximate aggregator that estimates the frequency of each element in the data set. It is named after the two basic operations used to provide the estimate: counting (\textit{count}) and computing the minimum (\textit{min}). The CMS is first introduced in \cite{Cormode-CMS}. 
 
-A Count–Min Sketch (CMS) is a probabilistic data structure that gives an estimate of the frequency of each element in the data set. The estimate is a minimum count. The real frequency of an element will never be lower than the given estimate, hence the name \textit{count min}. The CMS is first introduced in \cite{Cormode-CMS}. 
-
-A CMS is represented by a two-dimensional array (or matrix) with width \textit{w} and depth \textit{d}. A CMS will make use of \textit{d} hash functions --- \textit{i.e.} each associated with one row of the matrix. Each hash function will map elements to a position between 1 and \textit{w} --- \textit{i.e.} the column of the two-dimensional array.
-
-Initially, all of the matrix positions are 0. When adding an element, for each row \textit{i} of the \textit{d} rows in the matrix, hash the element using that row's hash function to obtain \textit{j}. Lastly, for all obtained pairs of \textit{i} and \textit{j}, increment matrix cells \textit{(i, j)} value by 1, as seen in Figure \ref{fig:cms}.
+% data structures
+\subsubsection*{Data structure}
+A CMS is represented by a two-dimensional array (or matrix) with width \textit{w} and depth \textit{d}. A CMS will make use of \textit{d} hash functions --- \textit{i.e.} each associated with one row of the matrix. Each hash function will map elements to a position between 1 and \textit{w} --- \textit{i.e.} the column of the two-dimensional array. Initially, all of the matrix positions are 0. Figure \ref{fig:initial-cms} represents the two-dimensional array used by the CMS and corresponding dimensions in its initial state. 
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.8]{figures/cms.png}
-      \caption[Count-Min Sketch update]{CMS mapping element \textit{el} using \textit{d} hash functions to determine the column position for each row and increment it}
+      \includegraphics[scale=0.5]{figures/initial-cms.png}
+      \caption[Count-Min Sketch matrix initial state]{Count-Min Sketch matrix initial state of \textit{d}=4 and \textit{w}=9}
+      \label{fig:initial-cms}
+    \end{center}
+\end{figure}
+
+
+% algorithm for insertion
+\subsubsection*{Element Insertion}
+When adding an element, for each row \textit{i} of the \textit{d} rows in the matrix, hash the element using that row's hash function to obtain \textit{j}. Lastly, for all obtained pairs of \textit{i} and \textit{j}, increment matrix cells \textit{(i, j)} value by 1, as seen in Figure \ref{fig:cms}. If elements have different weights these can be added instead of incrementing one unit.
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/insertion-cms.png}
+      \caption[Count-Min Sketch insertion]{CMS mapping element \textit{el} using \textit{d}=4 hash functions to determine the column position for each row and increment it}
       \label{fig:cms}
     \end{center}
 \end{figure}
 
-Retrieving the minimum frequency of an element \textit{el} can be done by taking the minimum value of all row counts for \textit{el}. Mathematically, the frequency estimate is given by
+% algorithm for query
+\subsubsection*{Frequency Query}
+Retrieving the minimum frequency of an element \textit{el} can be done by taking the minimum value of all row counts for \textit{el}. Mathematically, the frequency estimate is the minimum value of the set of all row values, for each row \textit{i} of the total \textit{d} rows, given by
 \[ min \{matrix[i][\textit{h\textsubscript{i}}(el)]\} \]
-for each row \textit{i} of the total \textit{d} rows.    
+
+Figure \ref{fig:query-cms} illustrates this procedure.
+   
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/query-cms.png}
+      \caption[Count-Min Sketch frequency query]{Count-Min Sketch frequency query of element \textit{el}}
+      \label{fig:query-cms}
+    \end{center}
+\end{figure}
 
 %The CMS is not always correct because...
-
 \subsubsection*{Time complexity analysis}
-When adding an element or querying the frequency of one, the Count-Min Sketch loops through each row and applies a constant in time hash function, proceeding to a position update or retrieval, respectively. Hence, the time complexity is of \textit{O(d)}. Given \textit{d} is a constant, the CMS has constant time complexity --- \textit{O(1)}.
+When adding an element, the Count-Min Sketch loops through each row and applies a constant in time hash function, updating the value of the target cell. Hence, insertion loops through \textit{d} rows and has time complexity of \textit{O(d)}. Similarly, querying the frequency of an element \textit{el} consists in computing the minimum of all row values. Since both insertion and query have constant time complexity, the CMS is constant in time.
 
 \subsubsection*{Space complexity analysis}
-The Count-Min Sketch relies on a two-dimensional matrix as its only data structure. The memory used will correspond to the \textit{wd} counts, hence \textit{O(wd)} space complexity. Since both \textit{w} and \textit{d} are constants, the CMS has constant space complexity --- \textit{O(1)}.
+The Count-Min Sketch relies on a two-dimensional matrix as its only data structure. The memory used will correspond to the \textit{wd} counts, hence \textit{O(wd)} space complexity. Since both \textit{w} and \textit{d} are constants, the CMS has constant space complexity.
 
 \subsubsection*{Applicability to our Hypothesis}
 Count-Min Sketches are constant in both time and space. Similarly to Bloom filters, this makes them ideal candidates for our solution. 
