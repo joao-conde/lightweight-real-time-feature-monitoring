@@ -94,20 +94,48 @@ The mathematical expression below summarizes our categorization of sliding windo
 
 For the scope of this Thesis, we will work under a time-based sliding window framework with a unitary step size. Despite focusing on time-based true sliding windows, our approach is just as valid for tuple sized windows and for other step values as well.
 
-\section{Aggregations over data streams} \label{sec:aggregations}
+\section{Aggregations over data} \label{sec:aggregations}
 
-An aggregation --- also known as a fold, reduce or accumulate --- is an operation that reduces a collection of values to a single one. Examples of such are the computation of data set sums, minima, averages or the number of distinct elements (cardinality). An aggregation may be exact or approximate. Exact aggregations compute a value from a sequence of elements, where no error or loss of resolution exists. On the other hand, approximate aggregations have an error margin to the associated aggregation value which is usually controllable by adjusting a set of parameters. Approximate aggregations trade precision of results for efficient time and space usage. Such trade-off between accuracy and time/space efficiency will be made clear when discussing some of the existing approximate aggregators in Section \ref{sec:pds}.
+An aggregation --- also known as a fold, reduce or accumulate --- is an operation that reduces a collection of values to a single one. Examples of such are the computation of data set sums, minima, averages or the number of distinct elements (cardinality). An aggregation may be exact or approximate. Exact aggregations compute a value from a sequence of elements, where no error or loss of resolution exists. On the other hand, approximate aggregations have an error margin to the associated aggregation value which is usually controllable by adjusting a set of parameters. 
+Approximate aggregations are required when memory is limited, the volume of data to process is large and/or computing the exact aggregation can not be done in useful time. Thus, approximate aggregators trade precision of results for efficient time and space usage. In Section \ref{sec:pds} we explore approximate aggregators that make such a trade-off.
 
 Aggregations are present in most programming languages and frameworks. Quoting from the JavaSE13 documentation on the \textit{Stream.reduce()} method\footnote{https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/stream/package-summary.html\#Reduction}: \textit{"A reduction operation (also called a fold) takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation"}. Hadoop's MapReduce paradigm consists of first applying \textit{map} steps to the collection of data and then a \textit{reduce} one. \textit{Map} tasks will transform each item as desired and the \textit{reduce} task will merge the collection into a single value. Reduce methods make use of a \textit{combine} function and recursively apply it. The \textit{combine} function takes the current aggregation value and combines it with the next item in the set, returning the new aggregated state. Doing this recursively for each item in the collection results in a single value: the aggregate value for the data set.
+
+\subsection{Sliding Window Aggregations}
+
+While some aggregations can be computed on an infinite data set, often we want to compute these over a finite one. As we have seen in Section \ref{sec:windows}, to obtain a bounded data set from a data stream we apply windowing techniques. In doing so, we obtain a finite data set denoted as a sliding window and compute aggregations over it. The authors of \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms} define such aggregations over sliding windows as Sliding Window Aggregations (SWAGs). Considering the data center temperature monitoring problem from Section \ref{sec:windows} as an example use-case for SWAGs. How would we compute the average temperature per rack in the data center in the last 5 minutes? To better understand, let us translate this question to a streaming SQL query, with a similar syntax to the API provided by Apache Flink \cite{flink}. Assuming all the temperatures can be queried from the \textit{Temperatures} table and that each rack corresponds a different \textit{rack\_id} we have the following query:
+
+\begin{verbatim}
+SELECT rack_id, AVG(temperature)
+FROM Temperatures
+GROUP BY TUMBLE(timestamp, Time.minutes(5), rack_id)
+\end{verbatim}
+
+In the query above, the \textit{TUMBLE(timestamp, Time.minutes(5), rack\_id)} statement groups incoming data using time-based tumbling windows of 5 minutes duration, using the \textit{timestamp} field to evict events not in this time interval. The resulting list of rows has \textit{rack\_id} as its key and as corresponding value a list of temperatures, from the past 5 minutes. Finally, for each rack and its list of temperatures, we compute an \textit{AVG} aggregation, resulting in the average temperature per rack in the past 5 minutes.
+
+
+\subsection{Sliding Window Aggregation Algorithms} \label{sec:back-swag-algs}
+
+A sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. A SWAG algorithm may restrict the set of computable aggregations based on their properties. Different SWAG algorithms use different data structures for the window contents and the incremental aggregation state.
+
+Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)} and \textit{Subtract-On-Evict (SOE)}.
+
+Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each window update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. 
+
+ 
+Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element insertion or eviction from the window, the aggregation value is updated, in contrast to RFS which would recompute the entire aggregation. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations. To illustrate, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the total sum plus the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed this far minus the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable.
+
+Subtract-On-Evict is an improvement over the Recalculate-From-Scratch algorithm that  based on the idea of aggregation invertibility. The question then becomes if there are other aggregation properties besides invertibility that must be taken into account when analyzing general stream processing algorithms.
+
 
 \subsection{Aggregation properties}
 \label{sec:agg-properties}
 
-Different aggregations have different properties. These properties are listed in \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}, where the authors group different aggregations according to the properties they satisfy. Table \ref{tbl:aggregations-properties} was adapted from this work and categorizes different families of operations based on said properties.
+Tangwongsan et al. construct Table \ref{tbl:aggregations-properties} to summarize the aggregation families and satisfied properties \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
 
 \begin{table}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/aggregation-operations-properties.png}
+      \includegraphics[scale=0.4]{figures/aggregation-operations-properties.png}
       \caption[Aggregation properties]{Aggregation properties. Checkmarks (\checkmark), crosses ($\times$), and question marks (?) indicate a property is true for all, false for all, or false for some of a given group of like operations, respectively}
       \label{tbl:aggregations-properties}
     \end{center}
@@ -115,7 +143,7 @@ Different aggregations have different properties. These properties are listed in
 
 To understand these properties, we must be familiar with the \textit{combine} and \textit{lower} functions. The already mentioned \textit{combine} function merges the incoming event with the incrementally computed aggregation state. The \textit{lower} function is responsible for returning a result for a given query according to the current aggregation state. For instance, consider the use case of computing a sum aggregation over a window of data. The \textit{combine} function would be the arithmetic operator \textit{+} and would merge the current aggregation state --- \textit{i.e.} the current sum value --- with the new incoming event. The \textit{lower} function would return the current aggregation state --- \textit{i.e.} return the total sum computed.
 
-The following are formal definitions of these properties and were summarized from \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}. An aggregation operation is said to have:
+Based on the \textit{combine} and \textit{lower} functions, the following are formal definitions of these properties. An aggregation is said to have:
 
 \begin{enumerate}
     \item  an \textbf{\textit{invertible combine}} if a function $\ominus$ exists such that $(x \oplus y) \ominus y = x$, for all $x$ and $y$
@@ -129,41 +157,8 @@ The following are formal definitions of these properties and were summarized fro
     \item  a \textbf{\textit{unary lower}} if the query does not need any parameters --- \textit{e.g.} a membership test with a Bloom filter would require the element to test membership for as a parameter so it is not unary; returning the total sum is unary since it does not require any parameters
 \end{enumerate}
 
-%These properties are used to evaluate SWAG algorithms. Different algorithms might only apply to certain families of aggregations. This way, the multiple SWAG algorithms presented throughout this Thesis will be analyzed not only on their time and space complexity but also on the restrictions they impose regarding the aggregation' properties required.
 
-\subsection{Sliding Window Aggregations}
-
-Unlike many other scenarios that focus on data at rest, streaming aggregations handle data in motion. While some aggregations can be computed on an infinite data set, often we want to compute these over a finite one. As we have seen in Section \ref{sec:windows}, to obtain a bounded data set from a data stream we apply windowing techniques. In doing so, we obtain a finite data set denoted as a sliding window and compute aggregations over it. The authors of \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms} define such aggregations over sliding windows as Sliding Window Aggregations (SWAGs). Once again let us consider the data center temperature monitoring problem from Section \ref{sec:windows} as an example use-case for SWAGs. How would we compute the average temperature per rack in the data center in the last 5 minutes? To better understand, let us translate this question to a streaming SQL query, with a similar syntax to the API provided by Apache Flink \cite{flink}. Assuming all the temperatures can be queried from the \textit{Temperatures} table and that each rack corresponds a different \textit{rack\_id} we have the following query:
-
-\begin{verbatim}
-SELECT rack_id, AVG(temperature)
-FROM Temperatures
-GROUP BY TUMBLE(timestamp, Time.minutes(5), rack_id)
-\end{verbatim}
-
-In the query above, the \textit{TUMBLE(timestamp, Time.minutes(5), rack\_id)} statement groups incoming data using time-based tumbling windows of 5 minutes duration, using the \textit{timestamp} field to evict events not in this time interval. The resulting list of rows has \textit{rack\_id} as its key and as corresponding value a list of temperatures, from the past 5 minutes. Finally, for each rack and its list of temperatures, we compute an \textit{AVG} aggregation, resulting in the average temperature per rack in the past 5 minutes.
-
-
-\subsection{Sliding Window Aggregation Algorithms} \label{sec:back-swag-algs}
-
-A sliding window aggregation (SWAG) algorithm allows the computation of an exact or approximate aggregation over a sliding window. A SWAG algorithm may restrict the set of possible to compute aggregations based on their properties. Different SWAG algorithms use different data structures for the window contents and the incremental aggregation state.
-
-The aggregation properties analyzed in Section \ref{sec:agg-properties} are used to evaluate SWAG algorithms. Different algorithms might only apply to certain families of aggregations. This way, the multiple SWAG algorithms presented throughout this Thesis will be analyzed not only on their time and space complexity but also on the restrictions they impose regarding the aggregation' properties required.
-
-Tangwongsan et al. present two of the most basic SWAG algorithms: \textit{Recalculate From Scratch (RFS)} and \textit{Subtract On Evict (SOE)}.
-
-\subsubsection{Recalculate From Scratch}
-Recalculate From Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each insertion and eviction. For instance, the computation of a sum over a sliding window using RFS means that upon each insertion or eviction all elements are summed.
-
-This approach does not restrain the aggregation in terms of properties: it works for every family of aggregations. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. 
-
-\subsubsection{Subtract On Evict}
-Subtract On Evict (SOE) only works for aggregations whose  \textit{combine} $\oplus$ function is invertible. That is, as defined in Table \ref{tbl:aggregations-properties}, a function $\ominus$ exists such that $(x \oplus y) \ominus y = x$.
-
-SOE inserts new elements into the window and combines the previous aggregation value with the new element. On eviction, SOE applies the inverse of the combine function, $\ominus$, to expire the evicted element from the aggregation state.
-
-With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable.
-
+The aggregation properties analyzed in this Section will be used to evaluate SWAG algorithms. Different algorithms might only apply to certain families of aggregations. This way, the multiple SWAG algorithms presented throughout this Thesis will be analyzed not only on their time and space complexity but also on the restrictions they impose regarding the aggregation' properties required. For example, under this framework, to implement Subtract-On-Evict (SOE), both the \textit{combine} $\oplus$ and its inverse $\ominus$ functions must be implemented so that SOE applies $\ominus$ to expire the evicted element from the aggregation state. Since SOE only restriction is for the aggregation to be invertible it works for the \textit{sum-like}, \textit{collect-like} and \textit{median-like} families in Table \ref{tbl:aggregations-properties}.
 
 % \section{Concept drift}
 % seasonal and evolutionary
