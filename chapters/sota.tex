@@ -195,13 +195,13 @@ Similar to the HTM algorithm presented, DeepAnT adapts to the underlying distrib
 As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this Section we analyze other more sophisticated SWAG algorithms that fit different use-cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
 
 \subsection{Two-Stacks}
-The Two-Stacks sliding window aggregation (SWAG) algorithm works for scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks \cite{Tangwongsan-DABA} can be seen in Figure \ref{fig:pseudo-2-stacks}.
+The Two-Stacks SWAG algorithm works for \textit{associative} aggregations in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Figure \ref{fig:pseudo-2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
 
-Insertion of a new item is always made on stack B. The updated aggregation state is computed using the \textit{combine} function $\oplus$, taking as arguments the aggregation value \textit{agg} of the top element of stack B and the item's value \textit{val}. The pair pushed onto stack B is a pair with the item's value and the new aggregation value.
+Insertion of a new item is always made on stack B. The updated aggregation state is computed using the \textit{combine} function $\oplus$ taking as arguments the aggregation value \textit{agg} of the top element of stack B and the item's value \textit{val}. The pair pushed onto stack B is a pair with \textit{val} and the new aggregation value $\textit{agg} \oplus \textit{val}$.
 
-Evictions correspond to a simple pop from stack F. When F is empty, the elements from stack B are flipped onto stack F, re-applying $\oplus$ to make sure each element in F holds the aggregation value of everything below in the stack. Given \textit{n} as the size of stack B, the occasional flip operation takes \textit{O(n)} time.
+Evictions correspond to a simple pop from stack F. However, when F is empty, the elements from stack B are flipped onto stack F, re-applying $\oplus$ to make sure each element in F holds the aggregation value of everything below in the stack. Given \textit{n} as the size of stack B, the occasional flip operation takes \textit{O(n)} time.
 
-Computing the sliding window aggregation is done by applying the \textit{combine} function $\oplus$ to the aggregation values of each of the stacks top element. 
+Computing the sliding window aggregation is done by applying the \textit{combine} function $\oplus$ to the aggregation values of each of the stacks' top element. 
 
 \begin{figure}[!htb]
     \begin{center}
@@ -221,11 +221,56 @@ Two-Stacks uses two stacks as auxiliary data structures. The combined size of bo
 Two-Stacks is a general sliding window aggregation algorithm to compute \textit{associative} aggregations. However, it is linear in space and occasionally performs the computationally intensive operation of flipping stack B onto stack F, making it unfit for our use case.
 
 
-\subsection{DABA}
-\subsubsection*{Time complexity analysis}
-\subsubsection*{Space complexity analysis}
-\subsubsection*{Applicability to our Hypothesis}
+\subsection{De-Amortized Banker’s Aggregator}
 
+The De-Amortized Banker’s Aggregator (DABA) \cite{Tangwongsan-DABA} is a SWAG algorithm that allows the computation of \textit{associative} aggregations. Quoting the authors: \textit{"Deamortization is a method that turns the average-case behavior into the worst-case behavior, usually by carefully spreading out expensive operations"}. Hence the name \textit{"De-Amortized"}, as the main idea behind DABA's design is to avoid occasional expensive operations --- such as the flip operation in Two-Stacks --- by gradually executing them throughout run time.
+
+\subsection*{Data Structure}
+
+DABA uses two queues, \textit{vals} and \textit{aggs}, both of size \textit{n}, seen in Figure \ref{fig:daba-ds}. Both queues share six pointers --- \textit{F, L, R, A, B} and \textit{E} --- that point to the same position for each queue. These pointers are always ordered as follows: $\textit{F} \leq \textit{L} \leq \textit{R} \leq \textit{A} \leq \textit{B} \leq \textit{E}.$
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/daba-ds.png}
+      \caption{DABA data structure}
+      \label{fig:daba-ds}
+    \end{center}
+\end{figure}
+
+Queue \textit{vals} holds the actual sliding window contents. New values are pushed in the back and old values are popped from the front of the queue. Queue \textit{aggs} stores aggregations of sub-ranges of \textit{vals}. Aside from pointer \textit{E}, each pointer defines a sub-list and each sub-list is aggregated either to the left \textbullet--- or to the right ---\textbullet. If a sub-list is aggregated to the left \textbullet---, each \textit{aggs} element will be the aggregation value of all elements in \textit{vals} from that position to the right. On the other hand, if a sub-list is aggregated to the right ---\textbullet, each \textit{aggs} element will be the aggregation value of all elements in \textit{vals} from that position to the left. Values from \textit{vals} can be aggregated to the left or to the right because DABA restricts the aggregation to be \textit{associative} (refer to Table \ref{tbl:aggregations-properties}).
+
+\textit{l\textsubscript{F}} is aggregated to the left for easier eviction. After an element is evicted, the new head of the queue \textit{aggs} --- pointed by \textit{F} --- already contains the aggregation value of all elements from \textit{vals} to its right side. Hence, evicting an element amounts to evicting from both \textit{vals} and \textit{aggs} queue. Similarly, \textit{l\textsubscript{B}} is aggregated to the right to facilitate insertion. Sub-lists \textit{l\textsubscript{L}}, \textit{l\textsubscript{R}} and \textit{l\textsubscript{A}} allow for incremental reversal of the right-aggregated \textit{l\textsubscript{B}} to the left-aggregated \textit{l\textsubscript{F}}. This incremental reversal is tantamount to adjusting pointers that causes shifts in sub-list boundaries. Thus, elements of \textit{aggs} may change from one sub-list to another and need to have its aggregation value recomputed.
+
+Inserting a new element corresponds to pushing a new value \textit{val} in \textit{vals} and pushing the new aggregation value \textit{agg} in \textit{aggs}. The new aggregation value \textit{agg} is computed by applying the \textit{combine} function $\oplus$ to the back element of \textit{aggs} and the new value \textit{val} --- \textit{i.e.} pushing \textit{val} to \textit{vals} and $\textit{aggs[E]} \oplus \textit{val}$ to \textit{aggs}. 
+
+Evicting old elements is done by evicting the same number of elements from \textit{vals} and \textit{aggs}.
+
+\textit{l\textsubscript{F}} and \textit{l\textsubscript{B}} combined cover the whole \textit{vals} queue --- \textit{i.e.} every element in the sliding window. \textit{l\textsubscript{F}} is aggregated to the left, thus \textit{aggs[F]} contains the aggregation value of everything in \textit{l\textsubscript{F}}. On the other hand, \textit{l\textsubscript{B}} is aggregated to the right, thus \textit{aggs[E]} stores the aggregation value of everything in \textit{l\textsubscript{B}}. Hence, the aggregation value of the entire window will be the result of \textit{$aggs[F] \oplus aggs[E]$}.
+
+
+\subsection*{Incremental Reversal of \textit{l\textsubscript{B}} to \textit{l\textsubscript{F}}}
+
+The main conceptual difference between DABA and Two-Stacks is that in Two-Stacks an occasional expensive \textit{flip} operation takes place --- flipping stack B onto stack F --- and in DABA the reversal of \textit{l\textsubscript{B}} to \textit{l\textsubscript{F}} is incremental. This allows DABA to achieve constant time complexity (on average) rather than Two-Stacks' amortized constant time complexity.
+
+Figure \ref{fig:pseudo-daba} shows the pseudocode presented by the authors for the DABA algorithm. In reality, after each insertion and eviction, besides the procedure already described, function \textit{fixup} is executed. The \textit{fixup} function performs the incremental reversal of \textit{l\textsubscript{B}} to \textit{l\textsubscript{F}}. The pseudocode \ref{fig:pseudo-daba} shows how such reversal is done but we will not elaborate on such procedure. However, it is important to stress out that this is the core idea of DABA: avoid occasional expensive operations, like Two-Stacks' \textit{flip}, by spreading them out across run time, in the form of DABA's \textit{fixup}.
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.7]{figures/daba-pseudocode.png}
+      \caption{DABA algorithm}
+      \label{fig:pseudo-daba}
+    \end{center}
+\end{figure}
+
+
+\subsubsection*{Time complexity analysis}
+Querying the aggregation state as described is done in constant time. Insertion and eviction of elements take constant time and invoke function \textit{fixup}. The authors develop Theorems that prove function \textit{fixup} is executed in constant time as well. Hence, DABA has constant time complexity.
+
+\subsubsection*{Space complexity analysis}
+DABA stores the window contents in the \textit{vals} queue. Queue \textit{aggs} is of the same size as \textit{vals} and stores partial aggregations over \textit{vals}. Hence, if the window size is \textit{n}, DABA uses two \textit{n}-sized queues. Hence, DABA has \textit{O(n)} space complexity, meaning memory consumption grows linearly with window size.
+
+\subsubsection*{Applicability to our Hypothesis}
+Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, requiring at least logarithmic space complexity, thus making DABA inapplicable for our Hypothesis.
 
 \section{Probabilistic Data Structures} \label{sec:pds}
 In Section \ref{sec:sota-swag-algs} we presented some state-of-the-art algorithms for computing sliding window aggregations (SWAGs). However, if the aggregation we desire to compute can be approximated, there may exist more memory efficient methods. These aggregators are commonly denoted as sketches or probabilistic data structures and produce results orders-of magnitude faster then some exact approaches while keeping the memory consumption constant and providing mathematically proven error bounds. Each probabilistic data structure is used for efficient computation of one approximate aggregation, hence we say they are aggregation-specific.
@@ -272,33 +317,17 @@ Performing a membership query --- \textit{i.e.} testing if an element \textit{el
     \end{center}
 \end{figure}
 
-If all positions are 1 then the element is said to be \textit{possibly in the set}. The reason a Bloom filter does not provide 100\% certainty that \textit{el} is in the set in case of all positions being 1 is that hash functions may give the same position for two different elements. For example, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map an element \textit{el1} to positions $[1,2,3]$ as illustrated in Figure \ref{fig:bloom-filter-fp1} and an element \textit{el2} to positions $[4,5,6]$ like in Figure \ref{fig:bloom-filter-fp2}. This way, bits in positions $[1,2,3,4,5,6]$ are set to 1. When querying about the membership of a new element \textit{el3}, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map it to positions $[1,3,5]$ as exemplified in Figure \ref{fig:bloom-filter-fp3}. Since all of these positions are 1 because of the previous elements inserted, the Bloom filter returns \textit{"possibly in set"} when in reality \textit{el3} was not in the set. This is considered a \textit{false positive}.
-
+If all positions are 1 then the element is said to be \textit{possibly in the set}. The reason a Bloom filter does not provide 100\% certainty that \textit{el} is in the set in case of all positions being 1 is that hash functions may give the same position for two different elements. For example, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map an element \textit{el1} to positions $[1,2,3]$ and an element \textit{el2} to positions $[4,5,6]$. This way, bits in positions $[1,2,3,4,5,6]$ are set to 1. When querying about the membership of a new element \textit{el3}, hash functions \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}} may map it to positions $[1,3,5]$ as exemplified in Figure \ref{fig:bloom-filter-fp}. Since all of these positions are 1 because of the previous elements inserted, the Bloom filter returns \textit{"possibly in set"} when in reality \textit{el3} was not in the set. This is considered a \textit{false positive}.
 
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.4]{figures/fp-bloom-1.png}
-      \caption[Bloom filter insertion of \textit{el1}]{Insertion of \textit{el1} in the Bloom filter}
-      \label{fig:bloom-filter-fp1}
-    \end{center}
-\end{figure}
-
-\begin{figure}[!htb]
-    \begin{center}
       \includegraphics[scale=0.4]{figures/fp-bloom-2.png}
-      \caption[Bloom filter insertion of \textit{el2}]{Insertion of \textit{el2} in the Bloom filter}
-      \label{fig:bloom-filter-fp2}
-    \end{center}
-\end{figure}
-
-\begin{figure}[!htb]
-    \begin{center}
       \includegraphics[scale=0.4]{figures/fp-bloom-3.png}
-      \caption[Bloom filter false positive]{Membership query of \textit{el3} and false positive result}
-      \label{fig:bloom-filter-fp3}
+      \caption{Bloom filter false positive}
+      \label{fig:bloom-filter-fp}
     \end{center}
 \end{figure}
-
 
 
 \subsubsection*{False Positive rate}

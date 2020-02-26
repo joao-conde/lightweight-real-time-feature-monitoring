@@ -120,10 +120,26 @@ A sliding window aggregation algorithm allows the computation of an exact or app
 
 Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)} and \textit{Subtract-On-Evict (SOE)}.
 
-Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each window update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. 
+Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each window update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. Figure \ref{fig:pseudo-rfs} shows pseudocode for RFS \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
 
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.45]{figures/rfs.png}
+      \caption{Recalculate-From-Scratch algorithm}
+      \label{fig:pseudo-rfs}
+    \end{center}
+\end{figure}
  
-Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element insertion or eviction from the window, the aggregation value is updated, in contrast to RFS which would recompute the entire aggregation. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations. To illustrate, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the total sum plus the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed this far minus the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable.
+Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element insertion or eviction from the window, the aggregation value is updated, in contrast to RFS which would recompute the entire aggregation. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations. To illustrate, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the total sum plus the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed this far minus the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable. Figure \ref{fig:pseudo-soe} shows pseudocode for SOE \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.45]{figures/soe.png}
+      \caption{Subtract-On-Evict algorithm}
+      \label{fig:pseudo-soe}
+    \end{center}
+\end{figure}
 
 Subtract-On-Evict is an improvement over the Recalculate-From-Scratch algorithm that  based on the idea of aggregation invertibility. The question then becomes if there are other aggregation properties besides invertibility that must be taken into account when analyzing general stream processing algorithms.
 
