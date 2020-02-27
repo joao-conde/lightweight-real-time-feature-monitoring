@@ -3,7 +3,6 @@
 In this Chapter, we discuss the most relevant work for the aforementioned problem of detecting data pattern shifts in real-time computations over true sliding windows using resource-lightweight approaches on streaming systems. We present a wide analysis of several categories of algorithms that seemed like viable options to build the desired system.
 
 \section{Data Mining} \label{sec:change-detect}
-
 A data stream has a temporal dimension and the underlying process that generates the data stream can change over time \cite{Aggarwal-Evolving-Data-Streams} \cite{Domingos-Mining-Time-Data-Streams}. It is this change in the underlying distribution that we want to detect and report as a data pattern shift.
 
 \subsection{A two window paradigm algorithm for change detection}
@@ -221,7 +220,7 @@ Two-Stacks uses two stacks as auxiliary data structures. The combined size of bo
 Two-Stacks is a general sliding window aggregation algorithm to compute \textit{associative} aggregations. However, it is linear in space and occasionally performs the computationally intensive operation of flipping stack B onto stack F, making it unfit for our use case.
 
 
-\subsection{De-Amortized Banker’s Aggregator}
+\subsection{De-Amortized Banker’s Aggregator} \label{sec:daba}
 
 The De-Amortized Banker’s Aggregator (DABA) \cite{Tangwongsan-DABA} is a SWAG algorithm that allows the computation of \textit{associative} aggregations. Quoting the authors: \textit{"Deamortization is a method that turns the average-case behavior into the worst-case behavior, usually by carefully spreading out expensive operations"}. Hence the name \textit{"De-Amortized"}, as the main idea behind DABA's design is to avoid occasional expensive operations --- such as the flip operation in Two-Stacks --- by gradually executing them throughout run time.
 
@@ -263,13 +262,13 @@ Figure \ref{fig:pseudo-daba} shows the pseudocode presented by the authors for t
 \end{figure}
 
 
-\subsubsection*{Time complexity analysis}
+\subsection*{Time complexity analysis}
 Querying the aggregation state as described is done in constant time. Insertion and eviction of elements take constant time and invoke function \textit{fixup}. The authors develop Theorems that prove function \textit{fixup} is executed in constant time as well. Hence, DABA has constant time complexity.
 
-\subsubsection*{Space complexity analysis}
+\subsection*{Space complexity analysis}
 DABA stores the window contents in the \textit{vals} queue. Queue \textit{aggs} is of the same size as \textit{vals} and stores partial aggregations over \textit{vals}. Hence, if the window size is \textit{n}, DABA uses two \textit{n}-sized queues. Hence, DABA has \textit{O(n)} space complexity, meaning memory consumption grows linearly with window size.
 
-\subsubsection*{Applicability to our Hypothesis}
+\subsection*{Applicability to our Hypothesis}
 Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, requiring at least logarithmic space complexity, thus making DABA inapplicable for our Hypothesis.
 
 \section{Probabilistic Data Structures} \label{sec:pds}
@@ -282,7 +281,7 @@ Probabilistic data structures use hash functions to compactly represent a set of
 A Bloom filter \cite{BLOOM-BLOOMFILTER} approximate aggregator allows membership queries on a set of elements. Bloom filters answer the query: "Is element \textit{el} in the set of seen elements so far?". Being a probabilistic data structure and approximate aggregator, Bloom filters' answers have an error associated. \textit{False positive} matches are possible --- \textit{i.e.} saying \textit{el} is in the set when it is not --- but \textit{false negatives} are not --- \textit{i.e.} saying \textit{el} is not in the set but it actually is. In other words, a Bloom filter will accurately identify all items that do not belong in the set but will misclassify some items as being present in the set. Hence, a query returns either \textit{possibly in set} or \textit{definitely not in set}.
 
 % data structures
-\subsubsection*{Data structure}
+\subsection*{Data structure}
 A Bloom filter is an array of bits of size \textit{m}, initially all set to 0. Figure \ref{fig:initial-bloom-filter} represents a Bloom filter with a bit array of size \textit{m}=7 in its initial state.
 
 \begin{figure}[!htb]
@@ -294,7 +293,7 @@ A Bloom filter is an array of bits of size \textit{m}, initially all set to 0. F
 \end{figure}
 
 % algorithm for insertion
-\subsubsection*{Element Insertion}
+\subsection*{Element Insertion}
 Element insertion and query answering make use of \textit{k} hash functions, each mapping elements to a position in the bit array. Adding an element is done by determining which positions should be set to 1. To that end, the new element is fed into each hash function that maps the element to an array position. The resultant \textit{k} outputs are used as the \textit{k} positions of the array to be set to 1. Figure \ref{fig:insertion-bloom-filter} shows the insertion of element \textit{el} in the Bloom filter, making use of three hash functions (\textit{k}=3), \textit{h\textsubscript{1}}, \textit{h\textsubscript{2}} and \textit{h\textsubscript{3}}. The outputs of the hash functions correspond to the array indexes to set to 1.
 
 \begin{figure}[!htb]
@@ -306,7 +305,7 @@ Element insertion and query answering make use of \textit{k} hash functions, eac
 \end{figure}
 
 % algorithm for query
-\subsubsection*{Membership Query}
+\subsection*{Membership Query}
 Performing a membership query --- \textit{i.e.} testing if an element \textit{el} is in the set --- is done by feeding \textit{el} into each one of the \textit{k} hash functions in order to get an array of positions. If \textit{el} was already in the set, all \textit{k} positions should be 1. If any position contains a 0 then the element is \textit{definitely not in set}, as shown in Figure \ref{fig:bloom-filter}. 
 
 \begin{figure}[!htb]
@@ -330,7 +329,7 @@ If all positions are 1 then the element is said to be \textit{possibly in the se
 \end{figure}
 
 
-\subsubsection*{False Positive rate}
+\subsection*{False Positive rate}
 % error bound related with parameters
 The false positive rate is a function of the bit array size \textit{m}, the number of hash functions \textit{k} and the number of elements in the set \textit{n}. It is assumed that the hash functions produce an independent and random index value for each element. Mullin presents an analysis of the Bloom filter in \cite{Mullin-Bloom-Analysis} where he details the false positive rate formula. 
 
@@ -369,7 +368,7 @@ This false positive rate can be approximated by
 \end{equation}
 
 
-\subsubsection*{Optimal number of hash functions}
+\subsection*{Optimal number of hash functions}
 We want to choose the number of hash functions \textit{k} in order to minimize the false positive rate. In order to do so, we must first allocate \textit{m} bits for the Bloom filter, choosing \textit{m} based on available memory. The value of \textit{k} that minimizes the false positive rate is either of the nearest integers given by
 \begin{equation}
     \frac{m}{n}ln(2)
@@ -382,15 +381,15 @@ An improvement to this structure was defined in \cite{Kirsch-Better-Bloom} where
 Bloom filters are not the only approximate aggregators that use hash functions as a basis of their algorithm. All of the studied probabilistic data structures do so. Therefore, the technique proposed is beneficial in HyperLogLogs, Count-Min Sketches and Bloom filters.
 \fi
 
-\subsubsection*{Time complexity analysis}
+\subsection*{Time complexity analysis}
 Considering a Bloom filter with \textit{m} bits and \textit{k} hash functions, insertion has \textit{O(k)} time complexity because all there is to do is run the input through all of the \textit{k} hash functions and set the bits in the given positions to 1. Similarly, query answering has \textit{O(k)} time complexity because it needs only to run the input through the \textit{k} hash functions and check if all bits are set to 1. If so, it returns \textit{possibly in set}. Otherwise it returns \textit{definitely not in set}. 
 
 Note the time complexity does not at all depend on the number of elements in it and that \textit{k} will be a rather small constant. Hence, the Bloom filter is said to have constant time complexity.
 
-\subsubsection*{Space complexity analysis}
+\subsection*{Space complexity analysis}
 Considering a Bloom filter with \textit{m} bits, the space required is simply the array of \textit{m} bits, thus \textit{O(m)} space complexity. Similarly to the time complexity analysis, we point out that \textit{m} will be constant and that each of the array elements occupies 1 bit. Thus the Bloom filter has a constant space complexity.
 
-\subsubsection*{Applicability to our Hypothesis}
+\subsection*{Applicability to our Hypothesis}
 Bloom filters exhibit constant space and time complexity making it great methods to test our hypothesis. Their false positive rate is tolerable in most scenarios and can be controlled by tweaking the values of \textit{m} and \textit{k}.
 
 \subsection{Item Frequency and the Count-Min Sketch}
@@ -400,7 +399,7 @@ The Count-Min Sketch (CMS) uses two principles from the discussed Bloom filters 
 A Count–Min Sketch \cite{Cormode-CMS} is an approximate aggregator that estimates the frequency of each element in the data set. It is named after the two basic operations used to provide the estimate: counting (\textit{count}) and computing the minimum (\textit{min}).
 
 % data structures
-\subsubsection*{Data structure}
+\subsection*{Data structure}
 A CMS is represented by a two-dimensional array (or matrix) with width \textit{w} and depth \textit{d}. A CMS will make use of \textit{d} hash functions --- \textit{i.e.} each associated with one row of the matrix. Each hash function will map elements to a position between 1 and \textit{w} --- \textit{i.e.} the column of the two-dimensional array. Initially, all of the matrix positions are 0. Figure \ref{fig:initial-cms} represents the two-dimensional array used by the CMS and corresponding dimensions in its initial state. 
 
 \begin{figure}[!htb]
@@ -412,7 +411,7 @@ A CMS is represented by a two-dimensional array (or matrix) with width \textit{w
 \end{figure}
 
 % algorithm for insertion
-\subsubsection*{Element Insertion}
+\subsection*{Element Insertion}
 When adding an element, for each row \textit{i} of the \textit{d} rows in the matrix, hash the element using that row's hash function to obtain \textit{j}. Lastly, for all obtained pairs of \textit{i} and \textit{j}, increment matrix cells \textit{(i, j)} value by 1, as seen in Figure \ref{fig:cms}. If elements have different weights these can be added instead of incrementing one unit.
 
 \begin{figure}[!htb]
@@ -424,7 +423,7 @@ When adding an element, for each row \textit{i} of the \textit{d} rows in the ma
 \end{figure}
 
 % algorithm for query
-\subsubsection*{Frequency Query}
+\subsection*{Frequency Query}
 Retrieving the minimum frequency of an element \textit{el} can be done by taking the minimum value of all row counts for \textit{el}. Mathematically, the frequency estimate is the minimum value of the set of all row values, for each row \textit{i} of the total \textit{d} rows, given by
 \[ min \{matrix[i][\textit{h\textsubscript{i}}(el)]\} \]
 
@@ -439,7 +438,7 @@ Figure \ref{fig:query-cms} illustrates this procedure, where the result of the q
 \end{figure}
 
 % error bound related with parameters
-\subsubsection*{Optimal number of hash functions} 
+\subsection*{Optimal number of hash functions} 
 For an element \textit{el}, each row will have one position incremented by \textit{el}'s true frequency. However, multiple elements may be mapped to the same position within a row, thus overlapping their frequencies. Hence, for an element \textit{el}, the CMS provides a frequency estimate that is greater or equal to the true frequency of \textit{el} in the set.
 
 The number of hash functions \textit{d} to be used depends on the desired error probability. To achieve an error probability $\delta$, \textit{d} is given by the following expression:
@@ -448,16 +447,17 @@ The number of hash functions \textit{d} to be used depends on the desired error 
 \end{equation}
 For example, to achieve an error $\delta$ = 1\%, \textit{d} = 5 hash functions are necessary.
 
-\subsubsection*{Time complexity analysis}
+\subsection*{Time complexity analysis}
 When adding an element, the Count-Min Sketch loops through each row and applies a constant in time hash function, updating the value of the target cell. Hence, insertion loops through \textit{d} rows and has time complexity of \textit{O(d)}. Similarly, querying the frequency of an element \textit{el} consists in computing the minimum of all row values. Since both insertion and query have constant time complexity, the CMS is constant in time.
 
-\subsubsection*{Space complexity analysis}
+\subsection*{Space complexity analysis}
 The Count-Min Sketch relies on a two-dimensional matrix as its only data structure. The memory used will correspond to the \textit{wd} counts, hence \textit{O(wd)} space complexity. Since both \textit{w} and \textit{d} are constants, the CMS has constant space complexity.
 
-\subsubsection*{Applicability to our Hypothesis}
+\subsection*{Applicability to our Hypothesis}
 Count-Min Sketches are constant in both time and space. Similarly to Bloom filters, this makes them ideal candidates for our solution. 
 
-\subsection{Cardinality Estimation and the HyperLogLog}
+\subsection{Cardinality Estimation and the HyperLogLog} \label{sec:hyper-log-log}
+
 A set of probabilistic counting algorithms is introduced by Flajolet et al. in \cite{Flajolet-PCA} to estimate the number of distinct elements of a set --- also known as the cardinality of the set. These techniques are based on \textit{"bit-pattern observables"} in the binary representation of the hashed values. Bit-pattern observables are defined by the authors as \textit{"patterns of bits occurring at the beginning of the (binary) S-values"}, with \textit{S} as the target set.
 
 Later on, the authors propose the LogLog algorithm \cite{Flajolet-LogLog}. In LogLog, the bit-pattern observable recorded for each item is the position of the leftmost 1-bit, denoted as \textit{P}. The authors claim it is related to the total number of distinct elements in the data set in that it is \textit{"more or less a likely indication that the cardinality of S is at least $2^P$"}.
@@ -472,12 +472,12 @@ Later on, the authors propose the LogLog algorithm \cite{Flajolet-LogLog}. In Lo
 % time complexity analysis
 % space complexity analysis
 % Applicability to our Hypothesis
-\subsubsection*{HyperLogLog}
+\subsection*{HyperLogLog}
 A couple of years later, the same authors propose HyperLogLog (HLL) \cite{Flajolet-HLL}, an approximate aggregator to compute the cardinality of a set. 
 
 HLL uses the same bit-pattern observable as LogLog --- \textit{P}, the position of the leftmost 1-bit. With LogLog, the authors realize that storing only one observation produces extremely inaccurate predictions due to the high variability of a single value. The proposed solution is to apply \textit{stochastic averaging}. As the authors state, stochastic averaging \textit{"consists in emulating the effect of m experiments"}. Effectively speaking, the authors propose dividing the input stream into \textit{m} substreams or buckets, maintaining one observable per bucket and computing \textit{P} as an average of all bucket values (stochastic averaging).
 
-\subsubsection*{Data Structure}
+\subsection*{Data Structure}
 HyperLogLog (HLL) maintains \textit{m} bit-pattern observables, each being the leftmost 1-bit position, \textit{P}. Since each position is a single integer, HLL maintains \textit{m} integer counters, as seen in Figure \ref{fig:hll-ds}. Each of these counters holds the maximum value for the bit-pattern observable seen so far. The first bit is assumed to be in position "1" and all counters begin with "0".
 
 \begin{figure}[!htb]
@@ -489,7 +489,7 @@ HyperLogLog (HLL) maintains \textit{m} bit-pattern observables, each being the l
 \end{figure}
 
 
-\subsubsection*{Element Insertion}
+\subsection*{Element Insertion}
 In HyperLogLog, new elements are hashed into a binary string. The first \textit{n} bits of the hashed representation will map to one of the \textit{m}=$2^n$ buckets. Effectively speaking, the first \textit{n} bits work as a \textit{bucket ID}. The bit-pattern observable \textit{P} --- the position of the leftmost 1-bit --- is counted from the binary string discarding the first \textit{n} bits. The observable \textit{P} is stored in the pre-determined bucket if it is greater than the value the bucket contains. 
 
 Figure \ref{fig:hll-insert} demonstrates such procedure for a new element \textit{el}. The hash representation of \textit{el}, using \textit{n}=2 bits, maps to bucket \textit{10}. Discarding the first \textit{n}=2 bits and counting from 1, the position of the leftmost 1-bit is \textit{P}=4. The previous value of bucket \textit{10} was 0 and because \textit{P}=4 is greater than 0 the bucket value is updated.
@@ -503,48 +503,87 @@ Figure \ref{fig:hll-insert} demonstrates such procedure for a new element \texti
     \end{center}
 \end{figure}
 
-\subsubsection*{Cardinality Query}
+\subsection*{Cardinality Query}
 The cardinality of the set is estimated to be $2^\textit{P}$ where the bit-pattern observable \textit{P} is the position of the leftmost 1-bit. As discussed, HyperLogLog (HLL) differentiates from LogLog in that it applies a stochastic averaging process. Hence, the value of \textit{P} will be the harmonic mean of all \textit{m} buckets.
 
 
-\subsubsection*{Time complexity analysis}
+\subsection*{Time complexity analysis}
 Adding an item is tantamount to hashing it, determining the corresponding bucket based on the first \textit{n} bits, counting the leftmost 1-bit position and updating the bucket value if need be. Estimating the cardinality of the set amounts to finding the maximum value \textit{P} between all buckets and computing $2^P$. Hence, both inserting a new element and estimating the cardinality of the set take constant time.
 
-\subsubsection*{Space complexity analysis}
+\subsection*{Space complexity analysis}
 Quoting Flajolet et al. about the memory consumption and error in the approximations obtained in their experiments in the original HyperLogLog paper \cite{Flajolet-HLL}: 
 \say{cardinalities till values over N = $10^9$ can be estimated with a typical accuracy of 2\% using 1.5kB (kilobyte) of storage.}
 
 HyperLogLog uses \textit{m} buckets that store a single integer value, thus the space complexity is \textit{O(m)} where \textit{m} is a rather small constant. Hence, HyperLogLog has constant space complexity.
 
-\subsubsection*{Applicability to our Hypothesis}
+\subsection*{Applicability to our Hypothesis}
 Similar to the previously studied approximate aggregators, HyperLogLog (HLL) has constant space and time complexity and provides an estimate of a set's cardinality. Hence, HLLs are considered valuable aggregators for our Thesis.
 
 
-% PDS have no way to expire old data (must for SWAG)
-% they could be implemented using one of the previously seen SWAG algorithms but lose the space efficiency
-% present sliding versions as solution
-
 \section{Sliding Window Aggregations with Probabilistic Data Structures}
-In Section \ref{sec:pds} we presented a set of probabilistic data structures constant in time and space. These structures aggregate an endless stream of data. However, when working under a sliding window context there is the need not only to insert new events but to evict old ones. Probabilistic data structures aggregate all incoming data but have no way of expiring old elements from the aggregation state. In this Section, we explore sliding window implementations of the previously discussed probabilistic data structures.
+In Section \ref{sec:pds} we presented a set of probabilistic data structures constant in time and space. These structures aggregate an endless stream of data. However, when working under a sliding window context there is the need not only to insert new events but to evict old ones. Probabilistic data structures aggregate all incoming data but have no way of expiring old elements from the aggregation state. 
+
+The probabilistic data structures studied can be implemented under generic sliding window aggregation algorithms like Recalculate-From-Scratch or DABA. However, doing so means we lose the main advantage of using these approximate aggregators: the constant space complexity. For example, cardinality estimation of a sliding window can be done employing the HyperLogLog heuristic of estimating cardinality as $2^\textit{p}$, with \textit{p} as the maximum position seen for the leftmost 1-bit, using DABA \ref{sec:daba} for the computation of the value \textit{p} per sliding window. With this approach, despite computing the aggregation state in constant time, we have a linear in window size space complexity solution. Thus, in this Section, we explore sliding window implementations of the previously discussed probabilistic data structures that keep the space and time complexity constant.
+
+%\subsection{Sliding Bloom filter}
+%\subsection*{Data Structure}
+%\subsection*{Element Insertion}
+%\subsection*{Element Eviction}
+%\subsection*{Time complexity analysis}
+%\subsection*{Space complexity analysis}
+%\subsection*{Applicability to our Hypothesis}
+
+%\subsection{Sliding Count-Min Sketch}
+%\subsection*{Data Structure}
+%\subsection*{Element Insertion}
+%\subsection*{Element Eviction}
+%\subsection*{Time complexity analysis}
+%\subsection*{Space complexity analysis}
+%\subsection*{Applicability to our Hypothesis}
 
 
-\subsection{Sliding Bloom filter}
-\subsubsection*{Time complexity analysis}
-\subsubsection*{Space complexity analysis}
-\subsubsection*{Applicability to our Hypothesis}
+\subsection{Sliding Window Cardinality Estimation and the Sliding HyperLogLog}
+
+The HyperLogLog (HLL) aggregator presented in Section \ref{sec:hyper-log-log} will only be useful to us if it can be implemented efficiently in a sliding window fashion. To that end, we analyze the work of Chabchoub et al. that adapts the original HLL aggregator from Flajolet et al. to work under a sliding window framework  \cite{Chabchoub-Sliding-HLL}.
+
+The HLL aggregator estimates on the set's cardinality assuming it is close to $2^\textit{p}$, where \textit{p} is the maximum position seen for the leftmost 1-bit in the binary values of all of the set items' hashes. In practice, all the aggregator has to compute is \textit{p}, the maximum value between a set of positions. Thus, the main idea behind Sliding HyperLogLog is to keep only the positions for the leftmost 1-bit that are possible future maximum values for \textit{p}.
+
+\subsection*{Data Structure}
+
+The adaptation of the original HLL to work under a sliding window scenario requires the storage of additional information. The original HLL maintained \textit{m} integer counters, each storing the maximum for the leftmost 1-bit position of the analyzed binary strings.  The counter held the maximum value for all the seen binary strings so far and there was no way to expire old items. To allow eviction, the proposed data structure is very similar to the original \textit{m} integer counters but keeps a list of values per bucket and associates a timestamp to each. 
+
+The stochastic averaging process of HLL remains unchanged: incoming items are hashed and distributed across \textit{m} buckets. However, the authors propose keeping a short list of \textit{packets} per bucket instead of a single integer count. A \textit{packet} is defined as a pair <\textit{t\textsubscript{i}, p\textsubscript{i}}> where \textit{t\textsubscript{i}} is the arrival timestamp of the packet and \textit{p\textsubscript{i}} the position of the leftmost 1-bit in the binary hash representation of the associated value. Packets in the list are possible maxima over future windows. Because of that, the authors name this list a \textit{"List of Future Possible Maxima (LFPM)"}.
+
+\subsection*{Element Insertion \& Eviction}
+Similarly to the original HLL, incoming elements are hashed and the first \textit{n} bits of the string are used to map the new element to one of the \textit{m} buckets. The first \textit{n} bits are then discarded and the bit-pattern observable \textit{p} is computed from the remaining string. 
+
+Since each bucket now holds a LFPM instead of a single integer, the procedure for bucket update is different. Upon insertion of an element \textit{k}, a packet <t\textsubscript{k}, p\textsubscript{k}> is created with t\textsubscript{k} as the timestamp of arrival of the new element \textit{k} and p\textsubscript{k} as the position of the leftmost 1-bit position of \textit{k}'s binary representation. Given the new packet <t\textsubscript{k}, p\textsubscript{k}>, the authors propose the following LFPM update method, that checks for and evicts old packets at each insertion:
+
+\begin{itemize}
+    \item Delete \textit{old packets}: packets that do not belong in the window anymore --- \textit{i.e.} packets <t\textsubscript{i}, p\textsubscript{i}> with t\textsubscript{i} $\leq$ t\textsubscript{k} - WindowSize 
+    
+    \item Delete less or equally valued packets: packets that will never be a maximum --- \textit{i.e.} packets <t\textsubscript{i}, p\textsubscript{i}> with p\textsubscript{i} $\leq$ p\textsubscript{k}
+    
+    \item Add the new packet <t\textsubscript{k}, p\textsubscript{k}>
+\end{itemize}
 
 
-\subsection{Sliding Count-Min Sketch}
-\subsubsection*{Time complexity analysis}
-\subsubsection*{Space complexity analysis}
-\subsubsection*{Applicability to our Hypothesis}
+\subsection*{Sliding Window Cardinality Query} 
+
+Estimation of cardinality is done similarly to the original HLL cardinality estimation algorithm. To estimate the cardinality at a timestamp \textit{t}, select packets that are in the window --- \textit{i.e.} packets <t\textsubscript{i}, p\textsubscript{i}> from the LFPM where t\textsubscript{i} > \textit{t} - WindowSize. This filtering is necessary since the proposed algorithm evicts old packets only at element insertion. However, it would be possible to do so when estimating the cardinality or even periodically. From the filtered list of packets, compute the highest p\textsubscript{i} among them. Do this for each bucket and in the end compute the harmonic mean between all values, just like the original HLL. The result will be the averaged bit-pattern observable value \textit{p} and the cardinality is estimated to be $2^\textit{p}$.
+
+\subsection*{Time complexity analysis}
+When performing insertions or evictions, the algorithm requires scanning through the Lists of Future Possible Maxima (LFPMs) to delete old packets or packets that will never be window maxima. Similarly, we need to scan the lists when estimating the cardinality to filter for packets within our window. Denote \textit{L\textsubscript{n}} as the mean size in packets for each LFPM. There are \textit{m} buckets, each with a list. To scan through all lists we need to analyze \textit{m L\textsubscript{n}} elements. 
+
+The authors prove that \textit{L\textsubscript{n}} has an upper bound of \textit{ln(n/m)}, with \textit{n} as the exact cardinality of the set and \textit{m} as the number of buckets used. Hence, in the worst-case scenario, we need to analyze \textit{m ln(n/m)} elements. This means that implementing a Sliding HLL using Lists of Future Possible Maxima has \textit{O(ln(n))} time complexity, given the number of buckets \textit{m} is constant.
+
+\subsection*{Space complexity analysis}
+The memory used in the Sliding HLL aggregator implemented with Lists of Future Possible Maxima (LFPMs) amounts to the total size of the \textit{m} lists. Assuming 4 byte timestamps and 1 byte bit-pattern observables for each packet, the aggregator uses \textit{(4+1) L\textsubscript{n} m} bytes. 
+
+Given \textit{ln(n/m)} as the upper bound for \textit{L\textsubscript{n}}, this sliding implementation of the HLL aggregator consumes up to \textit{(4+1) ln(n/m) m} bytes of memory. Considering that the number of buckets \textit{m} is constant, the space complexity of a Sliding HLL implementation with LFPM is \textit{O(ln(n))}. Thus, the growth of the window in size is followed by a logarithmic increase in used memory. 
+
+The authors claim that the proposed sliding version remains as accurate as the original HLL aggregator. In the context of their work, each element in the set is denoted as a "flow" and they state that \textit{"In practice, with an additional memory of only 35kB, a standard error of about 3\% can be achieved for a data stream of several million flows"}.
 
 
-\subsection{Sliding HyperLogLog}
-HyperLogLog  (HLL) will only be useful in our system if it can be implemented efficiently in a sliding window fashion. That is precisely what \cite{Chabchoub-Sliding-HLL} presents us with. In this paper, the original HLL algorithm from \cite{Flajolet-HLL} is adapted to a sliding window scenario with the use of slightly more memory. More importantly, the estimate is as accurate as in the original HLL algorithm. 
-
-It consumes additional space compared to the original algorithm of at most $5\textit{m}ln(\textit{n}/\textit{m})$ bytes, with \textit{m} being the number of buckets and \textit{n} the number of distinct elements actually flowing through the stream. As explained by the authors, storing additional context is required so that the algorithm can work in a sliding window fashion. Thus they propose maintaining a shortlist of packets. A packet consists of a pair \textit{(ti, Ri)}, where the \textit{ti} is the arrival time of the packet and \textit{Ri} is the position of the leftmost 1-bit in the binary representation of the hashed value associated with that packet. The idea is to store only packets that are a possible maximum over a future window. Hence, this list is called \textit{List of Future Possible Maxima (LFPM)}. Furthermore, they propose efficient methods for the insertion and eviction of new and old elements from the window, respectively. In this sliding version, one LFPM is kept per bucket. For that reason, estimating the set cardinality is similar to the original HyperLogLog: compute the harmonic mean for all buckets. The value of each bucket is the highest \textit{Ri} for that bucket. Hence, the extra required memory in the Sliding HyperLogLog algorithm presented is given by the size of the \textit{m} lists of future possible maxima.
-
-\subsubsection*{Time complexity analysis}
-\subsubsection*{Space complexity analysis}
-\subsubsection*{Applicability to our Hypothesis}
+\subsection*{Applicability to our Hypothesis}
+Implementing a Sliding HLL using Lists of Future Possible Maxima (LFPMs) shows logarithmic time and space complexity while maintaining the same accuracy as the original HLL approximate aggregator. Hence, this is a valid approach to test our Hypothesis.
