@@ -271,6 +271,9 @@ DABA stores the window contents in the \textit{vals} queue. Queue \textit{aggs} 
 \subsection*{Applicability to our Hypothesis}
 Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, requiring at least logarithmic space complexity, thus making DABA inapplicable for our Hypothesis.
 
+
+\textbf{TODO: Add table with SWAG algorithms, time and space complexity and applicable restrictions on the aggregation}
+
 \section{Probabilistic Data Structures} \label{sec:pds}
 In Section \ref{sec:sota-swag-algs} we presented some state-of-the-art algorithms for computing sliding window aggregations (SWAGs). However, if the aggregation we desire to compute can be approximated, there may exist more memory efficient methods. These aggregators are commonly denoted as sketches or probabilistic data structures and produce results orders-of magnitude faster then some exact approaches while keeping the memory consumption constant and providing mathematically proven error bounds. Each probabilistic data structure is used for efficient computation of one approximate aggregation, hence we say they are aggregation-specific.
 
@@ -373,13 +376,6 @@ We want to choose the number of hash functions \textit{k} in order to minimize t
 \begin{equation}
     \frac{m}{n}ln(2)
 \end{equation}
-
-\iffalse
-%TODO hash improvement probably better declared outside of bloom
-An improvement to this structure was defined in \cite{Kirsch-Better-Bloom} where the authors attempt to reduce the overhead of bloom filters operations such as adding a new element or answering a query by focusing on the hash functions. The proposed method is based on hashing literature. It has been shown that multiple hash functions can be created from the combination of only two hash functions. This means that a new hash function \textit{g} can be produced based on  two other independent and uniform existing hash functions, \textit{h1} and \textit{h2}. The new hash function will map elements to a universe ranging from \textit{0} to \textit{p-1} and will be defined as \textit{$g(x) = h1(x) + ih2(x) mod p$}. Since the only nontrivial computations performed by a Bloom filter are the evaluations of pseudo-random hash functions, any reduction in the required number of pseudo-random hash functions yields a reduction in the time required to add an element or query a Bloom filter.
-
-Bloom filters are not the only approximate aggregators that use hash functions as a basis of their algorithm. All of the studied probabilistic data structures do so. Therefore, the technique proposed is beneficial in HyperLogLogs, Count-Min Sketches and Bloom filters.
-\fi
 
 \subsection*{Time complexity analysis}
 Considering a Bloom filter with \textit{m} bits and \textit{k} hash functions, insertion has \textit{O(k)} time complexity because all there is to do is run the input through all of the \textit{k} hash functions and set the bits in the given positions to 1. Similarly, query answering has \textit{O(k)} time complexity because it needs only to run the input through the \textit{k} hash functions and check if all bits are set to 1. If so, it returns \textit{possibly in set}. Otherwise it returns \textit{definitely not in set}. 
@@ -519,11 +515,18 @@ HyperLogLog uses \textit{m} buckets that store a single integer value, thus the 
 \subsection*{Applicability to our Hypothesis}
 Similar to the previously studied approximate aggregators, HyperLogLog (HLL) has constant space and time complexity and provides an estimate of a set's cardinality. Hence, HLLs are considered valuable aggregators for our Thesis.
 
+\iffalse
+%TODO: Worth to show? HLL uses only one hash, only CMS and Bloom benefit from this.
+\subsection{Hash improvement}
+An improvement to this structure was defined in \cite{Kirsch-Better-Bloom} where the authors attempt to reduce the overhead of bloom filters operations such as adding a new element or answering a query by focusing on the hash functions. The proposed method is based on hashing literature. It has been shown that multiple hash functions can be created from the combination of only two hash functions. This means that a new hash function \textit{g} can be produced based on  two other independent and uniform existing hash functions, \textit{h1} and \textit{h2}. The new hash function will map elements to a universe ranging from \textit{0} to \textit{p-1} and will be defined as \textit{$g(x) = h1(x) + ih2(x) mod p$}. Since the only nontrivial computations performed by a Bloom filter are the evaluations of pseudo-random hash functions, any reduction in the required number of pseudo-random hash functions yields a reduction in the time required to add an element or query a Bloom filter.
+
+Bloom filters are not the only approximate aggregators that use hash functions as a basis of their algorithm. All of the studied probabilistic data structures do so. Therefore, the technique proposed is beneficial in Count-Min Sketches and Bloom filters.
+\fi
 
 \section{Sliding Window Aggregations with Probabilistic Data Structures}
-In Section \ref{sec:pds} we presented a set of probabilistic data structures constant in time and space. These structures aggregate an endless stream of data. However, when working under a sliding window context there is the need not only to insert new events but to evict old ones. Probabilistic data structures aggregate all incoming data but have no way of expiring old elements from the aggregation state. 
+In Section \ref{sec:pds} we presented a set of probabilistic data structures constant in time and space. These structures aggregate an endless stream of data. However, when working with sliding windows there is the need not only to insert new events but to evict old ones. Probabilistic data structures aggregate all incoming data but have no way of expiring old elements from the aggregation state. 
 
-The probabilistic data structures studied can be implemented under generic sliding window aggregation algorithms like Recalculate-From-Scratch or DABA. However, doing so means we lose the main advantage of using these approximate aggregators: the constant space complexity. For example, cardinality estimation of a sliding window can be done employing the HyperLogLog heuristic of estimating cardinality as $2^\textit{p}$, with \textit{p} as the maximum position seen for the leftmost 1-bit, using DABA \ref{sec:daba} for the computation of the value \textit{p} per sliding window. With this approach, despite computing the aggregation state in constant time, we have a linear in window size space complexity solution. Thus, in this Section, we explore sliding window implementations of the previously discussed probabilistic data structures that keep the space and time complexity constant.
+The probabilistic data structures studied can be implemented under generic sliding window aggregation algorithms like Recalculate-From-Scratch or DABA. However, doing so means we lose the main advantage of using these approximate aggregators: the constant space complexity. For example, cardinality estimation of a sliding window can be done employing the HyperLogLog heuristic of estimating cardinality as $2^\textit{p}$, with \textit{p} as the maximum position seen for the leftmost 1-bit, using DABA \ref{sec:daba} for the computation of \textit{p} per sliding window. With this approach, despite computing the aggregation state in constant time, we have a linear in window size space complexity solution. Thus, in this Section, we explore sliding window implementations of the previously discussed probabilistic data structures that keep the space and time complexity at the very least logarithmic.
 
 %\subsection{Sliding Bloom filter}
 %\subsection*{Data Structure}
@@ -542,19 +545,23 @@ The probabilistic data structures studied can be implemented under generic slidi
 %\subsection*{Applicability to our Hypothesis}
 
 
-\subsection{Sliding Window Cardinality Estimation and the Sliding HyperLogLog}
+\subsection{Sliding HyperLogLog}
 
-The HyperLogLog (HLL) aggregator presented in Section \ref{sec:hyper-log-log} will only be useful to us if it can be implemented efficiently in a sliding window fashion. To that end, we analyze the work of Chabchoub et al. that adapts the original HLL aggregator from Flajolet et al. to work under a sliding window framework  \cite{Chabchoub-Sliding-HLL}.
+The HyperLogLog (HLL) aggregator presented in Section \ref{sec:hyper-log-log} will only be useful to us if it can be implemented efficiently in a sliding window fashion. The HLL aggregator estimates the set's cardinality assuming it is close to $2^\textit{p}$, where \textit{p} is the maximum position seen for the leftmost 1-bit in the binary values of all of the set items' hashes. In practice, all the aggregator has to compute is \textit{p}, the maximum value of all observables. Stochastic averaging is applied by emulating the effects of \textit{m} experiments using \textit{m} buckets to store \textit{m} bit-pattern observables. 
 
-The HLL aggregator estimates on the set's cardinality assuming it is close to $2^\textit{p}$, where \textit{p} is the maximum position seen for the leftmost 1-bit in the binary values of all of the set items' hashes. In practice, all the aggregator has to compute is \textit{p}, the maximum value between a set of positions. Thus, the main idea behind Sliding HyperLogLog is to keep only the positions for the leftmost 1-bit that are possible future maximum values for \textit{p}.
 
-\subsection*{Data Structure}
+\subsubsection{Sliding HyperLogLog using Lists of Future Possible Maxima} \label{sec:hll-lfpm}
 
-The adaptation of the original HLL to work under a sliding window scenario requires the storage of additional information. The original HLL maintained \textit{m} integer counters, each storing the maximum for the leftmost 1-bit position of the analyzed binary strings.  The counter held the maximum value for all the seen binary strings so far and there was no way to expire old items. To allow eviction, the proposed data structure is very similar to the original \textit{m} integer counters but keeps a list of values per bucket and associates a timestamp to each. 
+The work of Chabchoub et al. adapts the original HLL aggregator from Flajolet et al. to work under a sliding window framework  \cite{Chabchoub-Sliding-HLL}.
+The main idea behind this implementation is to replace every HLL counter with a \textit{"List of Future Possible Maxima (LFPM)"}.
 
-The stochastic averaging process of HLL remains unchanged: incoming items are hashed and distributed across \textit{m} buckets. However, the authors propose keeping a short list of \textit{packets} per bucket instead of a single integer count. A \textit{packet} is defined as a pair <\textit{t\textsubscript{i}, p\textsubscript{i}}> where \textit{t\textsubscript{i}} is the arrival timestamp of the packet and \textit{p\textsubscript{i}} the position of the leftmost 1-bit in the binary hash representation of the associated value. Packets in the list are possible maxima over future windows. Because of that, the authors name this list a \textit{"List of Future Possible Maxima (LFPM)"}.
+\subsubsection*{Data Structure}
 
-\subsection*{Element Insertion \& Eviction}
+The adaptation of the original HLL to work under a sliding window scenario requires the storage of additional information. The original HLL maintained \textit{m} integer counters, each storing the maximum for the leftmost 1-bit position of the analyzed binary strings.  The counter held the maximum value for all the seen binary strings so far but there was no way to expire old items. To allow eviction, the proposed data structure is very similar to the original \textit{m} integer counters but keeps a list of values per bucket and associates a timestamp to each. 
+
+The stochastic averaging process of HLL remains unchanged: incoming items are hashed and distributed across \textit{m} buckets. However, the authors propose keeping a short list of \textit{packets} per bucket instead of a single integer count. A \textit{packet} is defined as a pair <\textit{t\textsubscript{i}, p\textsubscript{i}}> where \textit{t\textsubscript{i}} is the arrival timestamp of the packet and \textit{p\textsubscript{i}} the position of the leftmost 1-bit in the binary hash representation of the associated value. Packets are only kept in the list if they are possible maxima over future windows. Because of that, the authors name this list a \textit{"List of Future Possible Maxima (LFPM)"}.
+
+\subsubsection*{Element Insertion \& Eviction}
 Similarly to the original HLL, incoming elements are hashed and the first \textit{n} bits of the string are used to map the new element to one of the \textit{m} buckets. The first \textit{n} bits are then discarded and the bit-pattern observable \textit{p} is computed from the remaining string. 
 
 Since each bucket now holds a LFPM instead of a single integer, the procedure for bucket update is different. Upon insertion of an element \textit{k}, a packet <t\textsubscript{k}, p\textsubscript{k}> is created with t\textsubscript{k} as the timestamp of arrival of the new element \textit{k} and p\textsubscript{k} as the position of the leftmost 1-bit position of \textit{k}'s binary representation. Given the new packet <t\textsubscript{k}, p\textsubscript{k}>, the authors propose the following LFPM update method, that checks for and evicts old packets at each insertion:
@@ -568,22 +575,64 @@ Since each bucket now holds a LFPM instead of a single integer, the procedure fo
 \end{itemize}
 
 
-\subsection*{Sliding Window Cardinality Query} 
+\subsubsection*{Sliding Window Cardinality Query} 
 
-Estimation of cardinality is done similarly to the original HLL cardinality estimation algorithm. To estimate the cardinality at a timestamp \textit{t}, select packets that are in the window --- \textit{i.e.} packets <t\textsubscript{i}, p\textsubscript{i}> from the LFPM where t\textsubscript{i} > \textit{t} - WindowSize. This filtering is necessary since the proposed algorithm evicts old packets only at element insertion. However, it would be possible to do so when estimating the cardinality or even periodically. From the filtered list of packets, compute the highest p\textsubscript{i} among them. Do this for each bucket and in the end compute the harmonic mean between all values, just like the original HLL. The result will be the averaged bit-pattern observable value \textit{p} and the cardinality is estimated to be $2^\textit{p}$.
+Estimation of cardinality is done similarly to the original HLL cardinality estimation algorithm. To estimate the cardinality at a timestamp \textit{t}, from all \textit{m} buckets and all \textit{m} lists, select packets that are in the window --- \textit{i.e.} packets <t\textsubscript{i}, p\textsubscript{i}> where t\textsubscript{i} > \textit{t} - WindowSize. This filtering is necessary since the proposed algorithm evicts old packets only at element insertion and at the time of the query some packets may no longer belong to the window. Next, from the filtered set of packets, for each bucket and its list, compute the maximum p\textsubscript{i} value. In the end, compute the harmonic mean between all values, just like the original HLL. The result will be the averaged bit-pattern observable value \textit{p} and the cardinality is estimated to be $2^\textit{p}$.
 
-\subsection*{Time complexity analysis}
+\subsubsection*{Time complexity analysis}
 When performing insertions or evictions, the algorithm requires scanning through the Lists of Future Possible Maxima (LFPMs) to delete old packets or packets that will never be window maxima. Similarly, we need to scan the lists when estimating the cardinality to filter for packets within our window. Denote \textit{L\textsubscript{n}} as the mean size in packets for each LFPM. There are \textit{m} buckets, each with a list. To scan through all lists we need to analyze \textit{m L\textsubscript{n}} elements. 
 
-The authors prove that \textit{L\textsubscript{n}} has an upper bound of \textit{ln(n/m)}, with \textit{n} as the exact cardinality of the set and \textit{m} as the number of buckets used. Hence, in the worst-case scenario, we need to analyze \textit{m ln(n/m)} elements. This means that implementing a Sliding HLL using Lists of Future Possible Maxima has \textit{O(ln(n))} time complexity, given the number of buckets \textit{m} is constant.
+The authors prove that \textit{L\textsubscript{n}} has an upper bound of \textit{ln(n/m)}, with \textit{n} as the cardinality of the set and \textit{m} as the number of buckets used. Hence, in the worst-case scenario, we need to analyze \textit{m ln(n/m)} elements. This means that a Sliding HLL implementation using Lists of Future Possible Maxima has \textit{O(ln(n))} time complexity, given the number of buckets \textit{m} is constant.
 
-\subsection*{Space complexity analysis}
+\subsubsection*{Space complexity analysis}
 The memory used in the Sliding HLL aggregator implemented with Lists of Future Possible Maxima (LFPMs) amounts to the total size of the \textit{m} lists. Assuming 4 byte timestamps and 1 byte bit-pattern observables for each packet, the aggregator uses \textit{(4+1) L\textsubscript{n} m} bytes. 
 
-Given \textit{ln(n/m)} as the upper bound for \textit{L\textsubscript{n}}, this sliding implementation of the HLL aggregator consumes up to \textit{(4+1) ln(n/m) m} bytes of memory. Considering that the number of buckets \textit{m} is constant, the space complexity of a Sliding HLL implementation with LFPM is \textit{O(ln(n))}. Thus, the growth of the window in size is followed by a logarithmic increase in used memory. 
+The lists are dynamic thus they shrink and grow at run time. However, \textit{ln(n/m)} was proved to be an upper bound for \textit{L\textsubscript{n}}. Hence, this sliding implementation of the HLL aggregator consumes up to \textit{(4+1) ln(n/m) m} bytes of memory. Considering that the number of buckets \textit{m} is constant, the space complexity of a Sliding HLL implementation with LFPM is \textit{O(ln(n))}.
 
 The authors claim that the proposed sliding version remains as accurate as the original HLL aggregator. In the context of their work, each element in the set is denoted as a "flow" and they state that \textit{"In practice, with an additional memory of only 35kB, a standard error of about 3\% can be achieved for a data stream of several million flows"}.
 
 
-\subsection*{Applicability to our Hypothesis}
-Implementing a Sliding HLL using Lists of Future Possible Maxima (LFPMs) shows logarithmic time and space complexity while maintaining the same accuracy as the original HLL approximate aggregator. Hence, this is a valid approach to test our Hypothesis.
+\subsubsection*{Applicability to our Hypothesis}
+Implementing a Sliding HLL using Lists of Future Possible Maxima (LFPMs) shows logarithmic time and space complexity while providing estimates with the same accuracy as the original HLL approximate aggregator. However, the memory consumption is dynamic due to the variable size of the lists. 
+
+Despite the fact memory consumption dynamically changes during runtime, this is a valid approach to test our Hypothesis due to the worst-case scenario being a logarithmic space complexity. However, in Section \ref{sec:hll-drv} we analyze an implementation that is not dynamic in memory during run time making it a preferred approach.
+
+
+\subsubsection{Sliding HyperLogLog using Distance Recorder Vectors} \label{sec:hll-drv}
+
+In Section \ref{sec:hll-lfpm} we have analyzed a Sliding HLL implementation where each of the \textit{m} buckets holds a list of values (LFPM) instead of a single integer count. However, the LFPM structure is dynamic and its size varies at run time. 
+
+The approach proposed by Xu uses a smaller amount of memory that does not change at run time \cite{Xu-hll-sliding-drv}. The author proposes a special counter: a \textit{"Distance Recorder Vector (DRV)"}. 
+
+\subsubsection*{Data Structure}
+Much like the original HLL and the LFPM Sliding implementation, the Distance Recorder Vector (DRV) approach uses \textit{m} buckets. However, instead of integer counts or lists, each of the buckets stores a DRV. 
+
+A DRV is composed by \textit{$\lceil ln(n/m) \rceil$} records, with \textit{n} as the cardinality of the set. Notice that \textit{n/m} is the average number of distinct elements each bucket \textit{m} is expected to process and that a binary string of size \textit{$\lceil ln(n/m) \rceil$} can represent \textit{n/m} distinct elements. Also recall that the bit-pattern observable \textit{p} used by the HLL is the position of the leftmost 1-bit. In a binary string of size \textit{$\lceil ln(n/m) \rceil$}, \textit{p} will range from 1 to \textit{$\lceil ln(n/m) \rceil$}. The DRV is indexed exactly this way, from 1 to \textit{$\lceil ln(n/m) \rceil$}, and each bit-pattern observable \textit{p} will be used as an index in this vector of records. Essentially, each \textit{p} will have an associated record in a DRV of a bucket.
+
+Initially, all records in the DRV will be set to be infinity or a large number.
+
+\subsubsection*{Element Insertion}
+When an element is inserted, the same procedure as in the original HLL is followed: the element is hashed and \textit{p} is computed from the hashed binary representation. Denote the bit-pattern observable of the new element as \textit{p\textsubscript{new}}. For the DRV of that bucket, increment the value of all records by one. Next, set position \textit{p\textsubscript{new}} in the DRV to 0 (DRV[\textit{p\textsubscript{new}}] = 0).
+
+
+\subsubsection*{Sliding Window Cardinality Query} 
+Element eviction is not performed. Instead, the query algorithm takes into account that some records in some of the DVR's might not be valid anymore. To estimate the sliding window cardinality is to find the value \textit{p}. 
+
+To find the value \textit{p} for a bucket, scan the DRV of that bucket backward. Start at the last element --- positioned at \textit{$\lceil ln(n/m) \rceil$} --- and scan towards the head of the vector. For each record, check if it is active in the current window. To do so, check if its value is less than the size of the window. If it is, the record is active. Otherwise, the record is inactive.
+
+If the record is inactive continue scanning backward. If the record is active, then the position or index currently being scanned is the value of \textit{p} for that bucket. If all records are inactive, the bit-pattern observable \textit{p} is 0.
+
+Stochastic averaging is done just like in the original HLL: compute the harmonic mean of all \textit{p\textsubscript{m}} values from all \textit{m} buckets. The cardinality of the sliding window is then estimated to be $2^\textit{p}$.
+
+\subsubsection*{Time complexity analysis}
+When inserting an element, determining its bucket, hashing the element and computing \textit{p} is done in constant time. However, all the  \textit{$\lceil ln(n/m) \rceil$} records must have their value increased by one and this means iterating over the DRV. Setting the element of the DRV indexed by \textit{p} to 0 is done in constant time as well. 
+
+Estimating cardinality is done by scanning the DRV backward until an active record is found. In the worst-case scenario, this means scanning all \textit{$\lceil ln(n/m) \rceil$} records.
+
+Both inserting an element and estimating sliding window cardinality require a scan through \textit{$\lceil ln(n/m) \rceil$} records. This gives us a time complexity of \textit{O(\textit{ln(n)})}, given the number of buckets \textit{m} is constant. 
+
+\subsubsection*{Space complexity analysis}
+This approach still uses \textit{m} buckets but each one contains a Distance Recorder Vector (DRV). A DRV is a vector of \textit{$\lceil ln(n/m) \rceil$} elements. Hence, \textit{$m \lceil ln(n/m) \rceil$} elements must be kept in memory, giving us a space complexity of \textit{O(ln(n))} with \textit{n} as the cardinality of the set.
+
+\subsubsection*{Applicability to our Hypothesis}
+Despite having the same time and space complexities, the Sliding HLL DRV approach uses a smaller amount of memory that does not change during runtime, while the LFPM requires heap resizing because the lists dynamically shrink and grow. Hence, the DRV approach is a better fit to integrate our lightweight real-time solution.

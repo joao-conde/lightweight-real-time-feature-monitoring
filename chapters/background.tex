@@ -149,6 +149,7 @@ Subtract-On-Evict is an improvement over the Recalculate-From-Scratch algorithm 
 
 Tangwongsan et al. construct Table \ref{tbl:aggregations-properties} to summarize the aggregation families and satisfied properties \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
 
+%TODO: change the sketch-like from the aggregator to the aggregation: bloom filter to membership query, CMS to frequency estimation and HLL to cardinality estimation
 \begin{table}[!htb]
     \begin{center}
       \includegraphics[scale=0.4]{figures/aggregation-operations-properties.png}
@@ -175,6 +176,17 @@ Based on the \textit{combine} and \textit{lower} functions, the following are fo
 
 
 The aggregation properties analyzed in this Section will be used to evaluate SWAG algorithms. Different algorithms might only apply to certain families of aggregations. This way, the multiple SWAG algorithms presented throughout this Thesis will be analyzed not only on their time and space complexity but also on the restrictions they impose regarding the aggregation' properties required. For example, under this framework, to implement Subtract-On-Evict (SOE), both the \textit{combine} $\oplus$ and its inverse $\ominus$ functions must be implemented so that SOE applies $\ominus$ to expire the evicted element from the aggregation state. Since SOE only restriction is for the aggregation to be invertible it works for the \textit{sum-like}, \textit{collect-like} and \textit{median-like} families in Table \ref{tbl:aggregations-properties}.
+
+\section{Aggregations on data types}
+
+Some aggregations are only possible on certain data types. For instance, computing an average on a set of strings is not possible. In this Section we present the data types we will work with and the set of possible aggregations to compute on them.
+
+We consider four data types: \textit{numericals}, \textit{strings}, \textit{dates} and \textit{categoricals}. Numerical variables can be measured. When compared to classical programming data types, for example those of the C programming language, numericals comprise variable types \textit{short}, \textit{long}, \textit{int}, \textit{float}, \textit{double} and valid combinations of the previous --- \textit{e.g.} \textit{long int}. On the other hand, Strings are sequences of characters. The \textit{string} type is the most generic data type in that any other type can be converted to a string. Every variable, for example \textit{x}=3, can be turned into a string \textit{s}, for example \textit{s}="3". Similarly, a date is a sequence of characters and thus a string. However, despite being a string, it has semantics unlike a regular one. Knowing the date format, one can extract the day, month and year. For that reason we make the distinction between the \textit{string} and \textit{date} data types. Lastly, a \textit{categorical} is a variable that takes one of a relatively small and known set of possible values. A variable is assigned to a particular category based on its properties. The categorical variable is also a sequence of characters and therefore a string variable. The main difference between the categorical data type and the string is that we know the set of possible labels the categorical variable might take and this affects the type of computable aggregations.
+
+On a set of numerical variables, we can compute sums, minima, maxima, averages, standard deviations and counts (of zeros, infinities and others). When operating on a set of strings, we can aggregate the collection into a concatenation of strings, a count, a membership query, cardinality.
+
+
+
 
 % \section{Concept drift}
 % seasonal and evolutionary
