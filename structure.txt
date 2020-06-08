@@ -1,0 +1,140 @@
+Introduction
+    Context
+    Objectives
+    Motivation
+    Hypothesis
+    Hypothesis Validation
+    Document structure
+
+Background
+    Stream processing as a superset of batch processing
+    From unbounded streams to finite data sets
+    Aggregations over data
+        Sliding Window Aggregations
+        Sliding Window Aggregation Algorithms
+        Aggregation properties
+    Exponential Moving Averages
+    Summary
+
+State of the Art
+    ... REFACTOR ...
+
+Problem Statement
+    Detecting changes in distribution between a reference/static period and the observed data flowing through a stream
+    Time constraints (real-time)
+    Memory constraints (lightweight)
+
+Lightweight Real-Time Feature Monitoring (my work)
+    What we want
+        A reference aggregation snapshot to compare with 
+        a streaming aggregation that must be kept in real-time and constant in memory usage
+    
+    Data Mining outlier detection techniques
+        - cons: to expensive, relate to SOTA
+    
+    Sliding Window Aggregations
+        - build a aggregation snapshot of the reference and compare with streaming aggregations
+        - challenges: 
+            generic SWAG algorithms grow linearly in space regarding window size
+            defining the set of aggregations that can be done at feature level that represent the current state well enough for comparison and change detection
+            defining the threshold of deviation between the reference aggregation values and current streaming aggregations to raise alerts
+        - mention challenge 1 can be solved with Probabilistic Data Structures and EMAs
+        - there is no trivial solution for the others
+            - present an example (2 time-series same max min median and std. but different)
+
+    Numerical feature monitoring: a two-phased method
+        - introduce method as two-phased method (batch and streaming)
+        
+        - what is our goal in the streaming phase?
+            - alert when streaming fields/features/variables' distribution changes considerably
+            - need to choose an aggregation that allows us to know the distribution of variables -> histogram for each feature
+                - lightweight -> approximated EMA-based histogram (recall EMAs background), each bin count is an EMA-count aggregation
+                - describe an EMA approximated histogram and how it discounts old events, the simulated window size, ...
+            - we can compute an exact histogram over the reference period because it is done in batch, where resources like RAM or time are not heavily constrained in constrast to streaming systems
+            - given 2 histograms (ref hist and stream hist) we can apply distance metrics (such as a JSD)
+                - worth mentioning other metrics can be used (Wasserstein distance, Kolmogorov–Smirnov, ...)
+            - but how to threshold this "distance" value? ----> we need to know the distribution of "distance" values
+                - how is this accomplished
+                - agressive sampling within ref period of smaller periods (equal in size to the stream simulated window)
+                - give a practical use-case where it makes a diference:
+                    - left-skewed distro vs right-skewed distro ---> threshold is very different (95 or 99 percentile for example)
+
+        - batch phase: build reference exact histogram and distribution of distance values
+            1. compute ref histogram (for each feature)
+                - equal heights/counts per bin, different size bins ---> better adjusted to wildly varying distributions
+            2. make samples of length equal to streaming window size, build histograms for each using bins from reference histogram to make later accurate comparisons between ref hist and sample hist
+                - why multiple sample histograms?
+                    encode distributions over smaller time periods since there may be pattern changes within the large reference period
+                - why an approximated histogram for the samples as well despite being done in batch?
+                    mimic the streaming approximated histogram and the test that will be performed:
+                        - batch: sample app. histogram vs ref hist
+                        - stream: streaming app. histogram vs ref hist
+            3. compute the distance between each sample's histogram and the reference one (for each feature)
+            4. we now have a list of distance values, and know their expected distribution (for each feature)
+                - this is important since a test value obtained measuring the distance between the reference period and other window
+                can be compared to this distribution (again probably give the left and right skewed example)
+
+            By the end of the batch phase we have:
+                for each feature:
+                    reference histogram (for later comparison with streaming histogram)
+                    list/histogram of distance values
+                    last sample's histogram ---> used as burn-in period for target histogram
+
+        - online phase:
+            for each feature:
+                1. initialize the streaming histogram as the last sample's histogram from the batch phase (burn-in period)
+            
+            for each event:
+                for each field/feature:
+                    1. update the feature's streaming histogram (recall the update method)
+                    2. compute the distance between the reference histogram and the target histogram
+                    3. test the percentile the distance value fits according to the feature's distances list and alert if above a certain percentile (say the 99th)
+
+            introduce the multiple testing correction problem:
+                "the more inferences are made, the more likely erroneous inferences are to occur"
+                we are making multiple hypothesis testing when computing a distance and checking the percentile for each feature
+
+                introduce the Holm-Bonferroni multiple test correction method
+            
+            So in reality we have:
+
+            for each event:
+                for each field/feature:
+                    1. update the feature's streaming histogram (recall the update method)
+                    2. compute the distance between the reference histogram and the target histogram
+                    3. apply holm-bonferroni for all feature's distances:
+                        - each percentile will be a p-value
+                        - order features by p-value
+                        - check if p-value > FWER / (m + 1 - k)
+                            if so then feature is divergent
+
+    Summary
+    
+
+Implementation Details
+...
+    Summary
+
+Method validation
+    Data sets
+        Synthetic data set description
+        Real data set from financial fraud space(anonymized)
+
+    Tests description
+        Single feature
+        Multi feature
+
+    Test results
+        Data Science perspective
+            Single feature
+            Multi feature
+        Engineering perspective
+            
+    Conclusions
+
+Conclusions
+    Hypothesis Summary
+    Answer each RQ
+    Contributions
+    Future work
+    Epilogue
