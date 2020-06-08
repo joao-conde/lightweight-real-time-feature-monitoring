@@ -17,7 +17,24 @@ Background
     Summary
 
 State of the Art
-    ... REFACTOR ...
+    Anomaly detection in time-series data
+        Taxonomy presented by Conde et. al
+            definiton of time-series
+            definition of outlier, anomaly, etc...
+            "focus on time-series, unlike other surveys..."
+        Point outlier detection methods
+        Subsequence outlier detection methods
+    Sliding Window Aggregation Algorithms
+        2 Stacks
+        DABA
+        ...
+    Probabilistic Data Structures
+        Bloom filter
+        Count-Min Sketch
+        HyperLogLog
+    Sliding Window Aggregations with Probabilistic Data Structures
+        Sliding HyperLogLog
+        (Need for Sliding Bloom and Sliding CMS)
 
 Problem Statement
     Detecting changes in distribution between a reference/static period and the observed data flowing through a stream
@@ -134,7 +151,7 @@ Method validation
 
 Conclusions
     Hypothesis Summary
-    Answer each RQ
+    Answer to the hypothesis
     Contributions
     Future work
     Epilogue
