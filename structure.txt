@@ -2,8 +2,8 @@ Introduction
     Context
     Objectives
     Motivation
-    Hypothesis
-    Hypothesis Validation
+    Hypothesis (?)
+    Hypothesis Validation (?)
     Document structure
 
 Background
@@ -129,7 +129,7 @@ Method validation
             Single feature
             Multi feature
         Engineering perspective
-            
+
     Conclusions
 
 Conclusions
