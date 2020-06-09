@@ -20,8 +20,8 @@ State of the Art
     Outlier detection in time-series data
         Taxonomy presented by Conde et. al
             definiton of time-series
-            definition of outlier, anomaly, etc...
-            "focus on time-series, unlike other surveys..."
+            definition of outlier
+            taxonomy axes
         Point outlier detection methods
         Subsequence outlier detection methods
     Sliding Window Aggregation Algorithms
