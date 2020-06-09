@@ -47,11 +47,12 @@ A true sliding window is defined by any given window size \textit{W} and a unita
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.3]{figures/sliding.png}
+      \hspace*{0.6in}
+      \includegraphics[scale=0.4]{figures/sliding.png}
       \caption[True sliding window]{True sliding window, W=3, S=1}
-      \label{fig:sliding-window}
+      \label{fig:sliding-window} 
     \end{center}
-\end{figure}
+\end{figure} 
 
 % stepping windows (per x units over Y window size)
 % stepping: step > 1 < window size
@@ -93,7 +94,8 @@ For the scope of this Thesis, we will work under a tuple-based sliding window fr
 An aggregation --- also known as a fold, reduce or accumulate --- is an operation that reduces a collection of values to a single one. Examples of such are the computation of data set sums, minima, averages or the number of distinct elements (cardinality). An aggregation may be exact or approximate. Exact aggregations compute a value from a sequence of elements, where no error or loss of resolution exists. On the other hand, approximate aggregations have an error margin to the associated aggregation value which is usually controllable by adjusting a set of parameters. 
 Approximate aggregations are required when memory is limited, the volume of data to process is large and/or computing the exact aggregation can not be done in useful time. Thus, approximate aggregators trade precision of results for efficient time and space usage. In Section \ref{sec:pds} we explore approximate aggregators that make such a trade-off.
 
-Aggregations are present in most programming languages and frameworks. Quoting from the Java programming language documentation on the \textit{Stream.reduce()} method\footnote{https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/stream/package-summary.html\#Reduction}: \textit{"A reduction operation (also called a fold) takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation"}. Similarly, Hadoop's MapReduce paradigm consists of first applying \textit{map} steps to the collection of data and then a \textit{reduce} one. \textit{Map} tasks will transform each item as desired and the \textit{reduce} task will merge the collection into a single value. Reduce methods make use of a \textit{combine} function and recursively apply it. The \textit{combine} function takes the current aggregation value and combines it with the next item in the set, returning the new aggregated state. Doing this recursively for each item in the collection results in a single value: the aggregate value.
+Aggregations are present in most programming languages and frameworks. Quoting from the Java programming language documentation on the \textit{Stream.reduce()} method\footnote{https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/stream/package-summary.html\#Reduction}: 
+\textit{"A reduction operation (also called a fold) takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation"}. Similarly, Hadoop's MapReduce paradigm consists of first applying \textit{map} steps to the collection of data and then a \textit{reduce} one. \textit{Map} tasks will transform each item as desired and the \textit{reduce} task will merge the collection into a single value. Reduce methods make use of a \textit{combine} function and recursively apply it. The \textit{combine} function takes the current aggregation value and combines it with the next item in the set, returning the new aggregated state. Doing this recursively for each item in the collection results in a single value: the aggregate value.
 
 \subsection{Sliding Window Aggregations}
 
@@ -115,8 +117,7 @@ A sliding window aggregation algorithm allows the computation of an exact or app
 Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)} and \textit{Subtract-On-Evict (SOE)}.
 
 Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. Figure \ref{fig:pseudo-rfs} shows pseudocode for RFS \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
-
-
+  
 
 \begin{figure}[!htb]
     \begin{center}
