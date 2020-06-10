@@ -3,7 +3,7 @@ Introduction
     Objectives
     Motivation
     Hypothesis (?)
-    Hypothesis Validation (?)
+    Methodology (?)
     Document structure
 
 Background
@@ -146,7 +146,7 @@ Method validation
             Single feature
             Multi feature
         Engineering perspective
-
+    % problems validating
     Conclusions
 
 Conclusions
@@ -154,4 +154,4 @@ Conclusions
     Answer to the hypothesis
     Contributions
     Future work
-    Epilogue
+    
