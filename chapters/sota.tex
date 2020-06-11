@@ -58,21 +58,27 @@ Ideally we want to maintain for each data point \textit{p\textsubscript{i}} the 
 \[ \textit{p\textsubscript{i}.lt\_cnt} = \{\textit{W\textsubscript{i}}: 3, \textit{W\textsubscript{i+1}}: 2, \textit{W\textsubscript{i+2}}: 0\} \]
 The lifetime neighbor counts (\textit{lt\_cnt}) carry enough information to compute density-based point outliers: for each data point \textit{p\textsubscript{i}} check if the first or current element of \textit{p\textsubscript{i}.lt\_cnt} is less than a user-defined threshold $\alpha$ to decide whether a data point is an outlier or not.
 
-\subsubsection*{Time complexity analysis}
+
+\subsubsection*{Method classification}
+Extra-N can take both uni or multivariate time-series as input data. However, it does not relate multiple time-series and does not take into account possible dependencies between different time-dependent variables. In that sense, and according to the presented taxonomy (Figure \ref{fig:outlier-taxonomy}), the method is of univariate nature. Last but not least, Extra-N aims to detect univariate point outliers. These point outliers are identified based on the density of the region or neighborhood they belong too. Hence, we say Extra-N is a density-based method (Figure \ref{fig:point-outlier-taxonomy}).
+
+\subsubsection*{Time complexity}
 
 To find outliers, Extra-N has to do a linear search through the list of points and check the neighbor counts. Hence, for outlier detection, this method shows \textit{O(n)} complexity with \textit{n} as the number of points. Additionally, for each new data point \textit{p\textsubscript{i}}, Extra-N has to perform a range query search centered on it to find its neighbors and increment their lifetime neighbor counts by one. The run-time complexity of a range query search is \textit{O(log(n))} \cite{range-query-log} with \textit{n} as the number of data points.
 
 In summary, Extra-N shows logarithmic time complexity when updating the sliding window and linear time complexity when looking for outliers, both relative to the window size.
 
 
-\subsubsection*{Space complexity analysis}
+\subsubsection*{Space complexity}
 Extra-N has to keep a lifetime neighbor count dictionary-like object for each window data point. For that reason, we claim that Extra-N achieves linear memory consumption relative to the number of data points in the window.
 
 \subsubsection*{Applicability to our Hypothesis}
 Extra-N memory consumption grows linearly in regards to window size, so it does not fit our desired lightweight system architecture. Furthermore, updating the sliding window should be done in constant time, which is not the case for Extra-N. Hence, this algorithm will be of no use to us.
 
 \subsection{Real-Time Stream Anomaly Detection with Hierarchical Temporal Memory}
-HTM
+\subsubsection*{Method classification}
+\subsubsection*{Applicability to our Hypothesis}
+
 \iffalse
 HTM\\
 point outlier, model-based, prediction\\
@@ -81,7 +87,9 @@ explain properties\\
 use what authors say in their review\\
 \fi
 \subsection{DeepAnT}
-DeepAnT
+\subsubsection*{Method classification}
+\subsubsection*{Applicability to our Hypothesis}
+
 \iffalse
 DeepAnT\\
 point outlier, model-based, prediction\\
@@ -118,7 +126,10 @@ Lastly, we have information theory based methods for univariate subsequence outl
 with \textit{F(S)} as the frequency of subsequence S, \textit{I(S)} as the information carried by S and $\alpha$ as a given threshold. According to the authors, \textit{"I(S) is computed taking into account the number of times the symbols within S are repeated through the series"}. The authors explain that if \textit{F(S)} is large --- \textit{i.e.} S occurs frequently --- then \textit{I(S)} will be closer to 0.
 
 \subsection{A two window paradigm algorithm for change detection}
-
+\subsubsection*{Method classification}
+\subsubsection*{Time complexity}
+\subsubsection*{Space complexity}
+\subsubsection*{Applicability to our Hypothesis}
 
 
 \iffalse
