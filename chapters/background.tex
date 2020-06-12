@@ -58,6 +58,9 @@ A true sliding window is defined by any given window size \textit{W} and a unita
 % stepping: step > 1 < window size
 A stepping window behaves exactly like a true sliding one but the step size \textit{S} is not unitary. In other words, a stepping window is defined by any window size \textit{W} and steps \textit{S} greater than a unit. Once again, both the window and step sizes, \textit{W} and \textit{S} respectively, can be time or tuple-based. Figure \ref{fig:stepping-window} represents a stepping tuple-based window of size \textit{W} of three and a stepping size \textit{S} of two.
 
+
+\textcolor{red}{TODO change all window drawings to a not horrendous style}
+
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.3]{figures/stepping.png}
@@ -80,7 +83,7 @@ A tumbling window, also defined by its window size \textit{W} and step size \tex
 The mathematical expression below summarizes our categorization of sliding windows.
 \begin{equation} 
 \label{math:windows}
-  Sliding Window \,\, of \,\, size \,\, W, \,\, step \,\, S =
+  Sliding\ window \,\, of \,\, size \,\, W, \,\, step \,\, S =
     \begin{cases}
       true \,\, sliding & \text{if \textit{S}=1}\\
       stepping & \text{if \textit{S}>1}\\
@@ -96,7 +99,7 @@ An aggregation --- also known as a fold, reduce or accumulate --- is an operatio
 Approximate aggregations are required when memory is limited, the volume of data to process is large and/or computing the exact aggregation can not be done in useful time. Thus, approximate aggregators trade precision of results for efficient time and space usage. In Section \ref{sec:pds} we explore approximate aggregators that make such a trade-off.
 
 Aggregations are present in most programming languages and frameworks. Quoting from the Java programming language documentation on the \textit{Stream.reduce()} method\footnote{https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/stream/package-summary.html\#Reduction}: 
-\textit{"A reduction operation (also called a fold) takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation"}. Similarly, Hadoop's MapReduce paradigm consists of first applying \textit{map} steps to the collection of data and then a \textit{reduce} one. \textit{Map} tasks will transform each item as desired and the \textit{reduce} task will merge the collection into a single value. Reduce methods make use of a \textit{combine} function and recursively apply it. The \textit{combine} function takes the current aggregation value and combines it with the next item in the set, returning the new aggregated state. Doing this recursively for each item in the collection results in a single value: the aggregate value.
+\textit{"A reduction operation (also called a fold) takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation"}. Similarly, Hadoop's MapReduce paradigm consists of first applying \textit{map} steps to the collection of data and then a \textit{reduce} one. \textit{Map} tasks will transform each item as desired and the \textit{reduce} task will merge the collection into a single value. Reduce methods make use of a \textit{combine} function and recursively apply it. The \textit{combine} function takes the current aggregation value and combines it with the next item in the set, returning the new aggregated state. Doing this recursively for each item in the collection results in a single value: the aggregate value. The combine function is here on forward represented by $\oplus$ and the identity or neutral element of the aggregation by $\overline{\theta}$.
 
 \subsection{Sliding Window Aggregations}
 
@@ -115,38 +118,71 @@ In the query above, the \textit{TUMBLE(timestamp, Time.minutes(5), rack\_id)} st
 
 A sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. A SWAG algorithm may restrict the set of computable aggregations based on their properties. Different SWAG algorithms use different data structures for the window contents and the incremental aggregation state.
 
-Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)} and \textit{Subtract-On-Evict (SOE)}.
-
-Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. Figure \ref{fig:pseudo-rfs} shows pseudocode for RFS \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
+Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)} and \textit{Subtract-On-Evict (SOE)}. Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. Recall that the combine function is represented by $\oplus$ and the identity or neutral element of the aggregation by $\overline{\theta}$. Pseudocode for the Recalculate-From-Scratch algorithm is shown in Algorithm \ref{pseudo:rfs}.
   
 
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.45]{figures/rfs.png}
-      \caption{Recalculate-From-Scratch algorithm}
-      \label{fig:pseudo-rfs}
-    \end{center}
-\end{figure}
- 
-Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element insertion or eviction from the window, the aggregation value is updated, in contrast to RFS which would recompute the entire aggregation. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations. To illustrate, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the current total sum plus the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed thus far minus the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable. Figure \ref{fig:pseudo-soe} shows pseudocode for SOE \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
+\begin{algorithm}
+    \caption{Recalculate-From-Scratch insert, evict and query methods}
+    \label{pseudo:rfs}
+    \begin{algorithmic}[1]
+        \Function{query}{vals}
+            \State $agg\gets\overline{\theta}$
+            \ForEach {$v \in vals$}
+                \State $agg \gets agg \oplus v$
+            \EndFor
+            \State \Return $agg$
+        \EndFunction
+        
+        
+        \Function{insert}{vals, v}
+        
+            \State $vals.pushBack(v)$
+        \EndFunction
+        
+        
+        \Function{evict}{vals}
+        
+            \State $vals.popFront()$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.45]{figures/soe.png}
-      \caption{Subtract-On-Evict algorithm}
-      \label{fig:pseudo-soe}
-    \end{center}
-\end{figure}
+Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element insertion or eviction from the window, the aggregation value is updated, in contrast to RFS which would recompute the entire aggregation. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations, that is, a function $\ominus$ exists such that $(x \oplus y) \ominus y = x$, for all $x$ and $y$. To illustrate, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the current total sum plus ($\oplus$) the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed thus far minus ($\ominus$) the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable. Algorithm \ref{pseudo:soe} shows pseudocode for SOE.
 
-Subtract-On-Evict is an improvement over the Recalculate-From-Scratch algorithm that  based on the idea of aggregation invertibility. The question then becomes if there are other aggregation properties besides invertibility that must be taken into account when analyzing general stream processing algorithms.
+Subtract-On-Evict is an improvement over the Recalculate-From-Scratch algorithm based on the idea of aggregation invertibility. The question then becomes if there are other aggregation properties besides invertibility that must be taken into account when analyzing general stream processing algorithms.
 
+\begin{algorithm}
+    \caption{Subtract-On-Evict insert, evict and query methods}
+    \label{pseudo:soe}
+    \begin{algorithmic}[1]
+        \Function{query}{}
+        
+            \State \Return $agg$
+        \EndFunction
+        
+        
+        \Function{insert}{vals, v}
+        
+            \State $vals.pushBack(v)$
+            \State $agg \gets agg \oplus v$
+        \EndFunction
+        
+        
+        \Function{evict}{vals}
+        
+            \State $v \gets vals.popFront()$
+            \State $agg \gets agg \ominus val$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
 \subsection{Aggregation properties}
 \label{sec:agg-properties}
 
-Tangwongsan et al. construct Table \ref{tbl:aggregations-properties} to summarize the aggregation families and satisfied properties \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
+As it turns out, besides \textit{invertibility}, there are other properties that allow us to group aggregations in different families. Tangwongsan et al. construct Table \ref{tbl:aggregations-properties} to summarize the aggregation families and satisfied properties \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}.
 
-%TODO: change the sketch-like from the aggregator to the aggregation: bloom filter to membership query, CMS to frequency estimation and HLL to cardinality estimation
+\textcolor{red}{TODO: change the sketch-like from the aggregator to the aggregation: bloom filter to membership query, CMS to frequency estimation and HLL to cardinality estimation}
+
 \begin{table}[!htb]
     \begin{center}
       \includegraphics[scale=0.4]{figures/aggregation-operations-properties.png}
@@ -184,5 +220,6 @@ The aggregation properties analyzed in this Section will be used to evaluate SWA
 
 
 \section{Exponential Moving Averages}
-Both SOE and RFS require saving the entire window contents. IS THERE A WAY WE CAN EMULATE AN WINDOW....
+
+\textcolor{red}{TODO: explain EMAs, give mathematical proofs on error bounds, emulated window size based on nhalf}
 

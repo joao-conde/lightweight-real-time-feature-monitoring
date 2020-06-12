@@ -1,7 +1,7 @@
 \chapter{Introduction} \label{chap:intro} \minitoc
 
 \section{Context} \label{sec:context}
-In the past decade, applications have become increasingly data-driven, placing data at the center of application design. Different use cases process data in different ways for different purposes. For instance, e-commerce platforms need to process a large number of transactions, for example, those made daily by all Alibaba's\footnote{https://alibaba.com} clients, while ensuring that sales run smoothly and that products are delivered to customers' homes. Streaming services, like YouTube\footnote{https://youtube.com} and Netflix\footnote{https://netflix.com}, try to guarantee that media content reaches up to millions of users simultaneously. This media content may have been previously recorded and stored, or may be generated on the fly. Social networks are also responsible for generating large volumes of data. A social network like Twitter\footnote{https://twitter.com}, for example, generates more than 500 million \textit{tweets} (posts in Twitter) per day\footnote{$https://blog.twitter.com/engineering/en_us/a/2013/new-tweets-per-second-record-and-how.html$}. \textit{Tweets} may contain text, media content or both. Cybersecurity applications are yet another example of time-sensitive, data-driven applications. These need to monitor user accesses and their actions in the network, where timely detection of intruders is critical to prevent them from tampering with the protected system.
+In the past decade, applications have become increasingly data-driven, placing data at the center of application design. Different use cases process data in different ways for different purposes. For instance, e-commerce platforms need to process a large number of transactions, for example, those made daily by all Alibaba's\footnote{https://alibaba.com} clients, while ensuring that sales run smoothly and that products are delivered to customers' homes. Streaming services, like YouTube\footnote{https://youtube.com} and Netflix\footnote{https://netflix.com}, try to guarantee that media content reaches up to millions of users simultaneously. This media content may have been previously recorded and stored, or may be generated on the fly. Social networks are also responsible for generating large volumes of data. A social network like Twitter\footnote{https://twitter.com}, for example, generates more than 500 million \textit{tweets} (posts in Twitter) per day\footnote{https://blog.twitter.com/engineering/en\_us/a/2013/new-tweets-per-second-record-and-how.html}. \textit{Tweets} may contain text, media content or both. Cybersecurity applications are yet another example of time-sensitive, data-driven applications. These need to monitor user accesses and their actions in the network, where timely detection of intruders is critical to prevent them from tampering with the protected system.
 
 All of these applications generate large volumes of data over time which poses data storage and processing challenges. This data is characterized in terms of its large volume, high velocity and high variety \cite{Mavragani-GoogleTrends-SLR}, creating large scale data management problems. Additionally, the large amounts of information produced by such systems and use-cases lead to the creation of multiple real-time unbounded data sets, also known as data streams. The information that flows through such a stream can be analyzed on-the-fly or stored for later processing. The former case is best known as stream processing, while the latter as batch processing. 
 
@@ -28,13 +28,13 @@ For any organization, the quality of their provided services is paramount. There
 
 We want to build a lightweight enough solution that can be integrated into existing workflows. Ensuring constant time and space complexity means that the system will remain usable for the ever-growing volumes of data. Since such a monitoring system is not mission-critical --- \textit{i.e.} the provided services don't rely on it --- the operational cost associated with it must be kept to a minimum. Having a real-time system monitoring other real-time systems consuming as many resources as the latter would be far too costly.
 
-
 \section{Hypothesis} \label{sec:hypothesis}
-%The question this Thesis aims to answer is whether sliding window aggregations and probabilistic data structures can be used to detect data pattern shifts in data streaming scenarios in the presence of high volumes of high velocity, highly skewed and seasonal data with a low memory footprint.
+The question this Thesis aims to answer is whether sliding window aggregations can be used to detect data pattern shifts in data streaming scenarios in the presence of high volumes of high velocity, highly skewed and seasonal data in real-time and with a low memory footprint.
 
-The question this Thesis aims to answer is whether a method that relies on comparing an aggregation of the reference period and the aggregation effectively seen during the stream analysis can be used to detect data pattern shifts in the stream, in the presence of high volumes of high velocity, highly skewed and seasonal data while ensuring a low memory footprint.
+\section{Methodology} \label{sec:methodology}
 
-\section{Hypothesis Validation} \label{sec:validation}
+\textcolor{red}{TODO how to define success criteria without "reverse engineering" this?}
+
 The hypothesis will be proven true or false depending on whether the following criteria are met. The resulting data pattern shift reporting system must have the following properties:
 \begin{itemize}
     \item high recall ratio --- \textit{i.e.} at least 80\%
@@ -45,7 +45,9 @@ The hypothesis will be proven true or false depending on whether the following c
 Experiments will be made using multiple synthetic and real data sets from the financial fraud space.
 
 \section{Document structure} 
-% TODO at the end rewrite and relink this
+
+\textcolor{red}{TODO at the end rewrite and relink this}
+
 This section merely sums up how each of the following Chapters contributes to this Thesis.
 
 In Chapter \ref{chap:background} of this document we brief the reader with the necessary background and relevant concepts needed to understand the following Chapters.

@@ -35,6 +35,9 @@
 \usepackage{amsmath}
 \usepackage[bottom]{footmisc}
 
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
 %% Include color package
 \usepackage{color}
 \definecolor{cloudwhite}{cmyk}{0,0,0,0.025}
@@ -116,6 +119,13 @@
 
 %% Uncomment next line for additional text below the author's name (front page)
 %\additionalfronttext{Preparação da Dissertação}
+
+
+% pseudocode
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+
 
 %%----------------------------------------
 %% Preliminary materials
