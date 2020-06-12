@@ -183,13 +183,13 @@ Computing the sliding window aggregation is done by applying the \textit{combine
         
         
         \Function{insert}{B, v}
-            \State{B.push(v, getStackAggregationValue(B) $\oplus$ v}
+            \State{B.push( (v, getStackAggregationValue(B) $\oplus$ v) )}
         \EndFunction
         
         
         \Function{evict}{F, B}
         
-            \If{F.isEmpty()} \Comment{// Flip B onto F and update aggregation value}
+            \If{F.isEmpty()} \Comment{// Flip B onto F and update top aggregation value}
                 \While {\textbf{not} B.isEmpty()}
                     \State{F.push(B.top().val, B.top().val $\oplus$ getStackAggregationValue(F))}
                     \State{B.pop()}
@@ -216,7 +216,7 @@ The De-Amortized Banker’s Aggregator (DABA) \cite{Tangwongsan-DABA} is a SWAG 
 
 \subsection*{Data Structure}
 
-DABA uses two queues, \textit{vals} and \textit{aggs}, both of size \textit{n}, seen in Figure \ref{fig:daba-ds}. Both queues share six pointers --- \textit{F, L, R, A, B} and \textit{E} --- that point to the same position for each queue. These pointers are always ordered as follows: $\textit{F} \leq \textit{L} \leq \textit{R} \leq \textit{A} \leq \textit{B} \leq \textit{E}.$
+DABA uses two queues, \textit{vals} and \textit{aggs}, both of size \textit{n}, seen in Figure \ref{fig:daba-ds}, which was directly taken from \textit{"Low-Latency Sliding-Window Aggregation in Worst-Case Constant Time"} by Tangwongsan et. al. Both queues share six pointers --- \textit{F, L, R, A, B} and \textit{E} --- that point to the same position for each queue. These pointers are always ordered as follows: $\textit{F} \leq \textit{L} \leq \textit{R} \leq \textit{A} \leq \textit{B} \leq \textit{E}.$
 
 \begin{figure}[!htb]
     \begin{center}
@@ -241,15 +241,101 @@ Evicting old elements is done by evicting the same number of elements from \text
 
 The main conceptual difference between DABA and Two-Stacks is that in Two-Stacks an occasional expensive \textit{flip} operation takes place --- flipping stack B onto stack F --- and in DABA the reversal of \textit{l\textsubscript{B}} to \textit{l\textsubscript{F}} is incremental. This allows DABA to achieve constant time complexity (on average) rather than Two-Stacks' amortized constant time complexity.
 
-Figure \ref{fig:pseudo-daba} shows the pseudocode presented by the authors for the DABA algorithm. In reality, after each insertion and eviction, besides the procedure already described, function \textit{fixup} is executed. The \textit{fixup} function performs the incremental reversal of \textit{l\textsubscript{B}} to \textit{l\textsubscript{F}}. The pseudocode \ref{fig:pseudo-daba} shows how such reversal is done but we will not elaborate on such procedure. However, it is important to stress out that this is the core idea of DABA: avoid occasional expensive operations, like Two-Stacks' \textit{flip}, by spreading them out across run time, in the form of DABA's \textit{fixup}.
+Algorithm \ref{pseudo:daba} shows the pseudocode presented by the authors for the DABA algorithm. In reality, after each insertion and eviction, besides the procedure already described, function \textit{fixup} is executed. The \textit{fixup} function performs the incremental reversal of \textit{l\textsubscript{B}} to \textit{l\textsubscript{F}}. Algorithms \ref{pseudo:daba-helpers} and \ref{pseudo:daba} show how such reversal is done but we will not elaborate on such procedure. However, it is important to stress out that this is the core idea of DABA: avoid occasional expensive operations, like Two-Stacks' \textit{flip}, by spreading them out across run time, in the form of DABA's \textit{fixup}.
 
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.7]{figures/daba-pseudocode.png}
-      \caption{DABA algorithm}
-      \label{fig:pseudo-daba}
-    \end{center}
-\end{figure}
+\begin{algorithm}
+    \caption{DABA helper functions}
+    \label{pseudo:daba-helpers}
+    \begin{algorithmic}[1]
+        \Function{getListFAggregationValue}{}
+            \If{F == B}
+                \State \Return{$\overline{\theta}$}
+            \Else
+                \State \Return{aggs[F]}
+            \EndIf
+        \EndFunction
+        
+        \Function{getListBAggregationValue}{}
+            \If{B == E}
+                \State \Return{$\overline{\theta}$}
+            \Else
+                \State \Return{aggs[E - 1]}
+            \EndIf
+        \EndFunction
+        
+        \Function{getListLAggregationValue}{}
+            \If{L == R}
+                \State \Return{$\overline{\theta}$}
+            \Else
+                \State \Return{aggs[L]}
+            \EndIf
+        \EndFunction
+        
+        \Function{getListRAggregationValue}{}
+            \If{R == A}
+                \State \Return{$\overline{\theta}$}
+            \Else
+                \State \Return{aggs[A - 1]}
+            \EndIf
+        \EndFunction
+        
+        \Function{getListAAggregationValue}{}
+            \If{A == B}
+                \State \Return{$\overline{\theta}$}
+            \Else
+                \State \Return{aggs[A]}
+            \EndIf
+        \EndFunction
+        
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+    \caption{DABA insert, evict and query methods}
+    \label{pseudo:daba}
+    \begin{algorithmic}[1]
+        \Function{query}{}
+            \State \Return{getListFAggregationValue() $\oplus$ getListBAggregationValue()}
+        \EndFunction
+        
+        \Function{insert}{v}
+            \State vals.pushBack(v)
+            \State aggs.pushBack(getListBAggregationValue() $\oplus$ v)
+            \State fixup()
+        \EndFunction
+        
+        \Function{evict}{}
+            \State vals.popFront()
+            \State aggs.popFront()
+            \State fixup()
+        \EndFunction
+        
+        \Function{fixup}{}
+        \If{F == B}
+            \State $B \gets E$
+            \State $A \gets E$
+            \State $R \gets E$
+            \State $L \gets E$
+        \Else
+            \If{L == B}
+                \State $L \gets F$
+                \State $A \gets E$
+                \State $B \gets E$
+            \EndIf
+            \If{L == R}
+                \State $A \gets A + 1$
+                \State $R \gets R + 1$
+                \State $L \gets L + 1$
+            \Else
+                \State $aggs[L] \gets getListLAggregationValue() \oplus getListRAggregationValue() \oplus getListAAggregationValue()$
+                \State $L \gets L + 1$
+                \State $aggs[A - 1] \gets vals[A - 1] \oplus getListAAggregationValue()$
+                \State $A \gets A - 1$
+            \EndIf
+        \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
 
 \subsection*{Time complexity analysis}
@@ -259,7 +345,7 @@ Querying the aggregation state as described is done in constant time. Insertion 
 DABA stores the window contents in the \textit{vals} queue. Queue \textit{aggs} is of the same size as \textit{vals} and stores partial aggregations over \textit{vals}. Hence, if the window size is \textit{n}, DABA uses two \textit{n}-sized queues. Hence, DABA has \textit{O(n)} space complexity, meaning memory consumption grows linearly with window size.
 
 \subsection*{Applicability to our Hypothesis}
-Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, requiring at least logarithmic space complexity, thus making DABA inapplicable for our Hypothesis.
+Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, thus making DABA inapplicable for our Hypothesis.
 
 
 \textcolor{red}{TODO: Add table with SWAG algorithms, time and space complexity and applicable restrictions on the aggregation}
