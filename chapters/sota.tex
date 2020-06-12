@@ -157,7 +157,7 @@ In this Thesis, we want to detect and alert data pattern shifts with a low memor
 As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this Section we analyze other more sophisticated SWAG algorithms that fit different use-cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
 
 \subsection{Two-Stacks}
-The Two-Stacks SWAG algorithm works for \textit{associative} aggregations in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Figure \ref{fig:pseudo-2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
+The Two-Stacks SWAG algorithm works for \textit{associative} aggregations in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Algorithm \ref{pseudo:2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
 
 Insertion of a new item is always made on stack B. The updated aggregation state is computed using the \textit{combine} function $\oplus$ taking as arguments the aggregation value \textit{agg} of the top element of stack B and the item's value \textit{val}. The pair pushed onto stack B is a pair with \textit{val} and the new aggregation value $\textit{agg} \oplus \textit{val}$.
 
@@ -165,13 +165,40 @@ Evictions correspond to a simple pop from stack F. However, when F is empty, the
 
 Computing the sliding window aggregation is done by applying the \textit{combine} function $\oplus$ to the aggregation values of each of the stacks' top element. 
 
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.45]{figures/2-stacks.png}
-      \caption{Two-Stacks algorithm}
-      \label{fig:pseudo-2-stacks}
-    \end{center}
-\end{figure}
+\begin{algorithm}
+    \caption{Two-Stacks insert, evict and query methods}
+    \label{pseudo:2-stacks}
+    \begin{algorithmic}[1]
+        \Function{getStackAggregationValue}{stack}
+         \If{stack.isEmpty()} 
+            \State \Return{$\overline{\theta}$} 
+        \Else 
+            \State \Return{stack.top().agg} 
+        \EndIf
+        \EndFunction
+        
+        \Function{query}{F, B}
+            \State \Return{getStackAggregationValue(F) $\oplus$ getStackAggregationValue(B)}
+        \EndFunction
+        
+        
+        \Function{insert}{B, v}
+            \State{B.push(v, getStackAggregationValue(B) $\oplus$ v}
+        \EndFunction
+        
+        
+        \Function{evict}{F, B}
+        
+            \If{F.isEmpty()} \Comment{// Flip B onto F and update aggregation value}
+                \While {\textbf{not} B.isEmpty()}
+                    \State{F.push(B.top().val, B.top().val $\oplus$ getStackAggregationValue(F))}
+                    \State{B.pop()}
+                \EndWhile
+            \EndIf
+            \State{F.pop()}
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
 \subsubsection*{Time complexity analysis}
 Querying the aggregation state of the window and inserting a new element can be performed in constant time. However, while evicting an item is usually done in constant time, occasionally, a flip operation is required, consuming \textit{O(n)} time, with \textit{n} as the size of stack B. Because this flip is occasionally performed, the time complexity of Two-Stacks is said to be \textit{amortized} constant.
@@ -235,7 +262,7 @@ DABA stores the window contents in the \textit{vals} queue. Queue \textit{aggs} 
 Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, requiring at least logarithmic space complexity, thus making DABA inapplicable for our Hypothesis.
 
 
-\textbf{TODO: Add table with SWAG algorithms, time and space complexity and applicable restrictions on the aggregation}
+\textcolor{red}{TODO: Add table with SWAG algorithms, time and space complexity and applicable restrictions on the aggregation}
 
 \section{Probabilistic Data Structures} \label{sec:pds}
 In Section \ref{sec:sota-swag-algs} we presented some state-of-the-art algorithms for computing sliding window aggregations (SWAGs). However, if the aggregation we desire to compute can be approximated, there may exist more memory efficient methods. These aggregators are commonly denoted as sketches or probabilistic data structures and produce results orders-of magnitude faster then some exact approaches while keeping the memory consumption constant and providing mathematically proven error bounds. Each probabilistic data structure is used for efficient computation of one approximate aggregation, hence we say they are aggregation-specific.
