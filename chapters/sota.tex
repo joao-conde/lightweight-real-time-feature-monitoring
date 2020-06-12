@@ -26,7 +26,7 @@ The \textit{nature of the method} axis refers to the type of analysis performed 
 
 The third and final axis is the \textit{outlier type} the method aims to report. The authors identify three distinct outlier types: point outliers, subsequence outliers and time-series outliers. A point outlier corresponds to a single data point in time that deviates from the expected value. These point outliers can be uni or multivariate, depending on the nature of the method. A univariate point outlier is a single time-dependent variable that stands out from the rest of the time-series. On the other hand, a multivariate point outlier takes into account multiple time-dependent variables in comparison to the remaining time-series. Subsequence outliers refer to a sequence of points in time that together show anomalous behavior, but may not be individually considered outliers. Similarly to point outliers, a subsequence outlier may take into account a single time-dependent variable or multiple ones. The authors classify them as univariate subsequence outliers and multivariate subsequence outliers, respectively. Lastly, time-series outliers refer to entire time-series being outliers themselves. This type of outliers can only be detected if the input data is multivariate, so as to be able to compare multiple time-series.
 
-\subsection*{Univariate point outlier detection}
+\subsection{Univariate point outlier detection}
 
 The authors split point outlier detection methods into uni and multivariate, as seen in Figure \ref{fig:outlier-taxonomy}. Furthermore, they split univariate point outlier detection methods into three broad categories: model-based, density-based and histogramming based \ref{fig:point-outlier-taxonomy}.
 
@@ -50,7 +50,7 @@ Quoting the authors, histogramming univariate point outlier detection methods ar
 %TODO: explain this better, paper not clear to me
 
 
-\subsection{Neighbor-Based Pattern Detection for Windows Over Streaming Data: the Extra-N algorithm} \label{alg:extran}
+\subsubsection{Neighbor-Based Pattern Detection for Windows Over Streaming Data: the Extra-N algorithm} \label{alg:extran}
 
 Yang et. al propose a method for incremental detection of density-based point outliers \cite{Yang-Neighbor-Based-Pattern-Detection}, specifically for sliding windows scenarios. The authors propose Extra-N, an algorithm that detects point outliers based on the number of neighbors it has. The authors make use of the \textit{“predictability"} property of the expiration of existing objects. In other words, given a window with a fixed slide size, they predetermine the \textit{life-span} of any data point on arrival --- \textit{i.e.} the future windows it will belong to. This technique allows the efficient maintenance of neighborship counts by pre-handling the eventual expiring effect of new data points.
 
@@ -75,32 +75,32 @@ Extra-N has to keep a lifetime neighbor count dictionary-like object for each wi
 \subsubsection*{Applicability to our Hypothesis}
 Extra-N memory consumption grows linearly in regards to window size, so it does not fit our desired lightweight system architecture. Furthermore, updating the sliding window should be done in constant time, which is not the case for Extra-N. Hence, this algorithm will be of no use to us.
 
-\subsection{Real-Time Stream Anomaly Detection with Hierarchical Temporal Memory}
-Ahmad \& Purdy, 2016, present an anomaly detection technique based on an online algorithm called Hierarchical Temporal Memory (HTM)\footnote{https://github.com/numenta/nupic} \cite{Ahmad-HTM}. HTM has a few properties that are desirable for data stream anomaly detection scenarios. First, it is an unsupervised algorithm that requires no labels. This property comes in handy when monitoring a data stream in real-time, where labels for incoming data will likely be absent. Additionally, HTM adapts to noisy domains. In other words, random variations in the underlying distribution of incoming data that do not persist throughout time will be ignored. Furthermore, HTM detects both spatial and temporal anomalies --- \textit{i.e.} changes in magnitudes of data or unusual timing for particular patterns, respectively.   
+\subsubsection{Real-Time Stream Anomaly Detection with Hierarchical Temporal Memory}
+Ahmad \& Purdy present an anomaly detection technique based on an online algorithm called Hierarchical Temporal Memory (HTM)\footnote{https://github.com/numenta/nupic} \cite{Ahmad-HTM}. HTM has a few properties that are desirable for data stream anomaly detection scenarios. First, it is an unsupervised algorithm that requires no labels. This property comes in handy when monitoring a data stream in real-time, where labels for incoming data will likely be absent. Additionally, HTM adapts to noisy domains. In other words, random variations in the underlying distribution of incoming data that do not persist throughout time will be ignored. Furthermore, HTM detects both spatial and temporal anomalies --- \textit{i.e.} changes in magnitudes of data or unusual timing for particular patterns, respectively.   
 
 HTM is an online learning algorithm, meaning that it adapts to changing statistics of the underlying data stream. In other words, if there is a sudden abrupt change in the distribution of a specific time-dependent variable, the algorithm will raise an alert. However, if that initially thought to be random spike becomes frequent, the algorithm adapts and assimilates this as "a new reality" and stops classifying it as an anomaly. Unfortunately, this property is not desirable in our system. Our stream monitoring system must report changes relatively to an initial static configuration (reference or normality period) and should not accept a new distribution as the new standard.
 
 \subsubsection*{Method classification}
-Similarly to Extra-N presented in Section \ref{alg:extran}, the Hierarchical Temporal Memory (HTM) algorithm accepts both uni and multivariate time-series as input data but does not perform a multivariate analysis. Hence, we say it accepts both uni and multivariate inputs but is univariate in nature. HTM focuses on finding point outliers, but unlike Extra-N, which is density-based, HTM is a model-based approach. Specifically, HTM is a prediction model-based approach for univariate point outlier detection.
+Similarly to Extra-N presented in Section \ref{alg:extran}, the Hierarchical Temporal Memory (HTM) algorithm accepts both uni and multivariate time-series as input data but does not perform a multivariate analysis. Hence, we say it accepts both uni and multivariate inputs but is univariate in nature. HTM focuses on finding point outliers, but unlike Extra-N, which is density-based, HTM is a model-based approach. Specifically, HTM is a prediction model-based approach for univariate point outlier detection (Figures \ref{fig:outlier-taxonomy} and \ref{fig:point-outlier-taxonomy}).
 
 
 \subsubsection*{Applicability to our Hypothesis}
 Online learning algorithms that adapt to data pattern shifts and eventually consider them regular patterns are not viable methods to accomplish our goal of building a monitoring system that alerts data pattern shifts continuously until they match the initial configuration again. Additionally, insights produced by machine learning models are not human-understandable, rendering the user unable to understand why an anomaly report was made. In conclusion, we do not deem HTM applicable to our solution.
 
 
-\subsection{DeepAnT}
+\subsubsection{DeepAnT}
+Munir et. al present DeepAnT, a deep learning-based approach for the detection of anomalies in time series data \cite{Munir-DeepAnT}, that uses unlabeled data to capture and learn the distribution of the data stream used to forecast the normal behavior of the time-series. It is unsupervised - \textit{i.e.} it requires no labels - which is an advantage in a streaming scenario where real-time decisions have to be made before labels are effectively-known. It is capable of detecting point anomalies in time series data with periodic and seasonal characteristics.
+
+DeepAnT employs a Convolutional Neural Network (CNN) as its time-series predictor module. Before monitoring a data stream, the CNN model must be trained. The model can be trained with a small data set while achieving good generalization capabilities due to the effective parameter sharing of the CNN. Additionally, the data set used to train the model thus not require labels.
+
 \subsubsection*{Method classification}
+DeepAnT takes as input a uni or multivariate time-series but is a univariate method by nature --- \textit{i.e.} it does not find correlations between multiple time-dependent variables. The model used by DeepAnT is a Convolutional Neural Network (CNN), used to make predictions on the future time-series values and measure differences with the actual observed values. Hence, DeepAnT is a prediction model-based univariate point outlier detection method (Figures \ref{fig:outlier-taxonomy} and \ref{fig:point-outlier-taxonomy}).
+
 \subsubsection*{Applicability to our Hypothesis}
+Similar to the HTM algorithm presented, DeepAnT adapts to the underlying distribution of the data stream. In other words, if the data patterns shift from the initial configuration but stabilize, DeepAnT will accept it as it is. As mentioned, our goal is to build a monitoring system that alerts data pattern shifts continuously, until they match the initial configuration again. Furthermore, DeepAnT uses deep learning which is actually a subset of machine learning and just as inexplicable. In summary, we do not deem DeepAnT usable for our use case.
 
-\iffalse
-DeepAnT\\
-point outlier, model-based, prediction\\
-black box DL algorithm\\
-explain properties\\
-use what authors say in their review\\
-\fi
 
-\subsection*{Univariate subsequence outlier detection}
+\subsection{Univariate subsequence outlier detection}
 Similarly to point outlier detection methods, the authors split subsequence outlier detection methods into uni and multivariate ones (Figure \ref{fig:outlier-taxonomy}). Furthermore, the authors split univariate subsequence outlier detection methods into five different axes as seen in Figure \ref{fig:subsequence-outlier-taxonomy}.
 
 \begin{figure}[!htb]
@@ -127,7 +127,7 @@ Lastly, we have information theory based methods for univariate subsequence outl
 
 with \textit{F(S)} as the frequency of subsequence S, \textit{I(S)} as the information carried by S and $\alpha$ as a given threshold. According to the authors, \textit{"I(S) is computed taking into account the number of times the symbols within S are repeated through the series"}. The authors explain that if \textit{F(S)} is large --- \textit{i.e.} S occurs frequently --- then \textit{I(S)} will be closer to 0.
 
-\subsection{A two window paradigm algorithm for change detection}
+\subsubsection{A two window paradigm algorithm for change detection}
 \subsubsection*{Method classification}
 \subsubsection*{Time complexity}
 \subsubsection*{Space complexity}
