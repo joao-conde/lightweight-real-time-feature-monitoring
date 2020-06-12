@@ -50,7 +50,7 @@ Quoting the authors, histogramming univariate point outlier detection methods ar
 %TODO: explain this better, paper not clear to me
 
 
-\subsection{Neighbor-Based Pattern Detection for Windows Over Streaming Data: the Extra-N algorithm}
+\subsection{Neighbor-Based Pattern Detection for Windows Over Streaming Data: the Extra-N algorithm} \label{alg:extran}
 
 Yang et. al propose a method for incremental detection of density-based point outliers \cite{Yang-Neighbor-Based-Pattern-Detection}, specifically for sliding windows scenarios. The authors propose Extra-N, an algorithm that detects point outliers based on the number of neighbors it has. The authors make use of the \textit{“predictability"} property of the expiration of existing objects. In other words, given a window with a fixed slide size, they predetermine the \textit{life-span} of any data point on arrival --- \textit{i.e.} the future windows it will belong to. This technique allows the efficient maintenance of neighborship counts by pre-handling the eventual expiring effect of new data points.
 
@@ -60,7 +60,7 @@ The lifetime neighbor counts (\textit{lt\_cnt}) carry enough information to comp
 
 
 \subsubsection*{Method classification}
-Extra-N can take both uni or multivariate time-series as input data. However, it does not relate multiple time-series and does not take into account possible dependencies between different time-dependent variables. In that sense, and according to the presented taxonomy (Figure \ref{fig:outlier-taxonomy}), the method is of univariate nature. Last but not least, Extra-N aims to detect univariate point outliers. These point outliers are identified based on the density of the region or neighborhood they belong too. Hence, we say Extra-N is a density-based method (Figure \ref{fig:point-outlier-taxonomy}).
+Extra-N can take both uni or multivariate time-series as input data. However, it does not relate multiple time-series and does not take into account possible dependencies between different time-dependent variables. In that sense, and according to the presented taxonomy (Figure \ref{fig:outlier-taxonomy}), the method accepts uni or multivariate time-series as input but is of univariate nature. Last but not least, Extra-N aims to detect univariate point outliers. These point outliers are identified based on the density of the region or neighborhood they belong too. Hence, we say Extra-N is a density-based univariate point outlier detection method (Figure \ref{fig:point-outlier-taxonomy}).
 
 \subsubsection*{Time complexity}
 
@@ -76,16 +76,18 @@ Extra-N has to keep a lifetime neighbor count dictionary-like object for each wi
 Extra-N memory consumption grows linearly in regards to window size, so it does not fit our desired lightweight system architecture. Furthermore, updating the sliding window should be done in constant time, which is not the case for Extra-N. Hence, this algorithm will be of no use to us.
 
 \subsection{Real-Time Stream Anomaly Detection with Hierarchical Temporal Memory}
-\subsubsection*{Method classification}
-\subsubsection*{Applicability to our Hypothesis}
+Ahmad \& Purdy, 2016, present an anomaly detection technique based on an online algorithm called Hierarchical Temporal Memory (HTM)\footnote{https://github.com/numenta/nupic} \cite{Ahmad-HTM}. HTM has a few properties that are desirable for data stream anomaly detection scenarios. First, it is an unsupervised algorithm that requires no labels. This property comes in handy when monitoring a data stream in real-time, where labels for incoming data will likely be absent. Additionally, HTM adapts to noisy domains. In other words, random variations in the underlying distribution of incoming data that do not persist throughout time will be ignored. Furthermore, HTM detects both spatial and temporal anomalies --- \textit{i.e.} changes in magnitudes of data or unusual timing for particular patterns, respectively.   
 
-\iffalse
-HTM\\
-point outlier, model-based, prediction\\
-black-box ML algorithm\\
-explain properties\\
-use what authors say in their review\\
-\fi
+HTM is an online learning algorithm, meaning that it adapts to changing statistics of the underlying data stream. In other words, if there is a sudden abrupt change in the distribution of a specific time-dependent variable, the algorithm will raise an alert. However, if that initially thought to be random spike becomes frequent, the algorithm adapts and assimilates this as "a new reality" and stops classifying it as an anomaly. Unfortunately, this property is not desirable in our system. Our stream monitoring system must report changes relatively to an initial static configuration (reference or normality period) and should not accept a new distribution as the new standard.
+
+\subsubsection*{Method classification}
+Similarly to Extra-N presented in Section \ref{alg:extran}, the Hierarchical Temporal Memory (HTM) algorithm accepts both uni and multivariate time-series as input data but does not perform a multivariate analysis. Hence, we say it accepts both uni and multivariate inputs but is univariate in nature. HTM focuses on finding point outliers, but unlike Extra-N, which is density-based, HTM is a model-based approach. Specifically, HTM is a prediction model-based approach for univariate point outlier detection.
+
+
+\subsubsection*{Applicability to our Hypothesis}
+Online learning algorithms that adapt to data pattern shifts and eventually consider them regular patterns are not viable methods to accomplish our goal of building a monitoring system that alerts data pattern shifts continuously until they match the initial configuration again. Additionally, insights produced by machine learning models are not human-understandable, rendering the user unable to understand why an anomaly report was made. In conclusion, we do not deem HTM applicable to our solution.
+
+
 \subsection{DeepAnT}
 \subsubsection*{Method classification}
 \subsubsection*{Applicability to our Hypothesis}
