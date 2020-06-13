@@ -157,7 +157,7 @@ In this Thesis, we want to detect and alert data pattern shifts with a low memor
 As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this Section we analyze other more sophisticated SWAG algorithms that fit different use-cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
 
 \subsection{Two-Stacks}
-The Two-Stacks SWAG algorithm works for \textit{associative} aggregations in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Algorithm \ref{pseudo:2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
+The Two-Stacks SWAG algorithm works for \textit{associative} aggregations (recall Table \ref{tbl:aggregations-properties}) in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Algorithm \ref{pseudo:2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
 
 Insertion of a new item is always made on stack B. The updated aggregation state is computed using the \textit{combine} function $\oplus$ taking as arguments the aggregation value \textit{agg} of the top element of stack B and the item's value \textit{val}. The pair pushed onto stack B is a pair with \textit{val} and the new aggregation value $\textit{agg} \oplus \textit{val}$.
 
@@ -183,7 +183,7 @@ Computing the sliding window aggregation is done by applying the \textit{combine
         
         
         \Function{insert}{B, v}
-            \State{B.push( (v, getStackAggregationValue(B) $\oplus$ v) )}
+            \State{B.push( \{val: v, agg: getStackAggregationValue(B) $\oplus$ v\} }
         \EndFunction
         
         
@@ -191,7 +191,7 @@ Computing the sliding window aggregation is done by applying the \textit{combine
         
             \If{F.isEmpty()} \Comment{// Flip B onto F and update top aggregation value}
                 \While {\textbf{not} B.isEmpty()}
-                    \State{F.push(B.top().val, B.top().val $\oplus$ getStackAggregationValue(F))}
+                    \State{F.push( \{val: B.top().val, agg: B.top().val $\oplus$ getStackAggregationValue(F) \})}
                     \State{B.pop()}
                 \EndWhile
             \EndIf
@@ -554,6 +554,7 @@ HyperLogLog (HLL) maintains \textit{m} bit-pattern observables, each being the l
 
 \begin{figure}[!htb]
     \begin{center}
+       \hspace{0.5in}
       \includegraphics[scale=0.6]{figures/hll-ds.png}
       \caption[HyperLogLog initial state]{HyperLogLog with \textit{m}=4 observable buckets}
       \label{fig:hll-ds}
@@ -569,7 +570,7 @@ Figure \ref{fig:hll-insert} demonstrates such procedure for a new element \texti
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=1]{figures/hll-insertion.png}
+      \includegraphics[scale=0.8]{figures/hll-insertion.png}
       \caption[HyperLogLog insertion]{HyperLogLog \textit{el} insertion with \textit{m}=4 and \textit{n}=2 bits}
       \label{fig:hll-insert}
     \end{center}
@@ -714,5 +715,5 @@ This approach still uses \textit{m} buckets but each one contains a Distance Rec
 Despite having the same time and space complexities, the Sliding HLL DRV approach uses a smaller amount of memory that does not change during runtime, while the LFPM requires heap resizing because the lists dynamically shrink and grow. Hence, the DRV approach is a better fit to integrate our lightweight real-time solution.
 
 
-
+\textcolor{red}{TODO Find and add versions of Sliding Bloom Filter and Sliding CMS}
 
