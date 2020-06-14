@@ -1,26 +1,81 @@
 \chapter{Lightweight Real-Time Feature Monitoring} \label{chap:my-work} \minitoc
 
+Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we need not to directly compare the entire window contents of the reference period with the contents of the sliding window. Doing this would mean our memory consumption grew linearly with window or reference period size. We want some sort of aggregation over the reference period that can be maintained efficiently throughout run-time and can be used to distinguish both periods of time and alert for changes. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
+
+\section{Approach A: Usage of outlier detection methods}
+The first approach considered relied on outlier detection methods such as the ones presented in Section \ref{sec:outliers} and classified by the taxonomy in Figure \ref{fig:outlier-taxonomy}. This straightforward approach works with either subsequence or point outlier detection methods to analyze the streaming sliding window and produce data pattern shift alerts.
+
+\subsection*{How}
+
+Using point outlier detection methods, the main idea would be to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier. 
+
+
+\subsection*{Challenges}
+The analyzed outlier detection algorithms in Section \ref{sec:outliers} were deemed unfit for our use-case due to one or more of the following: \textit{(a)} high memory consumption, \textit{(b)} high time complexity, \textit{(c)} "memory loss" and \textit{(d)} obfuscated insights.
+
+In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Additionally, because our system is not mission-critical, we want a solution as lightweight as possible, which means something that grows linearly with window size is not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods shown also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are is also an important property. Some outlier detection methods used Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
+
+\subsection*{Conclusion}
+We concluded that employing outlier detection methods was not the best course of action and put aside this approach.
+
+\section{Approach B: Thresholding aggregation values}
+This second approach focus on building an aggregation snapshot of the reference period to compare with streaming aggregation values and alert if the difference between both surpasses a threshold $\alpha$.
+
+\subsection*{How}
+
+In this approach we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a sliding window and the average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.65]{figures/approach2-normality.png}
+      \caption[]{Normal state for feature \textit{x} in window 1}
+      \label{fig:approach2-initial-state}
+    \end{center}
+\end{figure}
+
+
+In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our sliding window, we obtain \textit{Window 2}. In \textit{Window 2}, the mean and standard deviation aggregation values change from 5 and 1 to 12 and 6, respectively. In this case, we would measure the difference between the sliding window aggregations and the reference window ones and if above a certain threshold raise an alert. For example, if we used a threshold of $\alpha$ = 6, we would raise an alert, as at least one sliding aggregation, in this case the mean, would differ of at least $\alpha$ when compared to the reference value.
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.65]{figures/approach2-alert.png}
+      \caption[]{Alert state for feature \textit{x} in window 2}
+      \label{fig:approach2-alert-state}
+    \end{center}
+\end{figure}
+
+\subsection*{Challenges}
+The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict presented in Section \ref{sec:back-swag-algs}, Two-Stacks has seen in Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba}. Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. Yet another challenge would be to define the maximum deviation threshold $\alpha$  between the reference aggregation state and the streaming aggregation state to produce alerts.
+
+
+Exponential Moving Averages (Section \ref{sec:emas}), Probabilistic Data Structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}) can be used to solve the first issue and reduce the linear memory complexity of the system relative to sliding window size. 
+
+However, there is no trivial solution for the second and third challenges. Defining the maximum allowed threshold between reference and sliding window aggregations does not have a straightforward solution. Furthermore, defining the set of aggregations to use is also a big challenge. To illustrate, consider both time-series show in Figure \ref{fig:approach2-timeseries}.
+ 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.65]{figures/approach2-timeseries.png}
+      \caption[]{Alert state for feature \textit{x} in window 2}
+      \label{fig:approach2-timeseries}
+    \end{center}
+\end{figure}
+
+
+Both time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two clearly different time-series.
+
+\subsection*{Conclusion}
+This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, defining the set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
+
+
+\section{Proposed method: Numerical Feature Monitoring}
 %what we want (reiterate)
 %A reference aggregation snapshot to compare with a streaming aggregation that must be kept in real-time and constant in memory usage
 
-\section*{Outlier detection methods}
-%using data mining outlier stuff, too heavy
-
-\section*{Sliding window aggregations}
-%- build a aggregation snapshot of the reference and compare with streaming aggregations
- %       - challenges: 
-  %          generic SWAG algorithms grow linearly in space regarding window size
-   %         defining the set of aggregations that can be done at feature level that represent the current state well enough for comparison and change detection
-    %        defining the threshold of deviation between the reference aggregation values and current streaming aggregations to raise alerts
-     %   - mention challenge 1 can be solved with Probabilistic Data Structures and EMAs
-      %  - there is no trivial solution for the others
-       %     - present an example (2 time-series same max min median and std. but different)
-
-\section{Numerical feature monitoring: a two-phased method}
-
 %- introduce method as two-phased method (batch and streaming)
 
-\subsection{Final goal}
+% only for numerical features for now
+
+\subsection{Stream monitoring goals}
 %- what is our goal in the streaming phase?
            % - alert when streaming fields/features/variables' distribution changes considerably
           %  - need to choose an aggregation that allows us to know the distribution of variables -> histogram for each feature

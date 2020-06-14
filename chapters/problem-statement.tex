@@ -1,9 +1,30 @@
 \chapter{Problem Statement} \label{chap:statement} \minitoc
 
-%Detecting changes in distribution between a reference/static period and the observed data flowing through a stream
+With this Chapter, we further discuss the problem we aim to solve with this Thesis making use of concepts discussed in Chapter \ref{chap:background} and explaining why none of the reviewed methods from Chapter \ref{chap:sota} works for our use case.
 
-%Time constraints (real-time)
+\section{State of the art issues}
+Aggregations, specifically sliding window ones, were introduced in Chapter \ref{chap:background} along with several windowing techniques. In Chapter \ref{chap:sota} we presented state of the art sliding window aggregation algorithms as well as outlier detection methods. However, the reviewed methods were deemed unfit for our use-case because none of them simultaneously showed all of the below characteristics:
 
-%Memory constraints (lightweight)
+\begin{itemize}
+    \item \textbf{Low memory consumption:} need for a low memory footprint system that avoids linear growth relative to the sliding window size used
+    
+    \item \textbf{Low time complexity:} need for a time efficient method that updates the sliding window aggregation and raises alerts in constant time
+    
+    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout run-time, the opposite of an online learning algorithm
+    
+    \item \textbf{Sliding window maintainability:} possibility to evict old events and insert new ones while updating the aggregation state
+    
+    \item \textbf{Explainable alerts:} understand why each alert was raised
+\end{itemize}
 
-%Porque para explicares o problema precisas de conceitos do background e mostrar que o problema ainda não foi resolvido pelo sota
+
+\section{Research Questions}
+The goal of this Thesis is to develop a lightweight stream monitoring system that detects changes in features distribution between a reference period and a sliding window in real-time.
+
+To that end, we devise a series of research questions to be answered by the end of this Thesis:
+
+\begin{enumerate}
+    \item \textbf{RQ1:}
+    \item \textbf{RQ2:}
+    \item \textbf{RQ3:}
+\end{enumerate}
