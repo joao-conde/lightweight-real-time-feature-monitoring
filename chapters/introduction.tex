@@ -21,7 +21,7 @@ Feedzai's solution for fraud detection consists of a workflow of different compo
 Feedzai's data pattern shift challenge is not unique to them nor their field. Many analytical systems are static once deployed and are configured \textit{a priori} under the assumption that future data flowing through the system will roughly follow the same distribution as previously seen data.
 The problem is that data pattern shifts will lead to poor performance by the previously configured system. Monitoring the data patterns themselves and alerting for changes in the underlying distribution would allow users to reconfigure the system before its performance declines.
 
-The objective of this Thesis is to build a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relativily to a reference period.
+The objective of this Thesis is to build a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period.
 
 \section{Motivation} \label{sec:motivation}
 For any organization, the quality of their provided services is paramount. Therefore, it is common for companies to have systems monitoring the former, testing their usage rate, availability and performance, just to name a few. The motivation behind this Thesis is to produce a system capable of real-time monitoring a stream of data so that changes in the underlying stream are caught early, preventing a fall in performance of the system analyzing said data stream. 
@@ -33,13 +33,15 @@ The question this Thesis aims to answer is whether sliding window aggregations c
 
 \section{Methodology} \label{sec:methodology}
 
-\textcolor{red}{TODO how to define success criteria without "reverse engineering" this?}
-
 The hypothesis will be proven true or false depending on whether the following criteria are met. The resulting data pattern shift reporting system must have the following properties:
 \begin{itemize}
-    \item high recall ratio --- \textit{i.e.} at least 80\%
-    \item low latency --- \textit{i.e.} constant time complexity, \textit{O(1)}
-    \item memory efficiency --- \textit{i.e.} constant memory complexity, \textit{O(1)}
+    \item low memory footprint
+    
+    \item low latency to work in real-time
+    
+    \item fix a reference period as the normal state of the system
+    
+    \item explainable alerts
 \end{itemize}
 
 Experiments will be made using multiple synthetic and real data sets from the financial fraud space.
@@ -50,9 +52,9 @@ Experiments will be made using multiple synthetic and real data sets from the fi
 
 This section merely sums up how each of the following Chapters contributes to this Thesis.
 
-In Chapter \ref{chap:background} of this document we brief the reader with the necessary background and relevant concepts needed to understand the following Chapters.
+%In Chapter \ref{chap:background} of this document we brief the reader with the necessary background and relevant concepts needed to understand the following Chapters.
 
-In Chapter \ref{chap:sota} we examine the state of the art in the area, analyzing the most recent work done and classifying it into subgroups.
+%In Chapter \ref{chap:sota} we examine the state of the art in the area, analyzing the most recent work done and classifying it into subgroups.
 
 %In Chapter \ref{chap:approach} we define the scope of this project, the research questions we intend to answer, our experimental methodology and our future planning.
 

@@ -1,7 +1,5 @@
 \chapter{Lightweight Real-Time Feature Monitoring} \label{chap:my-work} \minitoc
 
-Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we need not to directly compare the entire window contents of the reference period with the contents of the sliding window. Doing this would mean our memory consumption grew linearly with window or reference period size. We want some sort of aggregation over the reference period that can be maintained efficiently throughout run-time and can be used to distinguish both periods of time and alert for changes. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
-
 \section{Approach A: Usage of outlier detection methods}
 The first approach considered relied on outlier detection methods such as the ones presented in Section \ref{sec:outliers} and classified by the taxonomy in Figure \ref{fig:outlier-taxonomy}. This straightforward approach works with either subsequence or point outlier detection methods to analyze the streaming sliding window and produce data pattern shift alerts.
 
@@ -54,8 +52,8 @@ However, there is no trivial solution for the second and third challenges. Defin
  
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.65]{figures/approach2-timeseries.png}
-      \caption[]{Alert state for feature \textit{x} in window 2}
+      \includegraphics[scale=0.7]{figures/approach2-timeseries.png}
+      \caption[]{Two different time-series with same max, min, mean and standard deviation}
       \label{fig:approach2-timeseries}
     \end{center}
 \end{figure}
@@ -68,27 +66,39 @@ This approach requires efficient sliding window aggregation state maintenance, w
 
 
 \section{Proposed method: Numerical Feature Monitoring}
-%what we want (reiterate)
-%A reference aggregation snapshot to compare with a streaming aggregation that must be kept in real-time and constant in memory usage
 
-%- introduce method as two-phased method (batch and streaming)
+Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we need not to directly compare the entire window contents of the reference period with the contents of the sliding window. Doing this would require storing all window contents hence making our memory consumption grow linearly with sliding window or reference period size. We want some sort of aggregation over the reference period that can be maintained efficiently throughout run-time and can be used to distinguish both periods of time and alert for changes. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
 
-% only for numerical features for now
+To that end, we devise a two-phased method. The first phase relies on a batch analysis that builds our aggregated reference snapshot to be later on compared with the sliding one. The second phase focus on efficiently updating the sliding window aggregation snapshot and occasionally perform a similarity test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types as well, as we will discuss.
 
 \subsection{Stream monitoring goals}
-%- what is our goal in the streaming phase?
-           % - alert when streaming fields/features/variables' distribution changes considerably
-          %  - need to choose an aggregation that allows us to know the distribution of variables -> histogram for each feature
-               % - lightweight -> approximated EMA-based histogram (recall EMAs background), each bin count is an EMA-count aggregation
-               % - describe an EMA approximated histogram and how it discounts old events, the simulated window size, ...
-           % - we can compute an exact histogram over the reference period because it is done in batch, where resources like RAM or time are not heavily constrained in constrast to streaming systems
-           % - given 2 histograms (ref hist and stream hist) we can apply distance metrics (such as a JSD)
-             %   - worth mentioning other metrics can be used (Wasserstein distance, Kolmogorov–Smirnov, ...)
-         %   - but how to threshold this "distance" value? ----> we need to know the distribution of "distance" values
-             %   - how is this accomplished
-             %   - agressive sampling within ref period of smaller periods (equal in size to the stream simulated window)
-              %  - give a practical use-case where it makes a diference:
-                 %   - left-skewed distro vs right-skewed distro ---> threshold is very different (95 or 99 percentile for example)
+Before diving into the batch and streaming algorithms we must further define our goal. In this Section we pose the question: \textit{"what is our goal during the streaming or monitoring phase?"} and answer it.
+
+A data stream is an infinite stream of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are also named features or time-dependent variables. You can think of them as columns in a traditional relational database table. Given this context, our goal is to produce alerts of the following form:
+
+\[\textit{timestamp: [(x1, 0.23), (x2, 0.51), (x3, 0.55)}]\]
+
+The format used allows us to know the \textit{timestamp} for the given alert, which features diverge (in this case \textit{x1, x2, x3}) and a value representative of how much each feature diverges (for instance, a float value between 0 and 1 that works as a confidence value). 
+
+An alert should be raised if a feature distribution changes considerably. This immediately poses challenges such as \textit{(a)} finding a suitable aggregation that encodes each feature's distribution and allows for a change detection test and \textit{(b)} defining a deviation threshold $\alpha$.
+
+\subsection*{Approximated Histogram Aggregation}
+
+We chose to encode a feature distribution as a histogram. A histogram is an aggregation that represents the distribution of numerical features. However, we must recall that we need to keep this histogram in constant time in a sliding window fashion: that implies we need to be able to evict old elements and insert new ones.
+
+An exact histogram aggregation must keep the entire sliding window in memory...
+
+\textcolor{red}{TODO: review this section after EMAs is written}
+
+\subsection*{Defining the deviation threshold}
+
+Assume we use a distance function that takes two histograms, our reference aggregation histogram and our sliding window aggregation histogram, and outputs a distance or difference value. How do we threshold this value? For instance, consider the following scenario, where ...
+
+\textcolor{red}{TODO: give an example of left and right skewed distros}
+%  - give a practical use-case where it makes a diference:
+ %   - left-skewed distro vs right-skewed distro ---> threshold is very different (95 or 99 percentile for example)
+
+Hard-coding a threshold value to be used for all features is cumbersome, impractical and error prone. The distance threshold must be computed based on the distribution of distances. How do we get to know the distribution of such distances? That is one of the goals for the batch phase.
 
 \subsection{Batch analysis phase}
 
