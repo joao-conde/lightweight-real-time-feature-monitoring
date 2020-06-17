@@ -59,7 +59,7 @@ However, there is no trivial solution for the second and third challenges. Defin
 \end{figure}
 
 
-Both time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two clearly different time-series.
+Both time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two different time-series.
 
 \subsection*{Conclusion}
 This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, defining the set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
@@ -69,10 +69,12 @@ This approach requires efficient sliding window aggregation state maintenance, w
 
 Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we need not to directly compare the entire window contents of the reference period with the contents of the sliding window. Doing this would require storing all window contents hence making our memory consumption grow linearly with sliding window and/or reference period size. We want some sort of aggregation over the reference period that can be maintained efficiently throughout run-time and can be used to distinguish both periods of time and alert for changes. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
 
-To that end, we devise a two-phased method. The first phase relies on a batch analysis that builds our aggregated reference snapshot to be later on compared with the sliding one. The second phase focus on efficiently updating the sliding window aggregation snapshot and occasionally perform a similarity test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types as well, as we will discuss.
+To that end, we devise a two-phase method. The first phase relies on a batch analysis that builds our aggregated reference snapshot to be later on compared with the sliding one. The second phase focus on efficiently updating the sliding window aggregation snapshot and occasionally perform a similarity test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types as well, as we will discuss.
 
 \subsection{Stream monitoring goals}
-Before diving into the batch and streaming algorithms we must further define our goal. In this Section we pose the question: \textit{"what is our goal during the streaming or monitoring phase?"} and answer it.
+\textcolor{red}{TODO: add some pseudocode}
+
+Before diving into the batch and streaming algorithms we must further define our goal. In this Section, we pose the question: \textit{"what is our goal during the streaming or monitoring phase?"} and answer it.
 
 A data stream is an infinite stream of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are also named features or time-dependent variables. You can think of them as columns in a traditional relational database table. Given this context, our goal is to produce alerts of the following form:
 
@@ -83,8 +85,10 @@ The format used allows us to know the \textit{timestamp} for the given alert, wh
 An alert should be raised if a feature distribution changes considerably. This immediately poses challenges such as \textit{(a)} finding a suitable aggregation that encodes each feature's distribution and allows for a change detection test and \textit{(b)} defining a deviation threshold $\alpha$.
 
 \subsection*{Approximated Histogram Aggregation} \label{sec:ema-hist}
+\textcolor{red}{TODO: add some pseudocode}
 
-We chose to encode a feature distribution as a histogram. A histogram is an aggregation that represents the distribution of numerical features. However, we must recall that we need to update this histogram in constant time in a sliding window fashion, implying eviction of old elements and insertion of new ones must be done with \textit{O(1)} time complexity.
+
+We chose to encode a feature distribution as a histogram. A histogram is an aggregation that represents the distribution of numerical features. However, we must recall that we need to update this histogram in constant time in a sliding window fashion, implying the eviction of old elements and insertion of new ones must be done with \textit{O(1)} time complexity.
 
 An exact histogram aggregation must keep the entire sliding window in memory...
 
@@ -92,7 +96,7 @@ An exact histogram aggregation must keep the entire sliding window in memory...
 
 \subsection*{Defining the deviation threshold}
 
-Assume we use a distance function that takes two histograms --- our reference aggregation histogram and our sliding window aggregation histogram --- and outputs a distance value. How do we threshold this value? For instance, consider the following left and right skewed distance distributions represented by Figures \ref{fig:skewed-left-distro} and \ref{fig:skewed-right-distro}, respectively. Note that these histograms do not represent the reference and/or sliding window aggregation histogram. Here we make the assumption we have an histogram that encodes the distribution of distance values measured between the reference aggregation and the sliding window aggregation.
+Assume we use a distance function that takes two histograms --- our reference aggregation histogram and our sliding window aggregation histogram --- and outputs a distance value. How do we threshold this value? For instance, consider the following left and right-skewed distance distributions represented by Figures \ref{fig:skewed-left-distro} and \ref{fig:skewed-right-distro}, respectively. Note that these histograms do not represent the reference and/or sliding window aggregation histograms. Here we make the assumption we have a histogram that encodes the distribution of distance values measured between the reference aggregation and the sliding window aggregation.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -110,16 +114,18 @@ Assume we use a distance function that takes two histograms --- our reference ag
     \end{center}
 \end{figure}
 
-Let's assume Figure \ref{fig:skewed-left-distro} 's histogram encodes the distribution of expected distance values for a feature \textit{x1} and Figure \ref{fig:skewed-right-distro} does the same but for a feature \textit{x2}. Setting a user-defined threshold of \textit{$\alpha$=0.6} for both features would yield very different results. For feature \textit{x1} we would be reporting distance values above the 100th-percentile which would not be the case for feature \textit{x2}. Instead what we aim to do is know this distribution so that we can define our threshold as a percentile and not an hard-coded distance constant. For instance, in this case we would define the threshold to be the \textit{i}-th percentile, which would correspond to a threshold value of 0.4 for feature \textit{x1} and 0.6 for feature \textit{x2}.
+Let's assume Figure \ref{fig:skewed-left-distro} 's histogram encodes the distribution of expected distance values for a feature \textit{x1} and Figure \ref{fig:skewed-right-distro} does the same but for a feature \textit{x2}. Setting a user-defined threshold of \textit{$\alpha$=0.6} for both features would yield very different results. For feature \textit{x1} we would be reporting distance values above the 100th-percentile which would not be the case for feature \textit{x2}. Instead what we aim to do is know this distribution so that we can define our threshold as a percentile and not a hard-coded distance constant. For instance, in this case, we would define the threshold to be the \textit{i}-th percentile, which would correspond to a threshold value of 0.4 for feature \textit{x1} and 0.6 for feature \textit{x2}.
 
-Hard-coding a threshold value to be used for all features is cumbersome, impractical and error prone. The distance threshold must be computed based on the distribution of distances. How do we get to know the distribution of such distances? That is one of the goals for the batch phase.
+Hard-coding a threshold value to be used for all features is cumbersome, impractical and error-prone. The distance threshold must be computed based on the distribution of distances. How do we get to know the distribution of such distances? That is one of the goals for the batch phase.
 
 \subsection{Batch analysis phase}
-The goal of the batch phase will be to build our reference snapshot and get to know the distribution of "distances" between the reference snapshot and the sliding window one. In other words, we obtain a reference aggregation histogram that we later on use to measure its distance to the sliding window aggregation histogram, producing a distance value. We compare the measured distance with its distribution to find out how probable it is and alert in a very unlikely scenario. We do this for each feature.
+\textcolor{red}{TODO: add some pseudocode}
+
+The goal of the batch phase will be to build our reference snapshot and get to know the distribution of "distances" between the reference snapshot and the sliding window one. In other words, we obtain a reference aggregation histogram that we, later on, use to measure its distance to the sliding window aggregation histogram, producing a distance value. We compare the measured distance with its distribution to find out how probable it is and alert in a very unlikely scenario. We do this for each feature.
 
 \subsubsection*{Building the reference histogram for each feature}
 
-First, for each feature, we compute the reference histogram from the reference period dataset. This is an exact histogram aggregation. When building it we ensure the histogram has equal counts (or equal height) for all bins which often results in different sized bins. We make no assumption on the dataset distributions and hence use equal height histograms because they adjust better to wildly varying ones. Equal height means we have more bins covering very dense regions (regions with many data points) and less bins in lower density regions. 
+First, for each feature, we compute the reference histogram from the reference period dataset. This is an exact histogram aggregation. When building it we ensure the histogram has equal counts (or equal height) for all bins which often results in different sized bins. We make no assumption on the dataset distributions and hence use equal height histograms because they adjust better to wildly varying ones. Equal height means we have more bins covering very dense regions (regions with many data points) and fewer bins in lower density regions. 
 
 \begin{figure}[!htb]
     \begin{center}
@@ -130,7 +136,7 @@ First, for each feature, we compute the reference histogram from the reference p
 \end{figure}
 
 
-\subsubsection*{Finding the distribution of distances for each feature}
+\subsubsection*{Finding the distribution of distances for each feature} \label{sec:sampling-batch}
 Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make \textit{S} samples of transactions, each with the same tuple-based size of the sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
 
 For each sample, and for each feature, we compute the approximated histogram using the bins computed for the reference histogram (Figure \ref{fig:ref-hist-bins}.
@@ -145,7 +151,7 @@ For each sample, and for each feature, we compute the approximated histogram usi
 
 Recall how an approximated histogram is built as explained in Section \ref{sec:ema-hist}. We will process each sample event by event and apply a discount factor per event, thus building an approximated histogram aggregation using the reference bins, for each feature of that sample. We compute multiple sample histograms to encode distributions over smaller time periods that may exist within the large reference period. We use an approximated histogram to mimic the target approximated histogram we will incrementally maintain in the streaming environment.
 
-For each feature, we have now \textit{S} histograms, one for each sample. For each of the \textit{S} histograms we compute the distance between it and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our distance function for each sample histogram and the reference histogram, obtaining \textit{S} distance measurements.
+For each feature, we have now \textit{S} histograms, one for each sample. For each of the \textit{S} histograms, we compute the distance between it and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our distance function for each sample histogram and the reference histogram, obtaining \textit{S} distance measurements.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -158,39 +164,63 @@ For each feature, we have now \textit{S} histograms, one for each sample. For ea
 For each feature, we end up with \textit{S} distance values. These values are distance measurements between random samples of data and the reference period, and the histograms for each sample were built exactly like they will be maintained in streaming for better fidelity. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another window and the reference window, we can compute its probability and produce alerts if below a certain threshold.
 
 \subsubsection*{Burn-in period at system initialization}
-When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as burn-in period. In order to avoid this burn-in period we propose that the sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
+When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
 
 \subsubsection*{Batch phase artifacts}
-For each feature, by the end of the batch phase, we have a reference histogram, a list of distance values that represents its distribution and the last sample's histogram to be used as burn-in period for the sliding window or target histogram.
+For each feature, by the end of the batch phase, we have a reference histogram, a list of distance values that represents its distribution and the last sample's histogram to be used as a burn-in period for the sliding window or target histogram.
 
 \subsection{Streaming phase}
+\textcolor{red}{TODO: add some pseudocode}
 
-%- online phase:
-          %  for each feature:
-            %    1. initialize the streaming histogram as the last sample's histogram from the batch phase (burn-in period)
-            
-         %   for each event:
-               % for each field/feature:
-                  %  1. update the feature's streaming histogram (recall the update method)
-                  %  2. compute the distance between the reference histogram and the target histogram
-                   % 3. test the percentile the distance value fits according to the feature's distances list and alert if above a certain percentile (say the 99th)
+In the streaming or online phase, the system will process event by event in a true sliding window fashion (recall Section \ref{sec:windows}) and perform a change detection test periodically. This phase makes use of all of the batch phase artifacts, namely, for each feature, the reference histogram, the distribution of distance values and the last sample's histogram.
 
-           % introduce the multiple testing correction problem:
-              %  "the more inferences are made, the more likely erroneous inferences are to occur"
-             %   we are making multiple hypothesis testing when computing a distance and checking the percentile for each feature
+For each feature, we initialize the histogram we will approximately maintain with the last sample's data, from the batch phase. Then, for each incoming event and for each of the event's features, we update our streaming approximate histogram for that feature by adding the new value and then "cutting a slice" from the top of the histogram bars to simulate eviction, as described in Section \ref{sec:ema-hist}. This is all we do, regarding event processing.
 
-                %introduce the Holm-Bonferroni multiple test correction method
-            
-            %So in reality we have:
+Periodically, we perform a multi-feature change detection test. The test is done by first computing the distance between the reference histogram for a feature \textit{x} and the sliding window histogram of feature \textit{x}. This distance value is then tested against the known distribution of distance values for feature \textit{x}. In other words, we test to see the percentile of the computed distance in the distribution of distance values and alert if above a certain percentile --- \textit{e.g.} the 99th-percentile. When we perform the test, for each feature \textit{x}, we are computing the percentile of the distance measured between the reference and sliding window histogram aggregations. The probability value or \textit{p-value} of a distance value is 
 
-          %  for each event:
-               % for each field/feature:
-                 %   1. update the feature's streaming histogram (recall the update method)
-                  %  2. compute the distance between the reference histogram and the target histogram
-                  %  3. apply holm-bonferroni for all feature's distances:
-                     %   - each percentile will be a p-value
-                    %    - order features by p-value
-                    %    - check if p-value > FWER / (m + 1 - k)
-                          %  if so then feature is divergent
-                          
-\subsection{Summary}
+\[\textit{p-value\textsubscript{distance\textsubscript{x}}} = 1 - percentile(\textit{distance\textsubscript{x}})\]
+
+Hence, if we set to alert states that have 1\% or less probability to happen, we raise an alert for distance values above the 99th-percentile or \textit{p-value} = 0.01. Generally speaking, we alert a feature \textit{x} as divergent at a given timestamp if for a given probability threshold $\alpha$:
+
+\[ \textit{percentile(distance\textsubscript{x})} > 1 - \alpha \]
+
+or
+
+\begin{equation}
+    \label{eq:alert-test}
+    \textit{p-value\textsubscript{distance\textsubscript{x}}} < \alpha
+\end{equation}
+
+\subsubsection*{Multiple Test Correction}
+Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test problem arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opt to use the Holm-Bonferroni multiple test correction. The Holm-Bonferroni method is one of many approaches for controlling the so called Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
+
+
+\subsubsection*{Holm-Bonferroni Correction}
+The Holm-Bonferroni correction takes Equation \ref{eq:alert-test} and corrects the right-side threshold $\alpha$ for each feature. This correction is done by dividing the threshold $\alpha$ by a correction factor, as described below.
+
+First, we compute the \textit{p-value} of each feature. We then order our features by \textit{p-value}, in ascending order. Next, starting from the first feature, the one with the smallest \textit{p-value}, and proceeding until the end of the list of features, we check if
+
+\[  \textit{p-value\textsubscript{distance\textsubscript{x}}} < \alpha / (\textit{m} - \textit{k}) \]
+
+with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test, in our case the number of features and corresponding \textit{p-values} and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and alerts are raised.
+
+\subsection{Final remarks}
+
+\subsubsection*{Optimal number of samples}
+In Section \ref{sec:sampling-batch} we stated we made \textit{S} samples in the batch phase. But what is the optimal number of samples to make? How can we mathematically derive a formula for the number of samples to make and avoid \textit{ad hoc} user-defined constants?
+
+We are performing one test for each feature, hence we perform \textit{n\textsubscript{features}} tests. We apply a multiple test correction on the tests performed and want to set the Family Wise Error Rate \textit{(FWER)} to $\alpha$. In other words, we want to alert deviations for the full set of tests globally that have probability $\alpha$ < 1\%, for example.
+
+We use the Holm-Bonferroni correction and, for each feature, we need to reliably estimate the upper tail of the distribution which corresponds to the \textit{$\alpha$ / n\textsubscript{features}} region. Each sample we do translates into a distance value and the collection of these data points builds the distribution of distance values. We want to be sure that the number of samples \textit{S} that we do generates enough distance points to have a high probability of having one or more points in the upper tail region. To that end, we define the probability of not having at least one point in the upper tail of the distance distribution as $\gamma$. 
+
+\textcolor{red}{SEE MODEL MONITORING PAPER} We can then show that the optimal number of samples \textit{S} to make is
+
+\begin{equation}
+    \label{eq:optimal-n-samples}
+    \textit{S} = \frac{\log\gamma}{log(1 - \frac{\alpha}{n\textsubscript{features}})}
+\end{equation}
+
+
+
+
+
