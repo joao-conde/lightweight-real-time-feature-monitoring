@@ -191,11 +191,11 @@ or
     \textit{p-value\textsubscript{distance\textsubscript{x}}} < \alpha
 \end{equation}
 
-\subsubsection*{Multiple Test Correction}
+\subsubsection*{Multiple Test Correction} \label{sec:multi-test}
 Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test problem arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opt to use the Holm-Bonferroni multiple test correction. The Holm-Bonferroni method is one of many approaches for controlling the so called Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
 
 
-\subsubsection*{Holm-Bonferroni Correction}
+\subsubsection*{Holm-Bonferroni Correction} \label{sec:holmbonferroni}
 The Holm-Bonferroni correction takes Equation \ref{eq:alert-test} and corrects the right-side threshold $\alpha$ for each feature. This correction is done by dividing the threshold $\alpha$ by a correction factor, as described below.
 
 First, we compute the \textit{p-value} of each feature. We then order our features by \textit{p-value}, in ascending order. Next, starting from the first feature, the one with the smallest \textit{p-value}, and proceeding until the end of the list of features, we check if

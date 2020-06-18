@@ -39,7 +39,7 @@ In Section 2.1 we have defined a data stream as an unbounded data set. But what 
 % boundless aggregations no need for windows
 Computations over an unbounded data set are possible. For example, computing the \textit{average} of an event's field for all incoming events is computationally trivial: we need only to store the total number of events (one integer) and the current total sum (one double) of all events arriving to the system. However, is this boundless average over the stream of events useful? While in some scenarios it may be, more often than not we would like to introduce some boundaries into our computations. For instance, consider the monitoring of machines spread out across multiple racks in a large data center and its temperatures. Assume that temperatures measured across all racks are sent to a monitoring system in the form of a data stream. The average temperature of a machine over an infinite period (\textit{i.e.} since the machine was deployed) is of little value for detecting if the equipment is currently overheating, and to trigger the appropriate action to prevent a failure. In this scenario, an average of the temperatures per rack and for the last 5 minutes allows for more actionable context, in this case identifying a likely-to-fail rack. To obtain such insight requires computing the average over the last 5 minutes' worth of data, effectively defining a begin and end --- \textit{i.e.} all the data between the current timestamp in minutes \textit{t} and \textit{t-5}. By creating such a conceptual range, we realize that in practice we need a bounded data set. Partitioning an infinite data stream to obtain such a finite data set is made through the use of windows.
 
-\subsection{Streaming Windows}
+\subsection{Sliding Windows}
 
 Botan et. al \cite{Botan-SECRET} formally define a window as:
 
@@ -230,3 +230,21 @@ The aggregation properties analyzed in this Section will be used to evaluate SWA
 
 \textcolor{red}{TODO: explain EMAs, give mathematical proofs on error bounds, emulated window size based on nhalf}
 
+
+%1. Poisson Point Process - https://en.wikipedia.org/wiki/Poisson_point_process
+
+% Poisson processes
+
+% sliding window profiles require storing all the events in the windows in memory
+ 
+% include all past events, but we weigh them down by a factor that decays exponentially fast into the past
+
+% EMA tail will have a lifetime τ that controls how fast older events are forgotten ---- https://quant.stackexchange.com/questions/46194/half-life-of-exponetial-weighted-moving-average
+
+% recursive property of EMAs, is that the new value of the aggregation after the new event arrives, is given by a sum of the old aggregation multiplied by a common suppression factor
+
+ % incoming event is only used once
+ 
+ % suppression factor implicitly takes care of forgetting events
+
+%2. EMA = https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average
