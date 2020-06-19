@@ -14,6 +14,8 @@ The analyzed outlier detection algorithms in Section \ref{sec:outliers} were dee
 In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Additionally, because our system is not mission-critical, we want a solution as lightweight as possible, which means something that grows linearly with window size is not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods shown also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are is also an important property. Some outlier detection methods used Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
 
 \subsection*{Conclusion}
+The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
+
 We concluded that employing outlier detection methods was not the best course of action and put aside this approach.
 
 \section{Approach B: Thresholding aggregation values}
@@ -43,12 +45,11 @@ In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our sl
 \end{figure}
 
 \subsection*{Challenges}
-The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict presented in Section \ref{sec:back-swag-algs}, Two-Stacks has seen in Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba}. Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. Yet another challenge would be to define the maximum deviation threshold $\alpha$  between the reference aggregation state and the streaming aggregation state to produce alerts.
-
+The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict presented in Section \ref{sec:back-swag-algs}, Two-Stacks has seen in Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba}. Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. 
 
 Exponential Moving Averages (Section \ref{sec:emas}), Probabilistic Data Structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}) can be used to solve the first issue and reduce the linear memory complexity of the system relative to sliding window size. 
 
-However, there is no trivial solution for the second and third challenges. Defining the maximum allowed threshold between reference and sliding window aggregations does not have a straightforward solution. Furthermore, defining the set of aggregations to use is also a big challenge. To illustrate, consider both time-series show in Figure \ref{fig:approach2-timeseries}.
+However, there is no trivial solution for the second challenge. Defining the set of aggregations to use does not have a straightforward solution. To illustrate this problem, consider both time-series show in Figure \ref{fig:approach2-timeseries}.
  
 \begin{figure}[!htb]
     \begin{center}
@@ -58,29 +59,29 @@ However, there is no trivial solution for the second and third challenges. Defin
     \end{center}
 \end{figure}
 
-
+\textcolor{red}{NOTE TO MOPS: You commented here, but arent EMAs senseitive to time correlations? Since we put lower weights on older events, the order matters (while in a sliding window every event has the same weight (1))}
 Both time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two different time-series.
 
 \subsection*{Conclusion}
-This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, defining the set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
+This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, the need to choose a set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
 
 
-\section{Proposed method: Numerical Feature Monitoring}
+\section{Proposed method: Feature Distribution Monitoring}
 
-Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we need not to directly compare the entire window contents of the reference period with the contents of the sliding window. Doing this would require storing all window contents hence making our memory consumption grow linearly with sliding window and/or reference period size. We want some sort of aggregation over the reference period that can be maintained efficiently throughout run-time and can be used to distinguish both periods of time and alert for changes. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
+Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we do not need to directly compare the entire window contents of the reference period with the contents of the sliding window. The latter would require storing all window contents hence making the memory consumption grow linearly with sliding window and/or reference period size. Instead, we want to use an aggregation that does not grow linearly in memory regarding window size and that can be incrementally maintained during the streaming phase. The resulting reference and streaming aggregations should be comparable with the intent of raising divergence alerts. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
 
-To that end, we devise a two-phase method. The first phase relies on a batch analysis that builds our aggregated reference snapshot to be later on compared with the sliding one. The second phase focus on efficiently updating the sliding window aggregation snapshot and occasionally perform a similarity test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types as well, as we will discuss.
+To that end, we devise a two-phase method. The first phase relies on a batch analysis that builds our aggregated reference snapshot to be later on compared with the sliding one. The second phase focus on efficiently updating the sliding window aggregation snapshot and occasionally perform a similarity test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types, as we will discuss.
 
 \subsection{Stream monitoring goals}
 \textcolor{red}{TODO: add some pseudocode}
 
-Before diving into the batch and streaming algorithms we must further define our goal. In this Section, we pose the question: \textit{"what is our goal during the streaming or monitoring phase?"} and answer it.
+Before diving into the batch and streaming algorithms we must further define our goal. In this Section, we address the question: \textit{"What is our goal during the streaming or monitoring phase?"}
 
-A data stream is an infinite stream of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are also named features or time-dependent variables. You can think of them as columns in a traditional relational database table. Given this context, our goal is to produce alerts of the following form:
+A data stream is an infinite stream of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are also named features or time-dependent variables. They can be thought of as columns in a traditional relational database table. Our goal is to produce alerts of the following form:
 
 \[\textit{timestamp: [(x1, 0.23), (x2, 0.51), (x3, 0.55)}]\]
 
-The format used allows us to know the \textit{timestamp} for the given alert, which features diverge (in this case \textit{x1, x2, x3}) and a value representative of how much each feature diverges (for instance, a float value between 0 and 1 that works as a confidence value). 
+This indicates the \textit{timestamp} for the given alert, which features diverge (in this case \textit{x1, x2, x3}) and a value representative of how much each feature diverges (\textit{e.g.} a float value between 0 and 1 that works as a confidence value). 
 
 An alert should be raised if a feature distribution changes considerably. This immediately poses challenges such as \textit{(a)} finding a suitable aggregation that encodes each feature's distribution and allows for a change detection test and \textit{(b)} defining a deviation threshold $\alpha$.
 
@@ -88,7 +89,7 @@ An alert should be raised if a feature distribution changes considerably. This i
 \textcolor{red}{TODO: add some pseudocode}
 
 
-We chose to encode a feature distribution as a histogram. A histogram is an aggregation that represents the distribution of numerical features. However, we must recall that we need to update this histogram in constant time in a sliding window fashion, implying the eviction of old elements and insertion of new ones must be done with \textit{O(1)} time complexity.
+We chose to encode a feature distribution as a histogram. A histogram is an aggregation that represents the distribution of a numerical feature or a set of categories. However, we must recall that we need to update this histogram in constant time in a sliding window fashion, implying the eviction of old elements and insertion of new ones must be done with \textit{O(1)} time complexity.
 
 An exact histogram aggregation must keep the entire sliding window in memory...
 
