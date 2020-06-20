@@ -11,7 +11,7 @@ Using point outlier detection methods, the main idea would be to keep track of t
 \subsection*{Challenges}
 The analyzed outlier detection algorithms in Section \ref{sec:outliers} were deemed unfit for our use-case due to one or more of the following: \textit{(a)} high memory consumption, \textit{(b)} high time complexity, \textit{(c)} "memory loss" and \textit{(d)} obfuscated insights.
 
-In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Additionally, because our system is not mission-critical, we want a solution as lightweight as possible, which means something that grows linearly with window size is not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods shown also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are is also an important property. Some outlier detection methods used Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
+In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Additionally, because our system is not mission-critical, we want a solution as lightweight as possible, which means something that grows linearly with window size is not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods shown also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are, is also an important property. Some outlier detection methods used Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
 
 \subsection*{Conclusion}
 The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
@@ -68,35 +68,41 @@ This approach requires efficient sliding window aggregation state maintenance, w
 
 \section{Proposed method: Feature Distribution Monitoring}
 
-Our goal is to detect data pattern shifts in an online fashion. Such shifts will be measured between a reference or normality period versus the observed reality during the streaming phase. Note that we do not need to directly compare the entire window contents of the reference period with the contents of the sliding window. The latter would require storing all window contents hence making the memory consumption grow linearly with sliding window and/or reference period size. Instead, we want to use an aggregation that does not grow linearly in memory regarding window size and that can be incrementally maintained during the streaming phase. The resulting reference and streaming aggregations should be comparable with the intent of raising divergence alerts. In short, we want a reference aggregation snapshot to compare with a streaming aggregation that must be updated in real-time and constant in memory usage.
+A data stream is a continuous collection of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are time-dependent variables named features. They can be thought of as columns in a traditional relational database table. Our goal is to detect data pattern shifts for each feature in an online fashion. Such shifts will be measured between a reference period versus the observed reality during the streaming phase. Figure \ref{fig:timelines} shows the separated reference and streaming timelines.
 
-To that end, we devise a two-phase method. The first phase relies on a batch analysis that builds our aggregated reference snapshot to be later on compared with the sliding one. The second phase focus on efficiently updating the sliding window aggregation snapshot and occasionally perform a similarity test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types, as we will discuss.
-
-\subsection{Stream monitoring goals}
-\textcolor{red}{TODO: add some pseudocode}
-
-Before diving into the batch and streaming algorithms we must further define our goal. In this Section, we address the question: \textit{"What is our goal during the streaming or monitoring phase?"}
-
-A data stream is an infinite stream of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are also named features or time-dependent variables. They can be thought of as columns in a traditional relational database table. Our goal is to produce alerts of the following form:
-
-\[\textit{timestamp: [(x1, 0.23), (x2, 0.51), (x3, 0.55)}]\]
-
-This indicates the \textit{timestamp} for the given alert, which features diverge (in this case \textit{x1, x2, x3}) and a value representative of how much each feature diverges (\textit{e.g.} a float value between 0 and 1 that works as a confidence value). 
-
-An alert should be raised if a feature distribution changes considerably. This immediately poses challenges such as \textit{(a)} finding a suitable aggregation that encodes each feature's distribution and allows for a change detection test and \textit{(b)} defining a deviation threshold $\alpha$.
-
-\subsection*{Approximated Histogram Aggregation} \label{sec:ema-hist}
-\textcolor{red}{TODO: add some pseudocode}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/timeperiods.png}
+      \caption[]{Reference and Streaming timelines}
+      \label{fig:timelines}
+    \end{center}
+\end{figure}
 
 
-We chose to encode a feature distribution as a histogram. A histogram is an aggregation that represents the distribution of a numerical feature or a set of categories. However, we must recall that we need to update this histogram in constant time in a sliding window fashion, implying the eviction of old elements and insertion of new ones must be done with \textit{O(1)} time complexity.
+We do not need to directly compare the entire window contents of the reference and sliding window periods. The latter would require storing all window contents hence making the memory consumption grow linearly with sliding window and/or reference period size. Instead, we want to use a  \textit{(a)} constant in memory aggregation that can be \textit{(b)} incrementally maintained during the streaming phase. Additionally, we want a streaming aggregation that \textit{(c)} reliably encodes the distribution of each feature. 
 
-An exact histogram aggregation must keep the entire sliding window in memory...
+Histograms are a representation of the distribution of numerical or categorical data thus being ideal to encode the distribution of feature values, satisfying \textit{(c)}. Histograms require the storage of a fixed-size list of bins and a corresponding fixed-size list of counts per bin for ever growing volumes of data, satisfying property \textit{(a)}. Adding or removing an element to the histogram aggregation is tantamount to determining the correct bin and adding or subtracting one, respectively, thus satisfying property \textit{(b)}. However, computing an histogram aggregation over a sliding window of size $W$ implies storing all $W$ elements in memory to know the element to remove after a new one is inserted. This violates our constant in memory property \textit{(a)} which is why we chose to use the Exponential Moving Averages (EMAs) analyzed in Section \ref{sec:emas}. EMA-like histograms computed over sliding windows do not require the storage of window contents. An EMA-like histogram is \textit{(a)} constant in memory, \textit{(b)} maintained in real-time and \textit{(c)} encodes the distribution of each feature values. EMA-like histograms are further explained in Section \ref{sec:ema-hist}.
 
-\textcolor{red}{TODO: review this section after EMAs is written}
+Since the reference window is static, \textit{i.e.}, it is not a sliding window, we can use exact histogram aggregations. Hence, for each feature, we build an exact reference histogram aggregation. On the other hand, in streaming, we use one EMA-like approximate histogram aggregation per feature (Figure \ref{fig:timelines-hists}).
 
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.4]{figures/timelines-hists.png}
+      \caption[]{Reference and Streaming timelines and corresponding histogram aggregations}
+      \label{fig:timelines-hists}
+    \end{center}
+\end{figure}
+
+
+To compare each feature's reference and sliding window histogram aggregation we need a measure of divergence. We chose to use the Jensen–Shannon Divergence (JSD) \cite{JSD} but other statistical tests are possible such as Kolmogorov-Smirnov or Wasserstein. \textcolor{red}{defer the why to later section} Given a divergence value for the two aggregations (reference and sliding window ones) we need a measure of normal statistical fluctuations. Since we assume a reference period as the normal state we can find out the normal distribution for the divergence by sampling smaller windows of data from the reference period in a batch analysis. This allows us to define a threshold based on percentiles, which gives an estimate for the probability of a certain value occurring, rather than using a constant hand picked threshold for the divergence value. \textcolor{red}{defer details to later section}
+
+
+We devise a two-phase method. The first phase relies on a batch analysis that, for each feature, builds a reference histogram and computes the distribution of divergence values (details presented in Section ??). The second phase focus on efficiently updating the sliding window histogram for each feature and periodically performs a divergence test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types.
+
+
+\iffalse
 \subsection*{Defining the deviation threshold}
-
 Assume we use a distance function that takes two histograms --- our reference aggregation histogram and our sliding window aggregation histogram --- and outputs a distance value. How do we threshold this value? For instance, consider the following left and right-skewed distance distributions represented by Figures \ref{fig:skewed-left-distro} and \ref{fig:skewed-right-distro}, respectively. Note that these histograms do not represent the reference and/or sliding window aggregation histograms. Here we make the assumption we have a histogram that encodes the distribution of distance values measured between the reference aggregation and the sliding window aggregation.
 
 \begin{figure}[!htb]
@@ -117,12 +123,27 @@ Assume we use a distance function that takes two histograms --- our reference ag
 
 Let's assume Figure \ref{fig:skewed-left-distro} 's histogram encodes the distribution of expected distance values for a feature \textit{x1} and Figure \ref{fig:skewed-right-distro} does the same but for a feature \textit{x2}. Setting a user-defined threshold of \textit{$\alpha$=0.6} for both features would yield very different results. For feature \textit{x1} we would be reporting distance values above the 100th-percentile which would not be the case for feature \textit{x2}. Instead what we aim to do is know this distribution so that we can define our threshold as a percentile and not a hard-coded distance constant. For instance, in this case, we would define the threshold to be the \textit{i}-th percentile, which would correspond to a threshold value of 0.4 for feature \textit{x1} and 0.6 for feature \textit{x2}.
 
-Hard-coding a threshold value to be used for all features is cumbersome, impractical and error-prone. The distance threshold must be computed based on the distribution of distances. How do we get to know the distribution of such distances? That is one of the goals for the batch phase.
+Hard-coding a threshold value to be used for all features is cumbersome, impractical and error-prone. The distance threshold must be computed based on the distribution of distances. How do we get to know the distribution of such distances? That is one of the goals of the batch phase.
+\fi
+
+
+\subsection{Exponential Moving Average based histogram} \label{sec:ema-hist}
+The sliding window histogram we use is an Exponential Moving Average (EMA) based histogram. An EMA-like histogram is essentially a collection of EMA-counts as described in Section \ref{sec:emas}.
+
+.....
 
 \subsection{Batch analysis phase}
 \textcolor{red}{TODO: add some pseudocode}
 
-The goal of the batch phase will be to build our reference snapshot and get to know the distribution of "distances" between the reference snapshot and the sliding window one. In other words, we obtain a reference aggregation histogram that we, later on, use to measure its distance to the sliding window aggregation histogram, producing a distance value. We compare the measured distance with its distribution to find out how probable it is and alert in a very unlikely scenario. We do this for each feature.
+The goal of the batch phase will be to build our reference aggregation for each feature and get to know the distribution of divergence or distance values between the reference and the sliding window aggregations. In other words, we:
+
+\begin{enumerate}
+    \item obtain a reference histogram for each feature using all data in the reference period
+    
+    \item then compute the distribution of distances between the reference histogram and the sliding window histogram by computing the distance (or divergence value) between the reference histogram and various samples of sliding window histograms
+\end{enumerate}
+
+This distribution of values can then later be compared to a given value of divergence for a single sample to find out how probable that value is to occur (if it is very low an alert may be raised).
 
 \subsubsection*{Building the reference histogram for each feature}
 
@@ -140,7 +161,7 @@ First, for each feature, we compute the reference histogram from the reference p
 \subsubsection*{Finding the distribution of distances for each feature} \label{sec:sampling-batch}
 Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make \textit{S} samples of transactions, each with the same tuple-based size of the sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
 
-For each sample, and for each feature, we compute the approximated histogram using the bins computed for the reference histogram (Figure \ref{fig:ref-hist-bins}.
+For each sample, and for each feature, we compute the approximated histogram using the bins computed for the reference histogram (Figure \ref{fig:ref-hist-bins}). We also add two extra bins that will cover the region to the left and to the right of our histogram, respectively. In other words, we add a bin that covers the region between $-\infty$ and our first bin and another that covers values from the last bin to $+\infty$. This way, observed values outside of the reference period will be placed in these special bins, either left or right.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -150,7 +171,7 @@ For each sample, and for each feature, we compute the approximated histogram usi
     \end{center}
 \end{figure}
 
-Recall how an approximated histogram is built as explained in Section \ref{sec:ema-hist}. We will process each sample event by event and apply a discount factor per event, thus building an approximated histogram aggregation using the reference bins, for each feature of that sample. We compute multiple sample histograms to encode distributions over smaller time periods that may exist within the large reference period. We use an approximated histogram to mimic the target approximated histogram we will incrementally maintain in the streaming environment.
+Each of the histograms is an EMA-like histogram. An EMA-like histogram is essentially a collection of EMA-counts, as described in Section \ref{sec:ema-hist}. Each sample is processed event by event and a discount factor is applied per event, thus building an approximated histogram aggregation, using the reference bins, for each feature of that sample. We compute multiple sample histograms to encode distributions over smaller time periods that may exist within the large reference period. We use an approximated histogram to mimic the target approximated histogram we will incrementally maintain in the streaming environment.
 
 For each feature, we have now \textit{S} histograms, one for each sample. For each of the \textit{S} histograms, we compute the distance between it and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our distance function for each sample histogram and the reference histogram, obtaining \textit{S} distance measurements.
 
@@ -162,7 +183,8 @@ For each feature, we have now \textit{S} histograms, one for each sample. For ea
     \end{center}
 \end{figure}
 
-For each feature, we end up with \textit{S} distance values. These values are distance measurements between random samples of data and the reference period, and the histograms for each sample were built exactly like they will be maintained in streaming for better fidelity. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another window and the reference window, we can compute its probability and produce alerts if below a certain threshold.
+For each feature, we end up with \textit{S} distance values. These values are distance measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if below a certain threshold. Note that the histograms for each sample are EMA-like histograms (as detailed in Section \ref{sec:ema-hist}) just like the sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
+
 
 \subsubsection*{Burn-in period at system initialization}
 When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
