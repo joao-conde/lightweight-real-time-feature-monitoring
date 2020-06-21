@@ -5,13 +5,13 @@ The first approach considered relied on outlier detection methods such as the on
 
 \subsection*{How}
 
-Using point outlier detection methods, the main idea would be to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier. 
+Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier. 
 
 
 \subsection*{Challenges}
 The analyzed outlier detection algorithms in Section \ref{sec:outliers} were deemed unfit for our use-case due to one or more of the following: \textit{(a)} high memory consumption, \textit{(b)} high time complexity, \textit{(c)} "memory loss" and \textit{(d)} obfuscated insights.
 
-In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Additionally, because our system is not mission-critical, we want a solution as lightweight as possible, which means something that grows linearly with window size is not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods shown also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are, is also an important property. Some outlier detection methods used Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
+In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Because our system is not mission-critical, we also want the solution to be as lightweight as possible, which means techniques that grow linearly with window size are not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods discussed also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are, is also an important property. Some outlier detection methods use Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
 
 \subsection*{Conclusion}
 The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
@@ -66,7 +66,7 @@ Both time-series 1 and 2 have the same maximum, minimum, mean and standard devia
 This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, the need to choose a set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
 
 
-\section{Proposed method: Feature Distribution Monitoring}
+\section{Proposed method: Feature Distribution Monitoring} \label{sec:ft-monitoring}
 
 A data stream is a continuous collection of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are time-dependent variables named features. They can be thought of as columns in a traditional relational database table. Our goal is to detect data pattern shifts for each feature in an online fashion. Such shifts will be measured between a reference period versus the observed reality during the streaming phase. Figure \ref{fig:timelines} shows the separated reference and streaming timelines.
 
@@ -95,10 +95,10 @@ Since the reference window is static, \textit{i.e.}, it is not a sliding window,
 \end{figure}
 
 
-To compare each feature's reference and sliding window histogram aggregation we need a measure of divergence. We chose to use the Jensen–Shannon Divergence (JSD) \cite{JSD} but other statistical tests are possible such as Kolmogorov-Smirnov or Wasserstein. \textcolor{red}{defer the why to later section} Given a divergence value for the two aggregations (reference and sliding window ones) we need a measure of normal statistical fluctuations. Since we assume a reference period as the normal state we can find out the normal distribution for the divergence by sampling smaller windows of data from the reference period in a batch analysis. This allows us to define a threshold based on percentiles, which gives an estimate for the probability of a certain value occurring, rather than using a constant hand picked threshold for the divergence value. \textcolor{red}{defer details to later section}
+To compare each feature's reference and sliding window histogram aggregation we need a measure of divergence. We chose to use the Jensen–Shannon Divergence (JSD) \cite{JSD} but other statistical tests are possible such as Kolmogorov-Smirnov or Wasserstein. A more thorough analysis on some statistical tests and why we chose to use the JSD is performed in Section \ref{sec:whyjsds}. Given a divergence value for the two aggregations (reference and sliding window ones) we need a measure of normal statistical fluctuations. Since we assume a reference period as the normal state we can find out the normal distribution for the divergence by sampling smaller windows of data from the reference period in a batch analysis. This allows us to define a threshold based on percentiles, which gives an estimate for the probability of a certain value occurring, rather than using a constant hand picked threshold for the divergence value. \textcolor{red}{defer details to later section}
 
 
-We devise a two-phase method. The first phase relies on a batch analysis that, for each feature, builds a reference histogram and computes the distribution of divergence values (details presented in Section ??). The second phase focus on efficiently updating the sliding window histogram for each feature and periodically performs a divergence test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types.
+We devise a two-phase method. The first phase relies on a batch analysis that, for each feature, builds a reference histogram and computes the distribution of divergence values (details presented in Section \ref{sec:batch-phase}). The second phase (detailed in Section \ref{sec:stream-phase}) focus on efficiently updating the sliding window histogram for each feature and periodically performs a divergence test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types.
 
 
 \iffalse
@@ -128,11 +128,13 @@ Hard-coding a threshold value to be used for all features is cumbersome, impract
 
 
 \subsection{Exponential Moving Average based histogram} \label{sec:ema-hist}
-The sliding window histogram we use is an Exponential Moving Average (EMA) based histogram. An EMA-like histogram is essentially a collection of EMA-counts as described in Section \ref{sec:emas}.
+As stated, we compute histogram aggregations for the reference and sliding windows. The computation of the reference histogram is done once in batch and hence an exact histogram can be computed. However, the sliding window histogram is an EMA-like histogram to ensure that we are able to encode the feature distribution with constant space complexity and maintain it in real-time.
 
-.....
+In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and how they emulate a sliding window without actually storing window elements....
 
-\subsection{Batch analysis phase}
+\textcolor{red}{TODO: complete this after EMAs in background are corrected}
+
+\subsection{Batch analysis phase} \label{sec:batch-phase}
 \textcolor{red}{TODO: add some pseudocode}
 
 The goal of the batch phase will be to build our reference aggregation for each feature and get to know the distribution of divergence or distance values between the reference and the sliding window aggregations. In other words, we:
@@ -192,7 +194,7 @@ When we boot up our system in the streaming phase we initially have empty histog
 \subsubsection*{Batch phase artifacts}
 For each feature, by the end of the batch phase, we have a reference histogram, a list of distance values that represents its distribution and the last sample's histogram to be used as a burn-in period for the sliding window or target histogram.
 
-\subsection{Streaming phase}
+\subsection{Streaming phase} \label{sec:stream-phase}
 \textcolor{red}{TODO: add some pseudocode}
 
 In the streaming or online phase, the system will process event by event in a true sliding window fashion (recall Section \ref{sec:windows}) and perform a change detection test periodically. This phase makes use of all of the batch phase artifacts, namely, for each feature, the reference histogram, the distribution of distance values and the last sample's histogram.
@@ -243,7 +245,8 @@ We use the Holm-Bonferroni correction and, for each feature, we need to reliably
     \textit{S} = \frac{\log\gamma}{log(1 - \frac{\alpha}{n\textsubscript{features}})}
 \end{equation}
 
+\subsubsection*{Distribution Divergence Statistical Tests} \label{sec:whyjsds}
 
+We used the Jensen-Shannon Divergence (JSD) but....
 
-
-
+\textcolor{red}{Talk about wassertein, kolomogrov, why JSD...}

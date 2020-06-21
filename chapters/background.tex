@@ -97,7 +97,7 @@ The mathematical expression below summarizes our categorization of sliding windo
     \end{cases}
 \end{equation}
 
-For the scope of this Thesis, we will work under a tuple-based true sliding window framework. Despite focusing on tuple-based true sliding windows, our approach is just as valid for time-based windows and other step values as well.
+For the scope of this Thesis, we will work under a tuple-based true sliding window framework. However, as explained in Section \ref{sec:ft-monitoring}, despite focusing on tuple-based true sliding windows, our approach is just as valid for time-based windows and other step values as well.
 
 \section{Aggregations over data} \label{sec:aggregations}
 
@@ -252,7 +252,7 @@ with $\lambda$ as a constant factor applied to the previous EMA value. This $\la
 \[ \lambda = 2^{- \dfrac{1}{\tau}} \]
 
 
-where $\tau$ is the half-life of the EMA. The half-life $\tau$ controls how fast older events are forgotten as the smoothing factor depends on it. The half-life is the amount of time that it takes for an element to see its contribution or weight reduced to half. For instance, with $\tau = 1s$ we have $\lambda = 0.5$, which means for each 1s step we reduce the weights applied to each event by half.
+where $\tau$ is the half-life of the EMA. The half-life $\tau$ controls how fast older events are forgotten as the smoothing factor depends on it. The half-life is the amount of time that it takes for an element to see its contribution or weight reduced to half. For instance, with $\tau = 1s$ we have $\lambda = 0.5$, which means for each 1s step we reduce the weights applied to each event by half. Note that it is also possible to express a tuple-based half-life, \textit{i.e.}, how many tuples or events must the EMA process before a certain element has its weight reduced by half (\textit{e.g.} $\tau = 1$ tuple, $\lambda = 0.5$, for each new tuple reduce all weights by half).
 
 
 
