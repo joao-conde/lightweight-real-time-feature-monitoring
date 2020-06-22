@@ -233,28 +233,27 @@ We talked about sliding window aggregations and algorithms to compute them and o
 
 Exponential Moving Averages (also known as Exponential Weighted Moving Averages) \cite{EMA-Everett2011} \cite{EMA-Hunter} \cite{EMA-MarcusB} are applied to a sequence of elements to compute a weighted average, using different weights for each element. These weights decrease exponentially with the age of the observations. In other words, EMAs give higher weights to more recent data points.
 
-\textcolor{red}{Sliding window Weights image}
-\textcolor{red}{EMA Weights image}
-
-
-
+\textcolor{red}{TODO: Images for EMA and sliding window weights}
 
 EMAs are recursive: the EMA value at timestamp \textit{t} depends only on the EMA value at timestamp \textit{t-1}. This recursive property allows us to store only one EMA value and continuously update it for each new value val\textsubscript{t}, based on the following recursion formula:
 
 \begin{definition}
-EMA\textsubscript{t} = EMA\textsubscript{t-1} * $\lambda$ + val\textsubscript{t}
-
+EMA\textsubscript{t} = EMA\textsubscript{t-1} * $\lambda\delta\textsubscript{t}$ + val\textsubscript{t}
 \label{def:ema}
 \end{definition}
 
-with $\lambda$ as a constant factor applied to the previous EMA value. This $\lambda$ constant (0 < $\lambda \leq$ 1) is known as the smoothing coefficient. The smoothing or decay factor $\lambda$ is given by:
+with $\lambda$ as a constant factor applied to the previous EMA value and $\delta\textsubscript{t}$ as the time passed between \textit{t} and \textit{t-1}. This $\lambda$ constant (0 < $\lambda \leq$ 1) is known as the smoothing coefficient. The smoothing or decay factor $\lambda$ is given by:
+\begin{equation}
+    \lambda = 2^{- \dfrac{1}{\tau}}
+    \label{eq:ema-decay}
+\end{equation}
+where $\tau$ is the half-life of the EMA. The half-life $\tau$ controls how fast old events are forgotten as the smoothing factor depends on it. The half-life is the amount of time that it takes for an element to see its contribution or weight reduced to half. For instance, with $\tau = 1s$ we have $\lambda = 0.5$, which means for each 1s step we reduce the weights applied to each event by half. 
 
-\[ \lambda = 2^{- \dfrac{1}{\tau}} \]
+Note that it is also possible to express a tuple-based half-life, \textit{i.e.}, how many tuples or events must the EMA process before a certain element has its weight reduced by half. In this case, the definition does not take into account the time passed between events:
+\begin{definition}
+EMA\textsubscript{t} = EMA\textsubscript{t-1} * $\lambda$ + val\textsubscript{t}
+\label{def:tuple-ema}
+\end{definition}
+For example, with a tuple-based half-life of $\tau = 1$ tuple, the smoothing factor is $\lambda = 0.5$, meaning for each new tuple all weights are reduced by half.
 
-
-where $\tau$ is the half-life of the EMA. The half-life $\tau$ controls how fast older events are forgotten as the smoothing factor depends on it. The half-life is the amount of time that it takes for an element to see its contribution or weight reduced to half. For instance, with $\tau = 1s$ we have $\lambda = 0.5$, which means for each 1s step we reduce the weights applied to each event by half. Note that it is also possible to express a tuple-based half-life, \textit{i.e.}, how many tuples or events must the EMA process before a certain element has its weight reduced by half (\textit{e.g.} $\tau = 1$ tuple, $\lambda = 0.5$, for each new tuple reduce all weights by half).
-
-
-
-
-% EMA-count example (later build histogram concept on multiple EMA-counts) 
+In this Thesis we will work with tuple-based EMAs but our approach can be adjusted to use time-based ones.

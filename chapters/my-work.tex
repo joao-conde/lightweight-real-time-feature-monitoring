@@ -1,29 +1,25 @@
 \chapter{Lightweight Real-Time Feature Monitoring} \label{chap:my-work} \minitoc
 
-\section{Approach A: Usage of outlier detection methods}
-The first approach considered relied on outlier detection methods such as the ones presented in Section \ref{sec:outliers} and classified by the taxonomy in Figure \ref{fig:outlier-taxonomy}. This straightforward approach works with either subsequence or point outlier detection methods to analyze the streaming sliding window and produce data pattern shift alerts.
+\section{State of the art outlier detection methods}
+The first approach considered relied on outlier detection methods such as the ones presented in Section \ref{sec:outliers} and classified by the taxonomy in Figure \ref{fig:outlier-taxonomy}. 
 
-\subsection*{How}
-
-Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier. 
+We reviewed subsequence and point outlier detection methods. Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier when compared to the reference window. 
 
 
 \subsection*{Challenges}
 The analyzed outlier detection algorithms in Section \ref{sec:outliers} were deemed unfit for our use-case due to one or more of the following: \textit{(a)} high memory consumption, \textit{(b)} high time complexity, \textit{(c)} "memory loss" and \textit{(d)} obfuscated insights.
 
-In our lightweight real-time solution we need constant time complexity to process events one by one in real-time. Because our system is not mission-critical, we also want the solution to be as lightweight as possible, which means techniques that grow linearly with window size are not a good fit. Therefore, most of the outlier detection methods presented become unfit for our use due to high memory consumption and time complexity. Some of the methods discussed also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are, is also an important property. Some outlier detection methods use Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
+For this Thesis we need constant time complexity to process events one by one in real-time. Because our system is not mission-critical, we also want the solution to be as lightweight as possible, which means techniques that grow linearly with window size are not a good fit. Some of the methods discussed also suffer from what we call \textit{"memory loss"}: they lose track of the reference window or normality period. In other words, the algorithms are online learners, meaning they adapt to the underlying statistics of the data stream. While in some scenarios this is a much-needed feature, in our use-case it is not. How clear the alerts and insights retrieved from the methods are, is also an important property. Some outlier detection methods use Machine Learning (ML) techniques to produce alerts, which makes it harder to explain to a system administrator why an alert was raised and what changed.
 
 \subsection*{Conclusion}
 The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
 
-We concluded that employing outlier detection methods was not the best course of action and put aside this approach.
-
-\section{Approach B: Thresholding aggregation values}
+\section{State of the art aggregation algorithms}
 This second approach focus on building an aggregation snapshot of the reference period to compare with streaming aggregation values and alert if the difference between both surpasses a threshold $\alpha$.
 
 \subsection*{How}
 
-In this approach we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a sliding window and the average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
+In this approach we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a sliding target window and the associated average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -45,7 +41,7 @@ In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our sl
 \end{figure}
 
 \subsection*{Challenges}
-The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict presented in Section \ref{sec:back-swag-algs}, Two-Stacks has seen in Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba}. Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. 
+The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict from Section \ref{sec:back-swag-algs}, Two-Stacks from Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba}. Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. 
 
 Exponential Moving Averages (Section \ref{sec:emas}), Probabilistic Data Structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}) can be used to solve the first issue and reduce the linear memory complexity of the system relative to sliding window size. 
 
@@ -65,8 +61,7 @@ Both time-series 1 and 2 have the same maximum, minimum, mean and standard devia
 \subsection*{Conclusion}
 This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, the need to choose a set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
 
-
-\section{Proposed method: Feature Distribution Monitoring} \label{sec:ft-monitoring}
+\section{Method: Feature Distribution Monitoring} \label{sec:ft-monitoring}
 
 A data stream is a continuous collection of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are time-dependent variables named features. They can be thought of as columns in a traditional relational database table. Our goal is to detect data pattern shifts for each feature in an online fashion. Such shifts will be measured between a reference period versus the observed reality during the streaming phase. Figure \ref{fig:timelines} shows the separated reference and streaming timelines.
 
@@ -79,7 +74,7 @@ A data stream is a continuous collection of events. Each event is timestamped an
 \end{figure}
 
 
-We do not need to directly compare the entire window contents of the reference and sliding window periods. The latter would require storing all window contents hence making the memory consumption grow linearly with sliding window and/or reference period size. Instead, we want to use a  \textit{(a)} constant in memory aggregation that can be \textit{(b)} incrementally maintained during the streaming phase. Additionally, we want a streaming aggregation that \textit{(c)} reliably encodes the distribution of each feature. 
+We do not need to directly compare the entire window contents of the reference and sliding windows. The latter would require storing all window contents hence making the memory consumption grow linearly with sliding window and/or reference period size. Instead, we want to use a  \textit{(a)} constant in memory aggregation that can be \textit{(b)} incrementally maintained during the streaming phase. Additionally, we want a streaming aggregation that \textit{(c)} reliably encodes the distribution of each feature. 
 
 Histograms are a representation of the distribution of numerical or categorical data thus being ideal to encode the distribution of feature values, satisfying \textit{(c)}. Histograms require the storage of a fixed-size list of bins and a corresponding fixed-size list of counts per bin for ever growing volumes of data, satisfying property \textit{(a)}. Adding or removing an element to the histogram aggregation is tantamount to determining the correct bin and adding or subtracting one, respectively, thus satisfying property \textit{(b)}. However, computing an histogram aggregation over a sliding window of size $W$ implies storing all $W$ elements in memory to know the element to remove after a new one is inserted. This violates our constant in memory property \textit{(a)} which is why we chose to use the Exponential Moving Averages (EMAs) analyzed in Section \ref{sec:emas}. EMA-like histograms computed over sliding windows do not require the storage of window contents. An EMA-like histogram is \textit{(a)} constant in memory, \textit{(b)} maintained in real-time and \textit{(c)} encodes the distribution of each feature values. EMA-like histograms are further explained in Section \ref{sec:ema-hist}.
 
@@ -104,9 +99,16 @@ We devise a two-phase method. The first phase relies on a batch analysis that, f
 \subsection{Exponential Moving Average based histogram} \label{sec:ema-hist}
 As stated, we compute histogram aggregations for the reference and sliding windows. The computation of the reference histogram is done once in batch and hence an exact histogram can be computed. However, the sliding window histogram is an EMA-like histogram to ensure that we are able to encode the feature distribution with constant space complexity and maintain it in real-time.
 
-In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and how they emulate a sliding window without actually storing window elements....
+In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and how they compute sliding window aggregations without actually storing the window contents. Definition \ref{def:tuple-ema} shows how to compute an EMA using its recurrence formula. An EMA state or value depends only on the previous one times an exponential decay $\lambda$. Recall that this decay is given by Equation \ref{eq:ema-decay}:
+\[ \lambda = 2^{- \dfrac{1}{\tau}} \]
+where $\tau$ is commonly denoted as the half-life. 
 
-\textcolor{red}{TODO: complete this after EMAs in background are corrected}
+
+After processing \textit{x} tuples the oldest tuple is \emph{smoothed} by a factor of $\lambda^x = 2^{- \dfrac{x}{\tau}}$. If we process $x = 4\tau$ tuples the oldest tuple would have its contribution reduced by
+\[ 2^{- \dfrac{4\tau}{\tau}} = 2^{-4} \]
+which is approximately 0.06. In other words, the \textit{x-th} event would have 6\% contribution towards the EMA state or value meaning older events would have even less weight.
+
+We choose to use windows with four times the half-life size (or $4\tau$), meaning we discard events whose contribution is less than 6\%. In fact, we set the half-life to be one quarter of the size of the window we want to emulate. For instance, if we want to compute an EMA aggregation over a period of a month, we set the half-life to be the number of tuples that correspond to one week worth of data. 
 
 \subsection{Batch analysis phase} \label{sec:batch-phase}
 \textcolor{red}{TODO: add some pseudocode}
