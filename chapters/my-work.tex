@@ -1,7 +1,7 @@
 \chapter{Lightweight Real-Time Feature Monitoring} \label{chap:my-work} \minitoc
 
 \section{State of the art outlier detection methods}
-The first approach considered relied on outlier detection methods such as the ones presented in Section \ref{sec:outliers} and classified by the taxonomy in Figure \ref{fig:outlier-taxonomy}. 
+Our first theoretical approach was to use one of the outlier detection methods presented in Section \ref{sec:outliers}.
 
 We reviewed subsequence and point outlier detection methods. Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier when compared to the reference window. 
 
@@ -15,11 +15,11 @@ For this Thesis we need constant time complexity to process events one by one in
 The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
 
 \section{State of the art aggregation algorithms}
-This second approach focus on building an aggregation snapshot of the reference period to compare with streaming aggregation values and alert if the difference between both surpasses a threshold $\alpha$.
+Dissimilarity-based univariate subsequence outlier detection methods as presented in \ref{sec:uni-sub-out} focus on measuring the distance between two periods of time and report an outlier when the distance is above a certain threshold. Keeping both reference and target windows in memory means our memory consumption grows linearly regarding both windows size. In an attempt to solve this, we focus on storing only an aggregation of both windows. 
 
-\subsection*{How}
+In Section \ref{sec:sota-swag-algs} we review algorithms to compute sliding window aggregations and in Sections \ref{sec:pds} and \ref{sec:sliding-pds} we discussed special aggregators and respective sliding window implementations. 
 
-In this approach we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a sliding target window and the associated average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
+In our dissimilarity-based approach, we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a sliding target window and the associated average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -41,12 +41,14 @@ In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our sl
 \end{figure}
 
 \subsection*{Challenges}
-The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict from Section \ref{sec:back-swag-algs}, Two-Stacks from Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba}. Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. 
+The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict from Section \ref{sec:back-swag-algs}, Two-Stacks from Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba} which does not meet our sub-linear memory growth requirement. 
 
 Exponential Moving Averages (Section \ref{sec:emas}), Probabilistic Data Structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}) can be used to solve the first issue and reduce the linear memory complexity of the system relative to sliding window size. 
 
-However, there is no trivial solution for the second challenge. Defining the set of aggregations to use does not have a straightforward solution. To illustrate this problem, consider both time-series show in Figure \ref{fig:approach2-timeseries}.
- 
+Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection.  
+\textcolor{red}{Marco had a problem with this example, dont understand what he meant}
+To illustrate this problem, consider both time-series show in Figure \ref{fig:approach2-timeseries}. Time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two different time-series.
+
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.7]{figures/approach2-timeseries.png}
@@ -54,9 +56,6 @@ However, there is no trivial solution for the second challenge. Defining the set
       \label{fig:approach2-timeseries}
     \end{center}
 \end{figure}
-
-\textcolor{red}{Marco had a problem with this example, dont understand what he meant}
-Both time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two different time-series.
 
 \subsection*{Conclusion}
 This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, the need to choose a set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
