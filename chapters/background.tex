@@ -229,11 +229,26 @@ The aggregation properties analyzed in this Section will be used to evaluate SWA
 
 \section{Exponential Moving Averages} \label{sec:emas}
 
-We talked about sliding window aggregations and algorithms to compute them and observe that the contents of the sliding window must be stored in memory so that when a new element is inserted we can evict the oldest one and discount its effect from the aggregation value. In this Section we analyze Exponential Moving Averages (EMAs). EMAs process each event only upon insertion. Since there is no eviction operation to perform, we do not need to store the whole window of data.
+We talked about sliding window aggregations and algorithms to compute them. We observed that the contents of the sliding window must be stored in memory in order to evict the oldest event and discount its effect from the aggregation when a new one is inserted. In this Section we analyze Exponential Moving Averages (EMAs). EMAs process each event only upon insertion. Since there is no eviction operation to perform, we do not need to store the whole window of data.
 
-Exponential Moving Averages (also known as Exponential Weighted Moving Averages) \cite{EMA-Everett2011} \cite{EMA-Hunter} \cite{EMA-MarcusB} are applied to a sequence of elements to compute a weighted average, using different weights for each element. These weights decrease exponentially with the age of the observations. In other words, EMAs give higher weights to more recent data points.
+Exponential Moving Averages (also known as Exponential Weighted Moving Averages) \cite{EMA-Everett2011} \cite{EMA-Hunter} \cite{EMA-MarcusB} are a type of reduce functions applied to a sequence of elements, one at a time in a orderly fashion, to compute a weighted average, using different weights for each element. These weights decrease exponentially with the age of the observations. In other words, EMAs give higher weights to more recent data points. Figures \ref{fig:window-weights} and \ref{fig:ema-weights} show the weights applied to past events. In a typical sliding window, events either have weight of one (inside the window) or zero (outside the window) whereas EMAs give exponentially smaller weights to older events.
 
-\textcolor{red}{TODO: Images for EMA and sliding window weights}
+\begin{figure}[!htb]
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+      \includegraphics[scale=0.5]{figures/window-weights.png}
+  \captionof{figure}{Window weights}
+  \label{fig:window-weights}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+      \includegraphics[scale=0.5]{figures/ema-weights.png}
+  \captionof{figure}{EMA weights}
+  \label{fig:ema-weights}
+\end{minipage}
+\end{figure}
+
 
 EMAs are recursive: the EMA value at timestamp \textit{t} depends only on the EMA value at timestamp \textit{t-1}. This recursive property allows us to store only one EMA value and continuously update it for each new value val\textsubscript{t}, based on the following recursion formula:
 
@@ -256,4 +271,4 @@ EMA\textsubscript{t} = EMA\textsubscript{t-1} * $\lambda$ + val\textsubscript{t}
 \end{definition}
 For example, with a tuple-based half-life of $\tau = 1$ tuple, the smoothing factor is $\lambda = 0.5$, meaning for each new tuple all weights are reduced by half.
 
-In this Thesis we will work with tuple-based EMAs but our approach can be adjusted to use time-based ones.
+Definition \ref{def:ema} introduces the recurrence formula for time-based EMAs whereas Definition \ref{def:tuple-ema} works for tuple-based ones. In this Thesis we chose to work with tuple-based EMAs due to its simplicity but our approach can be adjusted to use time-based ones.
