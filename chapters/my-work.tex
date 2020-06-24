@@ -1,7 +1,7 @@
 \chapter{Lightweight Real-Time Feature Monitoring} \label{chap:my-work} \minitoc
 
 \section{State of the art outlier detection methods}
-Our first theoretical approach was to use one of the outlier detection methods presented in Section \ref{sec:outliers}. For that, we reviewed subsequence and point outlier detection methods. Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold $\alpha$. On the other hand, using subsequence outlier detection methods would allow us to report the whole sliding window as an outlier when compared to the reference window. 
+Our first theoretical approach was to use one of the outlier detection methods presented in Section \ref{sec:outliers}. For that, we reviewed subsequence and point outlier detection methods. Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold. On the other hand, using subsequence outlier detection methods would allow us to report the whole target sliding window as an outlier when compared to the reference window. 
 
 
 \subsection*{Challenges}
@@ -13,11 +13,11 @@ For this Thesis we need constant time complexity to process events one by one in
 The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
 
 \section{State of the art aggregation algorithms}
-Dissimilarity-based univariate subsequence outlier detection methods as presented in \ref{sec:uni-sub-out} focus on measuring the distance between two periods of time and report an outlier when the distance is above a certain threshold. Keeping both reference and target windows in memory means our memory consumption grows linearly regarding both windows size. In an attempt to solve this, we focus on storing only an aggregation of both windows. 
+Dissimilarity-based univariate subsequence outlier detection methods as presented in Section \ref{sec:uni-sub-out} focus on measuring the distance between two periods of time and report an outlier when the distance is above a certain threshold. Keeping both reference and target windows in memory means our memory consumption grows linearly regarding both windows size. In an attempt to solve this, we focus on storing only an aggregation of both windows. 
 
 In Section \ref{sec:sota-swag-algs} we reviewed algorithms to compute sliding window aggregations and in Sections \ref{sec:pds} and \ref{sec:sliding-pds} we discussed special aggregators and respective sliding window implementations. 
 
-In our dissimilarity-based approach, we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a sliding target window and the associated average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
+In our dissimilarity-based approach, we compute sliding window aggregations and compare the aggregations’ current state versus an initial reference, reporting a shift when the difference is substantial. For instance, consider the case where we monitor one single feature or variable \textit{x}. Assume we define the set of aggregations to compute the mean of \textit{x} and its standard deviation. Also assume we save the reference window and maintain a target sliding window and the associated average and standard deviation aggregations for \textit{x} efficiently. As seen in Figure \ref{fig:approach2-initial-state}, the initial mean and standard deviation values for \textit{x} presented in the reference window are of 5 and 1, respectively. Later on, in \textit{Window 1}, we see the same values for the mean and standard deviation, of 5 and 1, respectively. This represents a \textit{normal} case where no alert is produced.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -28,7 +28,7 @@ In our dissimilarity-based approach, we compute sliding window aggregations and 
 \end{figure}
 
 
-In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our sliding window, we obtain \textit{Window 2}. In \textit{Window 2}, the mean and standard deviation aggregation values change from 5 and 1 to 12 and 6, respectively. In this case, we would measure the difference between the sliding window aggregations and the reference window ones and if above a certain threshold raise an alert. For example, if we used a threshold of $t = 6$, we would raise an alert, as at least one sliding aggregation, in this case the mean, would differ of at least $t$ when compared to the reference value.
+In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our target sliding window, we obtain \textit{Window 2}. In \textit{Window 2}, the mean and standard deviation aggregation values change from 5 and 1 to 12 and 6, respectively. In this case, we would measure the difference between the target sliding window aggregations and the reference window ones and if above a certain threshold raise an alert. For example, if we used a threshold of $t = 6$, we would raise an alert, as at least one sliding aggregation, in this case the mean, would differ of at least $t$ when compared to the reference value.
 
 \begin{figure}[!htb]
     \begin{center}
@@ -41,7 +41,7 @@ In Figure \ref{fig:approach2-alert-state}, after further sliding steps of our sl
 \subsection*{Challenges}
 The first issue with this approach is that generic sliding window aggregation algorithms grow linearly in space regarding window size, such as Recalculate-From-Scratch and Subtract-On-Evict from Section \ref{sec:back-swag-algs}, Two-Stacks from Section \ref{sec:2stacks} and DABA in Section \ref{sec:daba} which does not meet our sub-linear memory growth requirement. 
 
-Exponential Moving Averages (Section \ref{sec:emas}), Probabilistic Data Structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}) can be used to solve the first issue and reduce the linear memory complexity of the system relative to sliding window size. 
+Exponential Moving Averages (Section \ref{sec:emas}), Probabilistic Data Structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}) can be used to solve this first issue and reduce the linear memory complexity of the system relative to sliding window size. 
 
 Another challenge when using this approach is defining the set of aggregations to compute at feature/variable level that represent the system state well enough for comparison of reference and streaming periods and change detection. To illustrate this problem, consider both time-series show in Figure \ref{fig:approach2-timeseries}. Time-series 1 and 2 have the same maximum, minimum, mean and standard deviation values for the time-based window between \textit{t\textsubscript{1}} and \textit{t\textsubscript{8}}. Hence, if our set of aggregations chosen were the maximum, minimum, mean and standard deviation, we would not differentiate between these two different time-series.
 
@@ -62,48 +62,50 @@ In Section \ref{sec:stream-superset}, we defined a data stream as a continuous c
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.4]{figures/timeperiods.png}
-      \caption[]{Reference and Streaming timelines}
+      \includegraphics[scale=0.7]{figures/timeperiods.png}
+      \caption[]{Reference and streaming timelines}
       \label{fig:timelines}
     \end{center}
 \end{figure}
 
 
-To detect data pattern shifts, we do not need to directly compare the entire window contents of the reference and sliding windows. This approach would require storing all window contents hence making the memory consumption grow linearly with sliding window and/or reference period size. Instead, we want to use a  \textit{(a)} fixed cost in memory aggregation that can be \textit{(b)} incrementally maintained during the streaming phase. Additionally, we want a streaming aggregation that \textit{(c)} reliably encodes the distribution of each feature. 
+To detect data pattern shifts, we do not need to directly compare the entire window contents of the reference and sliding windows. This approach would require storing all window contents hence making the memory consumption grow linearly with target sliding window and/or reference period size. Instead, we want to use a \textit{(a)} fixed cost in memory aggregation that can be \textit{(b)} incrementally maintained during the streaming phase. Additionally, we want a streaming aggregation that \textit{(c)} reliably encodes the distribution of each feature. 
 
-One aggregation that encodes distributions properly are histograms. Histograms are a representation of the distribution of numerical data thus being ideal to encode the distribution of feature values, satisfying \textit{(c)}. Histograms require storing a fixed-size list of bins and corresponding counts per bin for ever growing volumes of data, satisfying property \textit{(a)}. Adding or removing an element to the histogram aggregation is tantamount to determining the correct bin and incrementing or decrementing the associated count, respectively, thus satisfying property \textit{(b)}. However, computing an histogram aggregation over a sliding window of size $W$ implies storing all $W$ elements in memory to know the element to remove after a new one is inserted. This violates our constant in memory property \textit{(a)} which is why we chose to use the Exponential Moving Averages (EMAs) analyzed in Section \ref{sec:emas}. EMA-like histograms computed over sliding windows do not require the storage of window contents. An EMA-like histogram is \textit{(a)} constant in memory, \textit{(b)} maintained in real-time and \textit{(c)} encodes the distribution of each feature values. EMA-like histograms are further explained in Section \ref{sec:ema-hist}.
+One aggregation that encodes distributions properly are histograms. Histograms are a representation of the distribution of numerical data thus being ideal to encode the distribution of feature values, satisfying \textit{(c)}. Histograms require storing a fixed-size list of bins and corresponding counts per bin regardless of the volume of data, satisfying property \textit{(a)}. Adding or removing an element to the histogram aggregation is tantamount to determining the correct bin and incrementing or decrementing the associated count, respectively, thus satisfying property \textit{(b)}. Recall Section \ref{sec:back-swag-algs} where we discussed generic sliding window aggregation algorithms and remember the Subtract-On-Evict (SOE) algorithm (Algorithm \ref{pseudo:soe}). Computing an histogram aggregation over a sliding window of size $W$ using SOE implies storing all $W$ elements in memory to know the element to remove after a new one is inserted. This violates our constant in memory property \textit{(a)} which is why we chose to use the Exponential Moving Averages (EMAs) analyzed in Section \ref{sec:emas}. EMA-like histograms computed over sliding windows do not require the storage of window contents. An EMA-like histogram is \textit{(a)} constant in memory, \textit{(b)} maintained in real-time and \textit{(c)} encodes the distribution of each feature values. EMA-like histograms are further explained in Section \ref{sec:ema-hist}.
 
 Since the reference window is static, \textit{i.e.}, it is not a sliding window, we can use exact histogram aggregations. Hence, for each feature, we build an exact reference histogram aggregation. On the other hand, in streaming, we use one EMA-like approximate histogram aggregation per feature (Figure \ref{fig:timelines-hists}).
 
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.4]{figures/timelines-hists.png}
+      \includegraphics[scale=0.7]{figures/timelines-hists.png}
       \caption[]{Reference and Streaming timelines and corresponding histogram aggregations}
       \label{fig:timelines-hists}
     \end{center}
 \end{figure}
 
 
-To compare each feature's reference and sliding window histogram aggregation we need a measure of divergence. We chose to use the Jensen–Shannon Divergence (JSD) \cite{JSD} but other statistical tests are possible such as Kolmogorov-Smirnov or Wasserstein. A more thorough analysis on some statistical tests and why we chose to use the JSD is performed in Section \ref{sec:whyjsds}. Given a divergence value for the two aggregations (reference and sliding) we need a measure of normal statistical fluctuations. Since we consider the reference period as the normal state we can find the normal distribution for the divergence by sampling smaller windows of data from the reference period in a batch analysis. This allows us to define a threshold based on percentiles, which gives an estimate for the probability of a certain value occurring, rather than using a constant hand picked threshold for the divergence value (details in Section \ref{sec:sampling-batch}). 
+To compare each feature's reference and target sliding window histogram aggregation we need a measure of divergence. We chose to use the Jensen–Shannon Divergence (JSD) \cite{JSD} but other statistical tests are possible such as Kolmogorov-Smirnov or Wasserstein \cite{EncyclopaediaMathematics}. The JSD takes as input two histograms and outputs a value between 0 and 1. The closer this value is to 0 the more similar the distributions are. On the other hand, a JSD value of 1 represents two totally different distributions. We chose to use the JSD metric due to its simplicity and leave as future work other possible tests. 
+
+Given a divergence or distance value for the two aggregations (reference and target) we need a measure of normal statistical fluctuations. Since we consider the reference period as the normal state we can find the normal distribution for the divergence by sampling smaller windows of data from the reference period in a batch analysis. This allows us to define a threshold based on percentiles, which gives an estimate for the probability of a certain value occurring, rather than using a constant hand picked threshold for the divergence value (details in Section \ref{sec:sampling-batch}). 
 
 
-To implement the proposed methodology, we devised a two-phase method. The first phase relies on a batch analysis that, for each feature, builds a reference histogram and computes the distribution of divergence values (details presented in Section \ref{sec:batch-phase}). The second phase (detailed in Section \ref{sec:stream-phase}) focuses on efficiently updating the sliding window histogram for each feature and periodically performing a divergence test between the static reference aggregation and the sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types.
+To implement the proposed methodology, we devised a two-phase method. The first phase relies on a batch analysis that, for each feature, builds a reference histogram and computes the distribution of divergence values (details presented in Section \ref{sec:batch-phase}). The second phase (detailed in Section \ref{sec:stream-phase}) focuses on efficiently updating the target sliding window histogram for each feature and periodically performing a divergence test between the static reference aggregation and the target sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types.
 
 
 \subsection{Exponential Moving Average based histogram} \label{sec:ema-hist}
-As stated, we compute histogram aggregations for the reference and sliding windows. The computation of the reference histogram is done once in batch. Since the reference data is fixed and does not change over time, computing this histogram in batch is more efficient and easier to implement in a distributed system like Spark. In addition, a batch computation also allows us to compute an exact reference histogram. However, the sliding window histogram is an EMA-like histogram to ensure that we are able to encode the feature distribution with constant space complexity and maintain it in real-time.
+As stated, we compute histogram aggregations for the reference and target sliding windows. The computation of the reference histogram is done once in batch. Since the reference data is fixed and does not change over time, computing this histogram in batch is more efficient and easier to implement in a distributed system like Spark. In addition, a batch computation also allows us to compute an exact reference histogram. However, the target sliding window histogram is an EMA-like histogram to ensure that we are able to encode the feature distribution with constant space complexity and maintain it in real-time.
 
-In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and how they compute sliding window aggregations without actually storing the window contents. Definition \ref{def:tuple-ema} shows how to compute an EMA using its recursive formula. An EMA state or value depends only on the previous one multiplied by an exponential decay $\lambda$. Recall that this decay is given by Equation \ref{eq:ema-decay}:
-\[ \lambda = 2^{- \dfrac{1}{\tau}} \]
-where $\tau$ is commonly denoted as the half-life. 
+In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and how they compute sliding window aggregations without actually storing the window contents. Definition \ref{def:tuple-ema} shows how to compute an EMA using its recursive formula. An EMA state or value depends only on the previous one multiplied by an exponential decay. Recall that a tuple-based decay is given by:
+\[ 2^{- \frac{1}{n_{1/2}}} \]
+where $n_{1/2}$ is commonly denoted as a tuple-based half-life. 
 
 
-After processing \textit{x} tuples the oldest tuple is \emph{smoothed} by a factor of $\lambda^x = 2^{- \dfrac{x}{\tau}}$. If we process $x = 4\tau$ tuples the oldest tuple would have its contribution reduced by
-\[ 2^{- \dfrac{4\tau}{\tau}} = 2^{-4} \]
+After processing \textit{x} tuples the oldest tuple is \emph{smoothed} by a factor of $2^{- \frac{x}{n_{1/2}}}$. If we process $x = 4n_{1/2}$ tuples the oldest tuple would have its contribution reduced by
+\[ 2^{- \dfrac{4n_{1/2}}{n_{1/2}}} = 2^{-4} \]
 which is approximately 0.06. In other words, the \textit{x-th} event would have 6\% contribution towards the EMA state or value meaning older events would have even less weight.
 
-We choose to use windows with four times the half-life size (or $4\tau$), meaning we discard events whose contribution is less than 6\%. In fact, we set the half-life to be one quarter of the size of the window we want to emulate. For instance, if we want to monitor a period extending up to one month (at an error level of about 6\%) we setr the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
+We choose to emulate windows with four times the half-life size (or $4n_{1/2}$), meaning we discard events whose contribution is less than 6\%. In fact, we set the half-life to be one quarter of the size of the window we want to emulate. We want to monitor a period extending up to one month (at an error level of about 6\%) so we set the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
 
 \subsection{Batch analysis phase} \label{sec:batch-phase}
 \textcolor{red}{TODO: add some pseudocode}
@@ -113,7 +115,7 @@ The goal of the batch phase will be to build our reference aggregation for each 
 \begin{enumerate}
     \item Obtain a reference histogram for each feature using all data in the reference period
     
-    \item Compute the distribution of distances between the reference histogram and the sliding window histogram by computing the distance (or divergence value) between the reference histogram and various samples of sliding window histograms
+    \item Compute the distribution of distances between the reference histogram and random windows of data and corresponding histograms
 \end{enumerate}
 
 This distribution of values can then later be compared to a given value of divergence for a single sample to find out how probable that value is to occur (if it is very low an alert may be raised).
@@ -133,7 +135,7 @@ First, for each feature, we compute the reference histogram from the reference p
 
 \subsubsection*{Finding the distribution of distances for each feature} \label{sec:sampling-batch}
 
-Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make $S$ samples of transactions (in Section \ref{sec:nsamples} we discuss the optimal number $S$ of samples to make), each with the same tuple-based size of the sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
+Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make $S$ samples of transactions (in Section \ref{sec:nsamples} we discuss the optimal number $S$ of samples to make), each with the same tuple-based size of the target sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
 
 For each sample, and for each feature, we compute the approximated histogram using the bins computed for the reference histogram (Figure \ref{fig:ref-hist-bins}). We also add two extra bins that will cover the region to the left and to the right of our histogram, respectively. In other words, we add a bin that covers the region between $-\infty$ and our first bin and another that covers values from the last bin to $+\infty$. This way, observed values outside of the reference period will be placed in these special bins, either left or right.
 
@@ -151,13 +153,13 @@ For each feature, we have now \textit{S} histograms, one for each sample. For ea
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.4]{figures/compute-sample-distances.png}
+      \includegraphics[scale=0.7]{figures/compute-sample-distances.png}
       \caption[Compute as many distance values as samples]{Compute as many distance values as samples, one for each sample-reference histogram pair}
       \label{fig:compute-sample-distances}
     \end{center}
 \end{figure}
 
-For each feature, we end up with \textit{S} distance values. These $S$ measurements are distance measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if the probability is below a certain threshold. Note that the histograms for each sample are EMA-like histograms (as detailed in Section \ref{sec:ema-hist}) just like the sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
+For each feature, we end up with \textit{S} distance values. These $S$ measurements are distance measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if the probability is below a certain threshold. Note that the histograms for each sample are EMA-like histograms (as detailed in Section \ref{sec:ema-hist}) just like the target sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
 
 
 It is important to understand why we want to know the distribution of divergence values instead of just thresholding the divergence value itself. For instance, given that JSD values vary between 0 and 1, why not just set to alert if the measured JSD value is 0.7? The reason is that a divergence value may fall on different percentiles for different features. In other words, the same \textit{i-th} percentile will correspond to a different divergence value for different features. Consider the following left and right-skewed distance distributions represented by Figures \ref{fig:skewed-left-distro} and \ref{fig:skewed-right-distro}, respectively. 
@@ -184,14 +186,14 @@ Hard-coding a threshold value to be used for all features is cumbersome, impract
 
 
 \subsubsection*{Burn-in period at system initialization}
-When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
+When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the target sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
 
 \subsubsection*{Batch phase artifacts}
 By the end of the batch phase, we should have, for each feature: 
 \begin{itemize}
     \item a reference histogram
     \item a list of distance values that represent its distribution
-    \item the last sample's histogram, to be used as burn-in period for the sliding window histogram
+    \item the last sample's histogram, to be used as burn-in period for the target sliding window histogram
 \end{itemize}
 
 \subsection{Streaming phase} \label{sec:stream-phase}
@@ -201,7 +203,7 @@ In the streaming or online phase, the system will process event by event in a tr
 
 For each feature, we initialize the approximate histogram with the last sample's data, from the batch phase. Then, for each incoming event and for each of the event's features, we update our streaming approximate histogram for that feature by adding the new value and then "cutting a slice" from the top of the histogram bars to simulate eviction, as described in Section \ref{sec:ema-hist}. This is all we do, regarding event processing.
 
-In order to obtain alerts, we periodically perform a multi-feature change detection test. The test is done by first computing the distance between the reference histogram for a feature \textit{x} and the sliding window histogram of the same feature. This distance value is then tested against the known distribution of distance values for feature \textit{x}. In other words, we test to see if the percentile of the computed distance is in the distribution of distance values and alert if above a certain percentile, \textit{e.g.}, the 99th-percentile. When we perform the test, for each feature \textit{x}, we compute the percentile of the distance measured between the reference and sliding window histogram aggregations. The probability value or \textit{p-value} of a distance value is: 
+In order to obtain alerts, we periodically perform a multi-feature change detection test. The test is done by first computing the distance between the reference histogram for a feature \textit{x} and the target sliding window histogram of the same feature. This distance value is then tested against the known distribution of distance values for feature \textit{x}. In other words, we test to see if the percentile of the computed distance is in the distribution of distance values and alert if above a certain percentile, \textit{e.g.}, the 99th-percentile. When we perform the test, for each feature \textit{x}, we compute the percentile of the distance measured between the reference and target sliding window histogram aggregations. The probability value or \textit{p-value} of a distance value is: 
 
 \[\textit{p-value\textsubscript{distance\textsubscript{x}}} = 1 - percentile(\textit{distance\textsubscript{x}})\]
 
@@ -214,7 +216,9 @@ or:
 \end{equation}
 
 \subsubsection*{Multiple Test Correction} \label{sec:multi-test}
-Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test problem arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction. The Holm-Bonferroni method is one of many approaches for controlling the so called Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
+Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test or simultaneous statistical inference problem \cite{MultiTestProblem-Pubmed}
+\cite{MultiTestProblem-Dickhaus2014}
+\cite{MultiTestProblem-Miller1966}  \cite{multiple-test-correction-geoffrey} arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction due to its simplicity and ease of computation and leave as future work the testing of other correction methods. In statistics, Family-Wise Error Rate (FWER) \cite{MultivariateMT} \cite{MultitestTamhane2018AdvancesIP} is the probability of making one or more false positives when performing multiple hypotheses tests, \textit{i.e.}, consider one hypothesis true when it is not. The Holm-Bonferroni method \cite{HolmBonferroni} is one of many approaches for controlling the Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
 
 
 \subsubsection*{Holm-Bonferroni Correction} \label{sec:holmbonferroni}
@@ -226,21 +230,15 @@ with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as th
 
 \subsection{Final remarks}
 
-\subsubsection*{Optimal number of samples} \label{sec:nsamples}
+\subsubsection*{Minimum number of samples} \label{sec:nsamples}
 In Section \ref{sec:sampling-batch} we stated we made \textit{S} samples in the batch phase. But what is the optimal number of samples to make? How can we mathematically derive a formula for the number of samples to make and avoid \textit{ad hoc} user-defined constants?
 
-When checking for alerts we are performing one test for each feature, hence we perform \textit{n\textsubscript{features}} tests. We apply a multiple test correction on the tests performed and want to set the Family Wise Error Rate \textit{(FWER)} to $\alpha$. In other words, we want to alert deviations for the full set of tests globally that have probability $\alpha$ < 1\%, for example.
+When checking for alerts we are performing one test for each feature, hence we perform \textit{n\textsubscript{features}} tests. We apply a multiple test correction on the tests performed and want to set the FWER to $\alpha$. In other words, we want to alert deviations for the full set of tests globally that have probability $\alpha$ < 1\%, for example.
 
 We use the Holm-Bonferroni correction and, for each feature, we need to reliably estimate the upper tail of the distribution which corresponds to the \textit{$\alpha$ / n\textsubscript{features}} region. Each sample we do translates into a distance value and the collection of these data points builds the distribution of distance values. We want to be sure that the number of samples \textit{S} that we do generates enough distance points to have a high probability of having one or more points in the upper tail region. To that end, we define the probability of not having at least one point in the upper tail of the distance distribution as $\gamma$. 
 
-\textcolor{red}{SEE MODEL MONITORING PAPER} We can then show that the minimum number of samples $S$ needed to satisfy these probability requirements is:
+In \cite{SAMM}, the authors prove that the minimum number of samples $S$ needed to satisfy these probability requirements is:
 \begin{equation}
     \label{eq:optimal-n-samples}
     \textit{S} = \frac{\log\gamma}{log(1 - \frac{\alpha}{n_{features}})}
 \end{equation}
-
-\subsubsection*{Distribution Divergence Statistical Tests} \label{sec:whyjsds}
-
-We used the Jensen-Shannon Divergence (JSD) but....
-
-\textcolor{red}{Talk about wassertein, kolomogrov, why JSD...}
