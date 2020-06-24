@@ -38,13 +38,13 @@ Univariate point outlier detection methods are further broken down into three ca
   \end{center}
 \end{figure}
 
-The univariate point outlier detection methods based on models are the most common. For each timestamp of the time-series, the models compute the expected value for the time-dependent variable and compare it with the observed value. If the difference between the expected value and the observed one is above a certain threshold the data point at the current timestamp is considered an outlier. Mathematically, given the expected value $e\textsubscript{t}$, the actually observed value $x\textsubscript{t}$ and the user-defined threshold $\alpha$, $x\textsubscript{t}$ is considered an outlier at timestamp \textit{t} if and only if:
+The univariate point outlier detection methods based on models are the most common. For each timestamp of the time-series, the models compute the predicted value for the time-dependent variable and compare it with the observed value. If the difference between the predicted value and the observed one is above a certain threshold the data point at the current timestamp is considered an outlier. Mathematically, given the predicted value $p\textsubscript{t}$, the actually observed value $x\textsubscript{t}$ and the user-defined threshold $\alpha$, $x\textsubscript{t}$ is considered an outlier at timestamp \textit{t} if and only if:
 \begin{equation*}
-    |x\textsubscript{t}-e\textsubscript{t}|>\alpha
+    |x\textsubscript{t}-p\textsubscript{t}|>\alpha
 \end{equation*}
 Model-based point outlier detection methods can be one of two types: estimation or prediction models. The main difference is that estimation model-based methods use past and future data while prediction model-based methods use only past data and infer current and future values. Because of this, prediction model-based outlier detection methods can be used in real-time to process streaming time-series, while estimation based methods can only be used in batch.
 
-Density-based univariate point outlier detection methods rely on the clustering of data points and neighbor counting. These methods consider a datum an outlier if it has less than $\alpha$ neighbors. Distance between two points is usually measured using the Euclidean distance \cite{elementary-algebra}. Two points are said to be neighbors if they are close to each other --- \textit{i.e.} the distance between them is less than or equal to a given threshold $\alpha$.
+Density-based univariate point outlier detection methods rely on the clustering of data points and neighbor counting. For example, nearest neighbor based methods consider a datum an outlier if it has less than $\alpha$ neighbors. Distance between two points is usually measured using the Euclidean distance \cite{elementary-algebra}. Two points are said to be neighbors if they are close to each other --- \textit{i.e.} the distance between them is less than or equal to a given threshold $\alpha$.
 
 Quoting the authors, histogram-based univariate point outlier detection methods are \textit{"based on detecting the points whose removal from the univariate time series results in a histogram representation with lower error than the original"}.
 
@@ -149,9 +149,9 @@ In this Thesis, we want to detect and alert data pattern shifts with a low memor
 However, this two-window paradigm encodes a static normal or reference period in one window and the observed streaming values in a sliding one. Since in this Thesis we want to report streaming data pattern shifts relatively to a reference period, we use a similar two-windowed model, but use lightweight and incrementally maintainable aggregations over both windows.
 
 
-\subsubsection{Automatic Model Monitoring for Data Streams}
-ALSO a 2 WINDOW MODEL
-\textcolor{red}{TODO: write this}
+%\subsubsection{Automatic Model Monitoring for Data Streams}
+%ALSO a 2 WINDOW MODEL
+%\textcolor{red}{TODO: write this}
 
 
 \section{Sliding Window Aggregation Algorithms} \label{sec:sota-swag-algs}
@@ -692,9 +692,9 @@ When an element is inserted, the same procedure as in the original HLL is follow
 
 
 \subsubsection*{Sliding Window Cardinality Query} 
-This method does not perform element eviction. Instead, the query algorithm assumes that some records in DVR's entries might be expired. To estimate the sliding window cardinality is to find the value \textit{p}. 
+This method does not perform element eviction. Instead, the query algorithm assumes that some records in DVR's entries might be expired. 
 
-To find the value \textit{p} for a bucket, we scan the DRV of that bucket backward. For that, we start at the last element --- positioned at \textit{$\lceil ln(n/m) \rceil$} --- and scan towards the head of the vector. For each record, we check if it is active in the current window. To do so, we check if its value is less than the size of the window. If it is, the record is active. Otherwise, the record is inactive.
+To estimate the sliding window cardinality is to find the value \textit{p}. To find the value \textit{p} for a bucket, we scan the DRV of that bucket backward. For that, we start at the last element --- positioned at \textit{$\lceil ln(n/m) \rceil$} --- and scan towards the head of the vector. For each record, we check if it is active in the current window. To do so, we check if its value is less than the size of the window. If it is, the record is active. Otherwise, the record is inactive.
 
 If the record is inactive we continue scanning backward. If the record is active, then the position or index currently being scanned is the value of \textit{p} for that bucket. If all records are inactive, the bit-pattern observable \textit{p} is 0.
 

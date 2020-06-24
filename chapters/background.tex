@@ -2,7 +2,7 @@
 
 \section{Stream processing as a superset of batch processing} \label{sec:stream-superset}
 
-Batch processing is the processing of data grouped by batches. A batch is a collection of data points that have been grouped by certain criteria. Examples of such criteria could be \textit{"all the transactions from the past two months"}, \textit{"the last million transactions"} or even \textit{"all the transactions made by an user until now"}. Batch data sets are known as static data \cite{Martin-Batch-Defin}. An example application of such a technique would be processing all the keywords searched for in the google search engine by grouping the results by keyword and counting how many times a keyword was searched for trend analysis purposes. Batch processing is the oldest paradigm between batch and stream processing. Historically speaking, Apache Hadoop \cite{borthakur2007hadoop} \cite{Hadoop} \cite{ApacheHadoop} was one of the first widely known frameworks for large-scale batch processing, created in 2005. Hadoop uses a distributed computation framework or programming model called MapReduce \cite{MapReduce}. This paradigm applies a map function that processes key/value pairs and generates sets of intermediate ones, ultimately merging all intermediate values
+Batch processing is the processing of data grouped by batches. A batch is a collection of data points that have been grouped by certain criteria. Examples of such criteria could be \textit{"all the transactions from the past two months"}, \textit{"the last million transactions"} or even \textit{"all the transactions made by an user until now"}. Batch data sets are known as static data \cite{Martin-Batch-Defin}. An example application of such a technique would be processing all the keywords searched for in the google search engine, and then grouping the results by keyword to count how many times a keyword was used in searches (for trend analysis purposes). Batch processing is the oldest paradigm between batch and stream processing. Historically speaking, Apache Hadoop \cite{borthakur2007hadoop} \cite{Hadoop} \cite{ApacheHadoop} was one of the first widely known frameworks for large-scale batch processing, created in 2005. Hadoop uses a distributed computation framework or programming model called MapReduce \cite{MapReduce}. This paradigm applies a map function that processes key/value pairs and generates sets of intermediate ones, ultimately merging all intermediate values
 using a reducer function. To do this they read and write from disk on intermediate steps, which makes it inefficient for applications that reuse working sets of data across multiple parallel operations (\textit{e.g.} iterative Machine Learning algorithms). Nearly a decade later, Apache Spark \cite{ApacheSpark} \cite{Spark} was released.
 Spark retains the scalability and fault tolerance of MapReduce but introduces Resilient Distributed Datasets (RDDs) \cite{SparkRDDs}. An RDD is a read-only collection of objects partitioned across a set of machines that can be rebuilt if a partition is lost.
 Additionally, Spark processes data in random access memory (RAM), while Hadoop MapReduce persists data to the disk after a map or reduce action. Thus, Spark achieves lower processing times. 
@@ -34,7 +34,7 @@ In Section 2.2 we will cover exactly how an unbounded data set (also known as a 
 
 \section{From unbounded streams to finite data sets} \label{sec:windows}
 
-In Section 2.1 we have defined a data stream as an unbounded data set. But what exactly are the issues of working with an infinite stream of data? Why might we need to convert it into a bounded data set and how to do so? In this Section, we will analyze such issues and present streaming windows as the solution.
+In Section 2.1 we have defined a data stream as an unbounded data set. But what exactly are the issues of working with an infinite stream of data? Why might we need to convert it into a bounded data set and how to do so? In this Section, we will analyze such issues and present sliding windows as the solution.
 
 % boundless aggregations no need for windows
 Computations over an unbounded data set are possible. For example, computing the \textit{average} of an event's field for all incoming events is computationally trivial: we need only to store the total number of events (one integer) and the current total sum (one double) of all events arriving to the system. However, is this boundless average over the stream of events useful? While in some scenarios it may be, more often than not we would like to introduce some boundaries into our computations. For instance, consider the monitoring of machines spread out across multiple racks in a large data center and its temperatures. Assume that temperatures measured across all racks are sent to a monitoring system in the form of a data stream. The average temperature of a machine over an infinite period (\textit{i.e.} since the machine was deployed) is of little value for detecting if the equipment is currently overheating, and to trigger the appropriate action to prevent a failure. In this scenario, an average of the temperatures per rack and for the last 5 minutes allows for more actionable context, in this case identifying a likely-to-fail rack. To obtain such insight requires computing the average over the last 5 minutes' worth of data, effectively defining a begin and end --- \textit{i.e.} all the data between the current timestamp in minutes \textit{t} and \textit{t-5}. By creating such a conceptual range, we realize that in practice we need a bounded data set. Partitioning an infinite data stream to obtain such a finite data set is made through the use of windows.
@@ -97,7 +97,7 @@ The mathematical expression below summarizes our categorization of sliding windo
     \end{cases}
 \end{equation}
 
-For the scope of this Thesis, we will work under a tuple-based true sliding window framework. However, as explained in Section \ref{sec:ft-monitoring}, despite focusing on tuple-based true sliding windows, our approach is just as valid for time-based windows and other step values as well.
+For the scope of this Thesis, we will work under a tuple-based true sliding window framework. However, despite focusing on tuple-based true sliding windows, our approach is just as valid for time-based windows and other step values as well.
 
 \section{Aggregations over data} \label{sec:aggregations}
 
@@ -109,7 +109,7 @@ Aggregations are present in most programming languages and frameworks. Quoting f
 
 \subsection{Sliding Window Aggregations}
 
-While some aggregations can be computed on an infinite data set, often we want to compute these over a finite one. As we have seen in Section \ref{sec:windows}, we can obtain a bounded data set from a data stream by applying windowing techniques. When doing so, we obtain a finite data set denoted as a sliding window and compute aggregations over it. Tangwongsan \emph{et. al} define such aggregations over sliding windows as Sliding Window Aggregations (SWAGs) \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}. As an example of a SWAG, consider the data center temperature monitoring problem from Section \ref{sec:windows}. In this example, we wanted to compute the average temperature per rack in the data cencer in the last 5 minutes. If we translate this SWAG into streaming SQL following a similar syntax to the one provided by Apache Flink \cite{ApacheFlink} we would get:
+While some aggregations can be computed on an infinite data set, often we want to compute these over a finite one. As we have seen in Section \ref{sec:windows}, we can obtain a bounded data set from a data stream by applying windowing techniques. When doing so, we obtain a finite data set denoted as a sliding window and compute aggregations over it. Tangwongsan \emph{et. al} define such aggregations over sliding windows as Sliding Window Aggregations (SWAGs) \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}. As an example of a SWAG, consider the data center temperature monitoring problem from Section \ref{sec:windows}. In this example, we wanted to compute the average temperature per rack in the data center in the last 5 minutes. If we translate this SWAG into streaming SQL following a similar syntax to the one provided by Apache Flink \cite{ApacheFlink} we would get:
 
 \begin{verbatim}
 SELECT rack_id, AVG(temperature)
@@ -251,24 +251,19 @@ Exponential Moving Averages (also known as Exponential Weighted Moving Averages)
 
 
 EMAs are recursive: the EMA value at timestamp \textit{t} depends only on the EMA value at timestamp \textit{t-1}. This recursive property allows us to store only one EMA value and continuously update it for each new value val\textsubscript{t}, based on the following recursion formula:
-
 \begin{definition}
-EMA\textsubscript{t} = EMA\textsubscript{t-1} * $\lambda\delta\textsubscript{t}$ + val\textsubscript{t}
+EMA\textsubscript{t} = EMA\textsubscript{t-1} * $2^{-\frac{\delta_t}{\tau_{1/2}}}$ + val\textsubscript{t}
 \label{def:ema}
 \end{definition}
+where $\delta_t$ is the time passed between \textit{t} and \textit{t-1} and $\tau_{1/2}$ is the time-based half-life of the EMA. 
 
-with $\lambda$ as a constant factor applied to the previous EMA value and $\delta\textsubscript{t}$ as the time passed between \textit{t} and \textit{t-1}. This $\lambda$ constant (0 < $\lambda \leq$ 1) is known as the smoothing coefficient. The smoothing or decay factor $\lambda$ is given by:
-\begin{equation}
-    \lambda = 2^{- \dfrac{1}{\tau}}
-    \label{eq:ema-decay}
-\end{equation}
-where $\tau$ is the half-life of the EMA. The half-life $\tau$ controls how fast old events are forgotten as the smoothing factor depends on it. The half-life is the amount of time that it takes for an element to see its contribution or weight reduced to half. For instance, with $\tau = 1s$ we have $\lambda = 0.5$, which means for each 1s step we reduce the weights applied to each event by half. 
+The half-life $\tau_{1/2}$ controls how fast old events are forgotten. The half-life is the amount of time that it takes for an element to see its contribution or weight reduced to half. For instance, with $\tau_{1/2} = 1s$, for each $\delta_t = 1s$ step, we reduce the weights applied to each event by half. 
 
-Note that it is also possible to express a tuple-based half-life, \textit{i.e.}, how many tuples or events must the EMA process before a certain element has its weight reduced by half. In this case, the definition does not take into account the time passed between events:
+Note that it is also possible to express a tuple-based half-life $n_{1/2}$, \textit{i.e.}, how many tuples or events must the EMA process before a certain element has its weight reduced by half. In this case, the definition does not take into account the time passed between events:
 \begin{definition}
-EMA\textsubscript{t} = EMA\textsubscript{t-1} * $\lambda$ + val\textsubscript{t}
+EMA\textsubscript{t} = EMA\textsubscript{t-1} * $2^{-\frac{1}{n_{1/2}}}$ + val\textsubscript{t}
 \label{def:tuple-ema}
 \end{definition}
-For example, with a tuple-based half-life of $\tau = 1$ tuple, the smoothing factor is $\lambda = 0.5$, meaning for each new tuple all weights are reduced by half.
+For example, with a tuple-based half-life of $\tau = 1$ tuple, for each new tuple all weights are reduced by half.
 
 Definition \ref{def:ema} introduces the recurrence formula for time-based EMAs whereas Definition \ref{def:tuple-ema} works for tuple-based ones. In this Thesis we chose to work with tuple-based EMAs due to its simplicity but our approach can be adjusted to use time-based ones.
