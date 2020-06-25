@@ -1,27 +1,14 @@
 \chapter{Method Validation} \label{chap:validation} \minitoc
 
-\section{Datasets}
-
-In order to test our proposed system, we generated multiple synthetic datasets before moving on to real data. As an initial first step we started by validating our system using a single-feature dataset before moving to multi-feature scenarios in order to facilitate system validation considering the complexities of multi-feature datasets and the problem of multiple test correction.
+In order to test our proposed system, we generated multiple synthetic datasets before moving on to real data. As an initial step, we started by validating our system using single-feature datasets before moving to multi-feature scenarios in order to facilitate system validation, considering the complexities of multi-feature datasets and the problem of multiple test correction.
 
 
-\begin{table}[!htb]
-    \begin{center}
-        \begin{tabular}{|c|c|c|}
-        \hline
-        \textbf{Dataset} & \textbf{Features} & \textbf{Events} \\ \hline
-        R1               & 1                 & 5.000.000       \\ \hline
-        T1               & 1                 & 5.000.000       \\ \hline
-        
-        \end{tabular}
-    \end{center}
-    \caption{Summary statistics for each dataset}
-    \label{tbl:summary-statistics}
-\end{table}
+\section{Experiments with synthetic data}
 
-\subsection{Synthetic datasets}
-Dataset R1 had a single feature that followed a normal distribution with mean $\mu=10$ and $\sigma=2$ for the entirety of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1.
+\subsection{Varying sample sizes}
+We began with single-feature scenarios and by experimenting with different tuple-based half-lifes $n_{1/2}$ which in turn controls the size of the samples we make. In Section \ref{sec:ema-hist}, we mentioned we discarded events whose contribution was less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%).
 
+The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/01-reference.png}
@@ -29,10 +16,7 @@ Dataset R1 had a single feature that followed a normal distribution with mean $\
       \label{fig:timeseries-r1}
     \end{center}
 \end{figure}
-
-
-Dataset T1 also had 5 million events with a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and $\sigma=2$. For the other half, we changed the generating distribution to be a continuous uniform one with $a=100$ and $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in dataset T1 where we see the abrupt change in feature values.
-
+The dataset used to process as a data stream or the target dataset also had 5 million events with a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$, like the reference dataset. For the other half, we changed the generating distribution to be a continuous uniform one with lower bound $a=100$ and upper bound $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in the target dataset T1 where we see the abrupt change in feature values.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/01-target.png}
@@ -41,17 +25,109 @@ Dataset T1 also had 5 million events with a single feature. For the first half, 
     \end{center}
 \end{figure}
 
+We conducted three different experiments varying the tuple-based half-life $n_{1/2}$, using the reference dataset R1 and the target dataset T1. These experiments, corresponding varying half-lifes and execution times are shown in Table \ref{tbl:tests-half-life}. Notice that $Sample Size$ corresponds to the size of each sample made in the batch phase and will be four times the half-life. We used 100 bins (plus the two special infinity bins) for the reference histogram and made 1000 samples.
+\begin{table}[!htb]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \multicolumn{1}{|l|}{\textbf{Experiment}} & \multicolumn{1}{l|}{\textbf{Half-life}} & \multicolumn{1}{l|}{\textbf{Sample Size}} & \multicolumn{1}{l|}{\textbf{Executors}} & \multicolumn{1}{l|}{\textbf{Batch execution time (seconds)}} \\ \hline
+        01                                        & 625                                     & 2500                                      & 300                                     & 152                                                          \\ \hline
+        02                                        & 62,500                                  & 250,000                                   & 300                                     & 2,822                                                        \\ \hline
+        03                                        & 250,000                                 & 1,000,000                                 & 300                                     & 10,082                                                       \\ \hline
+        \end{tabular}
+    \end{center}
+    \caption{Experiments with varying half-life}
+    \label{tbl:tests-half-life}
+\end{table}
+7 6 8
+Table \ref{tbl:tests-half-life} shows the execution time for the batch phase in seconds. All experiments used 300 Spark executor instances. The batch phase comprises more than the sampling process but the remaining tasks take the same time across experiment. From the Table we conclude that the larger the half-life, the larger the sample size. Larger samples imply longer processing times when computing the EMA-like histogram for each sample. With no surprise, we see that the larger the sample the longer it takes to finish the batch phase.
+
+From a functional point of view, were we able to detect the abrupt change introduced in the target dataset T1? Recall that from the 2.5 millionth event forward we change the distribution from a gaussian to an uniform one (Figure \ref{fig:timeseries-t1}). Figure \ref{fig:JSD-signal-01} shows the distance (JSD) values computed during streaming at each event of the 5 million events from dataset T1, using the outputs from the batch phase of experiment 01. We clearly see a change in JSD values, and we move from values close to 0 to values close to 1 (or even 1). Figure \ref{fig:JSD-signal-zoom-01} shows the same signal but for the first half of the streaming period (essentially a zoom-in). We see our JSD values before the change were very low (magnitudes of $10^{-2}$).
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-625.png}
+      \caption[]{Distance (JSD) signal and threshold for experiment 01}
+      \label{fig:JSD-signal-01}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-625.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold for experiment 01}
+      \label{fig:JSD-signal-zoom-01}
+    \end{center}
+\end{figure}
+However, the change in JSD value is very abrupt as well. Almost instantly we go from close to 0 values to 1. We also had some false-positives, \textit{i.e.}, some JSD values above the threshold. This indicates to us that the window used is too small and sensible to small changes.
+
+In experiment 02, we use larger sampling windows. Remember our target sliding window in streaming is of the same size as the sampling windows. In the second experiment, we increase the size of the sampling and target windows by 100 times.
+
+Figure \ref{fig:JSD-signal-02} shows the JSD signal during streaming for dataset T1, using the outputs from the batch phase of experiment 02. Again, we see a change in signal from the middle of the streaming period forward. Figure \ref{fig:JSD-signal-zoom-02} shows the same signal for the first half of the streaming period.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-62500.png}
+      \caption[]{Distance (JSD) signal and threshold for experiment 02}
+      \label{fig:JSD-signal-02}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-62500.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold for experiment 02}
+      \label{fig:JSD-signal-zoom-02}
+    \end{center}
+\end{figure}
+Notice that this time the growth of our signal is slower. Notice also that we don not have false positives in the first half of the signal. This is because we use a larger window, which means each event has a smaller contribution to the aggregation state. Hence, outliers will have less impact on the aggregation and corresponding signal value.
+
+In experiment 03, we increase the sampling and target windows size once again, this time four times larger than in experiment 02. We would expect an even smoother growth of our signal and, again, no false positives. And indeed, judging by the corresponding signal computation and zoom-in, Figures \ref{fig:JSD-signal-03} and \ref{fig:JSD-signal-zoom-03}, respectively, the signal looks smoother and we see no false positives.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-250000.png}
+      \caption[]{Distance (JSD) signal and threshold for experiment 03}
+      \label{fig:JSD-signal-03}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-250000.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold for experiment 03}
+      \label{fig:JSD-signal-zoom-03}
+    \end{center}
+\end{figure}
 
 
-\subsection{Financial fraud datasets}
+\subsection{Multiple distribution changes, each contained within the previous one}
+In this experiment, we wanted to see how our signal behaved when there were multiple change points, with each new distribution's domain as a subset of the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-r2.png}
+      \caption[]{Time-series for dataset R2}
+      \label{fig:timeseries-r2}
+    \end{center}
+\end{figure}
+The time-series for target dataset T2 is shown in Figure \ref{fig:timeseries-t2}. Notice that we change distributions at 2, 3 and 4 millionth events. Notice also that each subsequent distribution produces values whose domain is a subset of the previous distribution. 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-t2.png}
+      \caption[]{Time-series for dataset T2}
+      \label{fig:timeseries-t2}
+    \end{center}
+\end{figure}
 
-\section{Experiments}
-\textcolor{red}{one subsection per experiment with i) purpose, ii) execution, iii) results obtained and what thye mean}
+The target dataset T2 begins with the same distribution as the reference dataset R2, a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. At the 2 millionth event mark we use another gaussian distribution, this time with mean $\mu=100$ and standard deviation $\sigma=30$. At the 3 millionth event we change the standard deviation to be $\sigma=10$. From the 4 millionth event till the end, we use a standard deviation of $\sigma=5$. 
 
-\subsection{Single-feature analysis with varying sample sizes}
-In this first experiment, we used dataset R1 as the reference period and dataset T1 as the target or streaming period. We used 100 bins for the equal-height reference histogram and then added the two special bins mentioned in Section \ref{sec:sampling-batch}. We changed the half-life of each EMA-like sample histogram (recall Section \ref{sec:ema-hist}), effectively changing its size. We tested samples with \textit{(a)} 2.500, \textit{(b)} 250.000 and \textit{(c)} 1.000.000 events.
-
-\textcolor{red}{We use tukey threshold, how do we introduce this, ahhhhhhhhhhhh}
-
-
-\section{Conclusions}
+In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample size of 250,000 events, like in the previous Section' experiment 02. Figure \ref{fig:JSD-signal-test02} shows the computed JSD signal for the target dataset and Figure \ref{fig:JSD-signal-zoom-test02} zooms in on the first 2 millionth events, before any distribution is changed. We observe that once again we have no false positives in the first 2 million events, which is ideal. 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-test02.png}
+      \caption[]{Distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-test02}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-test02.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-zoom-test02}
+    \end{center}
+\end{figure}
+Furthermore, we observe that the computed JSD signal varies accordingly with the changes in distribution. Despite us changing the distributions to subsets of the previous ones to try and deceive our method, our signal accurately represents these changes. In Figure \ref{fig:JSD-signal-test02}, we see several growth points that correspond to the points where the generating gaussian distribution parameters changed. Hence, we are able to detect changes in distribution parameter changes and quantify how big the change is (the closer to 1 our signal is).

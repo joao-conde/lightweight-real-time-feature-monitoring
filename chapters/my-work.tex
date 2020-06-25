@@ -135,7 +135,7 @@ First, for each feature, we compute the reference histogram from the reference p
 
 \subsubsection*{Finding the distribution of distances for each feature} \label{sec:sampling-batch}
 
-Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make $S$ samples of transactions (in Section \ref{sec:nsamples} we discuss the optimal number $S$ of samples to make), each with the same tuple-based size of the target sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
+Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make $S$ samples of transactions (in Section \ref{sec:nsamples} we discuss the minimum number $S$ of samples to make), each with the same tuple-based size of the target sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
 
 For each sample, and each feature, we compute the approximated histogram using the bins computed for the reference histogram (Figure \ref{fig:ref-hist-bins}). We also add two extra bins that will cover the region to the left and the right of our histogram, respectively. In other words, we add a bin that covers the region between $-\infty$ and our first bin and another that covers values from the last bin to $+\infty$. This way, observed values outside of the reference period will be placed in these special bins, either left or right.
 
@@ -150,6 +150,7 @@ For each sample, and each feature, we compute the approximated histogram using t
 Each of the histograms is an EMA-like histogram. An EMA-like histogram is essentially a collection of EMA-counts, as described in Section \ref{sec:ema-hist}. Each sample is processed event by event and a discount factor is applied per event to each bin (EMA expiration factor), thus building an approximated histogram aggregation, using the reference bins, for each feature of that sample. This procedure is illustrated in Figure \ref{fig:EMA-hist-build}.
 \begin{figure}[!htb]
     \begin{center}
+    \hspace{2cm}
       \includegraphics[scale=0.8]{figures/ema-hist.png}
       \caption[]{Reference equal-height histogram}
       \label{fig:EMA-hist-build}
