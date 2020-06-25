@@ -338,3 +338,9 @@ Feature x4's underlying distribution changed two times and returned to normal, s
     \vspace{4ex}
   \end{minipage} 
 \end{figure}
+
+In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.} sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of performing ad-hoc 1000 samples like we did previosuly, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum.
+
+
+LOOK INTO EVERY1000.TXT AND COMMENT ALERT RESULTS.
+SPECIFY THAT THIS PERIOD IS AD-HOC

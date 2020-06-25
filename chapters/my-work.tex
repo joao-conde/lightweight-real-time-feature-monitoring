@@ -249,5 +249,5 @@ We use the Holm-Bonferroni correction and, for each feature, we need to reliably
 In \cite{SAMM}, the authors prove that the minimum number of samples $S$ needed to satisfy these probability requirements is:
 \begin{equation}
     \label{eq:optimal-n-samples}
-    \textit{S} = \frac{\log\gamma}{log(1 - \frac{\alpha}{n_{features}})}
+    \textit{S} = \ceil[\bigg]{\frac{\log\gamma}{log(1 - \frac{\alpha}{n_{features}})}}
 \end{equation}
