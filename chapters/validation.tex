@@ -251,5 +251,90 @@ Figure \ref{fig:JSD-signal-zoom-test05} is a zoom in of the first 2 millionth ev
 \end{figure}
 
 \subsection{Multi Feature Analysis}
+Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the distributions and their parameters for each of the four features (x1, x2, x3 and x4) present in the reference multi-feature dataset R6. Figures \ref{fig:timeseries-r6-x1}, \ref{fig:timeseries-r6-x2}, \ref{fig:timeseries-r6-x3} and \ref{fig:timeseries-r6-x4} show the reference time-series for features x1, x2, x3 and x4 on the reference dataset R6, respectively.
 
-...
+\begin{table}[!htb]
+    \begin{center}
+        \begin{tabular}{|c|c|c|ll}
+        \cline{1-3}
+        \textbf{Feature} & \textbf{Reference Distribution} & \textbf{Parameters} &  &  \\ \cline{1-3}
+        x1               & Gaussian/Normal                 & $\mu=100$, $\sigma=5$  &  &  \\ \cline{1-3}
+        x2               & Gaussian/Normal                 & $\mu=100$, $\sigma=5$  &  &  \\ \cline{1-3}
+        x3               & Uniform                         & $a=200$, $b=250$       &  &  \\ \cline{1-3}
+        x4               & Uniform                         & $a=50$, $b=125$        &  &  \\ \cline{1-3}
+        \end{tabular}
+    \end{center}
+    \caption{Multi feature reference dataset and feature distributions}
+    \label{tbl:multi-feat-ref-dataset-distros}
+\end{table}
+
+
+\begin{figure}[!htb] 
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x1.png} 
+    \caption{Feature x1 reference time-series} 
+    \label{fig:timeseries-r6-x1} 
+    \vspace{4ex}
+  \end{minipage}%%
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x2.png} 
+    \caption{Feature x2 reference time-series} 
+    \label{fig:timeseries-r6-x2} 
+    \vspace{4ex}
+  \end{minipage} 
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x3.png} 
+    \caption{Feature x3 reference time-series} 
+    \label{fig:timeseries-r6-x3} 
+    \vspace{4ex}
+  \end{minipage}%% 
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x4.png} 
+    \caption{Feature x4 reference time-series} 
+    \label{fig:timeseries-r6-x4} 
+    \vspace{4ex}
+  \end{minipage} 
+\end{figure}
+
+We used a target dataset T6 with 5 million events and the same four features (x1, x2, x3 and x4). Feature x1 followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution so as to serve as control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature x1. 
+
+Feature x2's underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature x2. Feature x2 followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event.
+
+Feature x3's underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature x3. Feature x3 followed a uniform distribution with $a=200$ and $b=250$ like in the reference period up to the 1.5 millionth event mark, then a uniform distribution with $a=200$ and $b=220$ up to the 2 millionth event, then a uniform distribution with $a=180$ and $b=200$ until the 3.5 millionth event and finally a gaussian with $\mu=50$ and $\sigma=20$ until the last event.
+
+Feature x4's underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature x4. Feature x4 followed a uniform distribution like the reference one, with $a=50$ and $b=125$ up until the 1.5 millionth event. After that, it followed a uniform distribution with $a=125$ and $b=200$ until the 3 millionth event where it resumed its original uniform distribution (with $a=50$ and $b=125$) until the end.
+
+\begin{figure}[!htb] 
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x1.png} 
+    \caption{Feature x1 target time-series} 
+    \label{fig:timeseries-t6-x1} 
+    \vspace{4ex}
+  \end{minipage}%%
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x2.png} 
+    \caption{Feature x2 target time-series} 
+    \label{fig:timeseries-t6-x2} 
+    \vspace{4ex}
+  \end{minipage} 
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x3.png} 
+    \caption{Feature x3 target time-series} 
+    \label{fig:timeseries-t6-x3} 
+    \vspace{4ex}
+  \end{minipage}%% 
+  \begin{minipage}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x4.png} 
+    \caption{Feature x4 target time-series} 
+    \label{fig:timeseries-t6-x4} 
+    \vspace{4ex}
+  \end{minipage} 
+\end{figure}
