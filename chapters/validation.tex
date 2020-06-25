@@ -4,8 +4,9 @@ In order to test our proposed system, we generated multiple synthetic datasets b
 
 
 \section{Experiments with synthetic data}
+\subsection{Single Feature Analysis}
 
-\subsection{Varying sample sizes}
+\subsubsection{Varying sample sizes}
 We began with single-feature scenarios and by experimenting with different tuple-based half-lifes $n_{1/2}$ which in turn controls the size of the samples we make. In Section \ref{sec:ema-hist}, we mentioned we discarded events whose contribution was less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%).
 
 The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1.
@@ -95,8 +96,8 @@ In experiment 03, we increase the sampling and target windows size once again, t
 \end{figure}
 
 
-\subsection{Multiple distribution changes, each contained within the previous one}
-In this experiment, we wanted to see how our signal behaved when there were multiple change points, with each new distribution's domain as a subset of the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$.
+\subsubsection{Multiple distribution changes, each contained within the previous one}
+In this experiment, we wanted to see how our signal behaved when there were multiple change points, where each distribution was contained within the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/timeseries-r2.png}
@@ -131,3 +132,124 @@ In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample
     \end{center}
 \end{figure}
 Furthermore, we observe that the computed JSD signal varies accordingly with the changes in distribution. Despite us changing the distributions to subsets of the previous ones to try and deceive our method, our signal accurately represents these changes. In Figure \ref{fig:JSD-signal-test02}, we see several growth points that correspond to the points where the generating gaussian distribution parameters changed. Hence, we are able to detect changes in distribution parameter changes and quantify how big the change is (the closer to 1 our signal is).
+
+\subsubsection{Multiple distribution changes, each a superset of the previous one}
+
+In this experiment, we wanted to do the reverse of the previous one. In this one, there are multiple change points but each new distribution is a superset of the previous one. Figure \ref{fig:timeseries-r3} shows the reference period used, with 5 million events and one feature following a gaussian distribution of mean $\mu=100$ and standard deviation $\sigma=10$.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-r3.png}
+      \caption[]{Time-series for dataset R3}
+      \label{fig:timeseries-r3}
+    \end{center}
+\end{figure}
+Figure \ref{fig:timeseries-t3} shows the target period used, also with 5 million events and one feature. Like in the previous experiment, we change distributions at the 2, 3 and 4 millionth event mark. On the other hand, unlike the previous experiment, we now make subsequent distributions cover the previous ones. We change the reference gaussian used with mean $\mu=100$ and standard deviation $\sigma=10$ at the 2, 3 and 4 millionth mark, to use standard deviations $\sigma=30$, $\sigma=40$ and $\sigma=50$, respectively.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-t3.png}
+      \caption[]{Time-series for dataset T3}
+      \label{fig:timeseries-t3}
+    \end{center}
+\end{figure}
+
+Figure \ref{fig:JSD-signal-test03} shows the JSD signal for the target dataset in this experiment. Once again, we were able to detect the changes introduced at the 2, 3 and 4 millionth events. We are also able to identify bigger distribution changes, relative to the reference, by observing bigger JSD values.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-test03.png}
+      \caption[]{Distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-test03}
+    \end{center}
+\end{figure}
+Figure \ref{fig:JSD-signal-zoom-test03} shows a zoomed in portion of the original signal, where we can verify that there are no false positives.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-test03.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-zoom-test03}
+    \end{center}
+\end{figure}
+
+
+\subsubsection{Return to normality after change}
+Our goal with this experiment was to check if our signal returned to its normal values (below the alert threshold) if we changed our distribution to the original reference one, as intended.
+
+In this experiment, we used reference dataset R4 (Figure \ref{fig:timeseries-r4}) and target dataset T4 (Figure \ref{fig:timeseries-t4}). 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-r4.png}
+      \caption[]{Time-series for dataset R4}
+      \label{fig:timeseries-r4}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-t4.png}
+      \caption[]{Time-series for dataset T4}
+      \label{fig:timeseries-t4}
+    \end{center}
+\end{figure}
+
+The reference dataset R4 had a single feature that followed a gaussian distribution of $\mu=100$ and $\sigma=5$ for all 5 million events. Up until the 2 millionth event, the target dataset T4 followed a gaussian distribution of $\mu=100$ and $\sigma=5$, similarly to the reference dataset R4. At the 2 millionth event, we change the gaussian parameters to $\mu=100$ and $\sigma=30$. At the 3 millionth mark, we once again change the gaussian parameters to $\mu=100$ and $\sigma=50$. Finally, on the 4 millionth event, we return to our reference distribution, a gaussian with $\mu=100$ and $\sigma=5$.
+
+
+Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target period.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-test04.png}
+      \caption[]{Distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-test04}
+    \end{center}
+\end{figure}
+
+As expected, our JSD signal increases at the 2 millionth and 3 millionth event marks, because the distribution parameters change. At the 4 millionth event, we use the original reference distribution and notice that the JSD signal returns to values below the threshold, considering it a normal state, as we intended. Figure \ref{fig:JSD-signal-zoom-test04} is a zoom in on the first 2 millionth events, before any change occurs, and we see no false positives.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-test04.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-zoom-test04}
+    \end{center}
+\end{figure}
+
+\subsubsection{An attempt to deceive our method}
+In this experiment, we attempt to deceive our method by using a different distribution from the reference period but ensuring its domain is roughly the same as the reference one.
+
+We used the reference dataset R5 (Figure \ref{fig:timeseries-r5}) which had 5 million events, with a single-feature that followed a gaussian with  $\mu=100$ and $\sigma=10$.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-r5.png}
+      \caption[]{Time-series for dataset R5}
+      \label{fig:timeseries-r5}
+    \end{center}
+\end{figure}
+
+Our target dataset T5 is represented in Figure \ref{fig:timeseries-t5}. For the first 2 million events, the generating distribution used was similar to the one used in the reference dataset, a gaussian with $\mu=100$ and $\sigma=10$. However, at the 2 millionth event, we change the gaussian standard deviation to $\sigma=30$. Then, at the 4 millionth event, we change the distribution type. We use an uniform distribution with lower bound $a=80$ and upper bound $b=120$. Note in Figure \ref{fig:timeseries-t5} that this last portion resembles the first one, the reference.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/timeseries-t5.png}
+      \caption[]{Time-series for dataset T5}
+      \label{fig:timeseries-t5}
+    \end{center}
+\end{figure}
+
+
+Let's take a look at the signal computed for the target period. Figure \ref{fig:JSD-signal-test05} shows us the JSD signal for dataset T5 \ref{fig:timeseries-t5}. As expected, we see a rapid growth of JSD value after the 2 millionth event, when we change the gaussian parameters. We then change the distribution type, from a gaussian to a uniform one. Despite the latter having the a domain contained within the former, we see that our signal is accurate and does not drop below the alert threshold. This is still a different distribution that we want to alert. 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-test05.png}
+      \caption[]{Distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-test05}
+    \end{center}
+\end{figure}
+
+Figure \ref{fig:JSD-signal-zoom-test05} is a zoom in of the first 2 millionth events and once again we have no false positives.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-test05.png}
+      \caption[]{Zoomed in distance (JSD) signal and threshold}
+      \label{fig:JSD-signal-zoom-test05}
+    \end{center}
+\end{figure}
+
+\subsection{Multi Feature Analysis}
+
+...
