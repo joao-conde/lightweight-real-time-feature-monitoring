@@ -1,13 +1,13 @@
 \chapter{Method Validation} \label{chap:validation} \minitoc
 
-In order to test our proposed system, we generated multiple synthetic datasets before moving on to real data. As an initial step, we started by validating our system using single-feature datasets before moving to multi-feature scenarios in order to facilitate system validation, considering the complexities of multi-feature datasets and the problem of multiple test correction.
+In order to test our proposed system, we generated multiple synthetic datasets before moving on to real data. As an initial step, we started by validating our system using single-feature datasets before moving to multi-feature scenarios to facilitate system validation, considering the complexities of multi-feature datasets and the problem of multiple test correction.
 
 
 \section{Experiments with synthetic data}
 \subsection{Single Feature Analysis}
 
 \subsubsection{Varying sample sizes}
-We began with single-feature scenarios and by experimenting with different tuple-based half-lifes $n_{1/2}$ which in turn controls the size of the samples we make. In Section \ref{sec:ema-hist}, we mentioned we discarded events whose contribution was less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%).
+We began with single-feature scenarios and by experimenting with different tuple-based half-lives $n_{1/2}$ which in turn controls the size of the samples we make. In Section \ref{sec:ema-hist}, we mentioned we discarded events whose contribution was less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%).
 
 The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1.
 \begin{figure}[!htb]
@@ -77,7 +77,7 @@ Figure \ref{fig:JSD-signal-02} shows the JSD signal during streaming for dataset
       \label{fig:JSD-signal-zoom-02}
     \end{center}
 \end{figure}
-Notice that this time the growth of our signal is slower. Notice also that we don not have false positives in the first half of the signal. This is because we use a larger window, which means each event has a smaller contribution to the aggregation state. Hence, outliers will have less impact on the aggregation and corresponding signal value.
+Notice that this time the growth of our signal is slower. Notice also that we do not have false positives in the first half of the signal. This is because we use a larger window, which means each event has a smaller contribution to the aggregation state. Hence, outliers will have less impact on the aggregation and corresponding signal value.
 
 In experiment 03, we increase the sampling and target windows size once again, this time four times larger than in experiment 02. We would expect an even smoother growth of our signal and, again, no false positives. And indeed, judging by the corresponding signal computation and zoom-in, Figures \ref{fig:JSD-signal-03} and \ref{fig:JSD-signal-zoom-03}, respectively, the signal looks smoother and we see no false positives.
 \begin{figure}[!htb]
@@ -114,7 +114,7 @@ The time-series for target dataset T2 is shown in Figure \ref{fig:timeseries-t2}
     \end{center}
 \end{figure}
 
-The target dataset T2 begins with the same distribution as the reference dataset R2, a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. At the 2 millionth event mark we use another gaussian distribution, this time with mean $\mu=100$ and standard deviation $\sigma=30$. At the 3 millionth event we change the standard deviation to be $\sigma=10$. From the 4 millionth event till the end, we use a standard deviation of $\sigma=5$. 
+The target dataset T2 begins with the same distribution as the reference dataset R2, a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. At the 2 millionth event mark, we use another Gaussian distribution, this time with mean $\mu=100$ and standard deviation $\sigma=30$. At the 3 millionth event, we change the standard deviation to be $\sigma=10$. From the 4 millionth event to the end, we use a standard deviation of $\sigma=5$. 
 
 In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample size of 250,000 events, like in the previous Section' experiment 02. Figure \ref{fig:JSD-signal-test02} shows the computed JSD signal for the target dataset and Figure \ref{fig:JSD-signal-zoom-test02} zooms in on the first 2 millionth events, before any distribution is changed. We observe that once again we have no false positives in the first 2 million events, which is ideal. 
 \begin{figure}[!htb]
@@ -169,6 +169,7 @@ Figure \ref{fig:JSD-signal-zoom-test03} shows a zoomed in portion of the origina
     \end{center}
 \end{figure}
 
+\newpage
 
 \subsubsection{Return to normality after change}
 Our goal with this experiment was to check if our signal returned to its normal values (below the alert threshold) if we changed our distribution to the original reference one, as intended.
@@ -189,7 +190,7 @@ In this experiment, we used reference dataset R4 (Figure \ref{fig:timeseries-r4}
     \end{center}
 \end{figure}
 
-The reference dataset R4 had a single feature that followed a gaussian distribution of $\mu=100$ and $\sigma=5$ for all 5 million events. Up until the 2 millionth event, the target dataset T4 followed a gaussian distribution of $\mu=100$ and $\sigma=5$, similarly to the reference dataset R4. At the 2 millionth event, we change the gaussian parameters to $\mu=100$ and $\sigma=30$. At the 3 millionth mark, we once again change the gaussian parameters to $\mu=100$ and $\sigma=50$. Finally, on the 4 millionth event, we return to our reference distribution, a gaussian with $\mu=100$ and $\sigma=5$.
+The reference dataset R4 had a single feature that followed a Gaussian distribution of $\mu=100$ and $\sigma=5$ for all 5 million events. Up until the 2 millionth event, the target dataset T4 followed a Gaussian distribution of $\mu=100$ and $\sigma=5$, similarly to the reference dataset R4. At the 2 millionth event, we change the Gaussian parameters to $\mu=100$ and $\sigma=30$. At the 3 millionth mark, we once again change the Gaussian parameters to $\mu=100$ and $\sigma=50$. Finally, on the 4 millionth event, we return to our reference distribution, a gaussian with $\mu=100$ and $\sigma=5$.
 
 
 Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target period.
@@ -200,7 +201,6 @@ Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target 
       \label{fig:JSD-signal-test04}
     \end{center}
 \end{figure}
-
 As expected, our JSD signal increases at the 2 millionth and 3 millionth event marks, because the distribution parameters change. At the 4 millionth event, we use the original reference distribution and notice that the JSD signal returns to values below the threshold, considering it a normal state, as we intended. Figure \ref{fig:JSD-signal-zoom-test04} is a zoom in on the first 2 millionth events, before any change occurs, and we see no false positives.
 \begin{figure}[!htb]
     \begin{center}
@@ -232,7 +232,7 @@ Our target dataset T5 is represented in Figure \ref{fig:timeseries-t5}. For the 
 \end{figure}
 
 
-Let's take a look at the signal computed for the target period. Figure \ref{fig:JSD-signal-test05} shows us the JSD signal for dataset T5 \ref{fig:timeseries-t5}. As expected, we see a rapid growth of JSD value after the 2 millionth event, when we change the gaussian parameters. We then change the distribution type, from a gaussian to a uniform one. Despite the latter having the a domain contained within the former, we see that our signal is accurate and does not drop below the alert threshold. This is still a different distribution that we want to alert. 
+Let's take a look at the signal computed for the target period. Figure \ref{fig:JSD-signal-test05} shows us the JSD signal for dataset T5 \ref{fig:timeseries-t5}. As expected, we see a rapid growth of JSD value after the 2 millionth event, when we change the Gaussian parameters. We then change the distribution type, from a gaussian to a uniform one. Despite the latter having a domain contained within the former, we see that our signal is accurate and does not drop below the alert threshold. This is still a different distribution that we want to alert. 
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/stream-analysis-viz-test05.png}
@@ -300,7 +300,7 @@ Before moving to real data, we performed one last experiment, using synthetic da
   \end{minipage} 
 \end{figure}
 
-We used a target dataset T6 with 5 million events and the same four features (x1, x2, x3 and x4). Feature x1 followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution so as to serve as control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature x1. 
+We used a target dataset T6 with 5 million events and the same four features (x1, x2, x3 and x4). Feature x1 followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature x1. 
 
 Feature x2's underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature x2. Feature x2 followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event.
 
@@ -339,8 +339,29 @@ Feature x4's underlying distribution changed two times and returned to normal, s
   \end{minipage} 
 \end{figure}
 
-In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.} sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of performing ad-hoc 1000 samples like we did previosuly, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum.
+In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.} sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of performing ad-hoc 1000 samples as we did previously, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum.
+
+In our stream analysis, we periodically performed our divergence test using the Holm-Bonferroni correction \ref{sec:holmbonferroni}. The frequency of the test used was a user-defined constant of 1000 events. We generated a list of alerts where each one contained the alert timestamp and a list of divergent features with the corresponding p-value. We achieved a throughput of 24,630 transactions per second (TPS). This value can be made higher if we decrease the frequency of the test.
+
+The first alert we obtain is:
+\[1001000, [(0.0019999568566211323, x2)]\]
+The previous alert tells us that at event 1,001,000 the only diverging feature in the system is feature \textit{x2} and what the p-value for the feature value at that time is. This is consistent with our target period induced changes. We introduced a change in distribution at the 1 millionth event for feature x2. We caught this change 1000 events later because of our test frequency, which is adjustable to obtain results as recent as we need them to be.
+
+The second alert is:
+\[1501000, [(0.001746900672135232, x2), (0.001989149448289207, x4), (0.0019999899243986485, x3)]\]
+We observe that besides x2, features x3 and x4 are now considered divergent as well. This is consistent with the changes we introduced for both x3 and x4 at the 1.5 millionth event. Again, we get the alert 1000 events after, exactly then the test is performed.
+
+Note that the p-value gives us a measure of divergence and allows us to order features from most divergent to least. The lower the p-value (probability value) the more divergent the feature is considered. For example, feature x3 has its distribution further changed at the 2 millionth event. At the 2 millionth event, we have the following state:
+\[2000000, [(5.953078867981798e-05, x4), (0.0012242703961621304, x3), (0.0017464046986205295, x2)]\]
+Note that x4 has the lowest p-value, being considered the most divergent feature. However, because we change feature x3 at the 2 millionth mark, the p-values observed for feature x3 gradually grow and, at the 2,535,000-th event, feature x3 is now considered the most divergent feature:
+\[2535000, [(2.3389481637825504e-05, x3), (2.342775340591352e-05, x4), (0.0016641704588643558, x2)]\]
+At the 3 millionth event, we change the distribution of feature x4 to its original reference one. x3's p-value gradually increases and after 804,000 events we stop reporting this feature as divergent:
+\[3804000, [(3.0928114358452774e-07, x3), (0.0012947913998524463, x2)]\]
+Similarly, we change feature x2's underlying distribution at the 4 millionth event to its original one. Its p-value gradually increases until we no longer report it as divergent. It took 674,000 events for the feature p-value to raise above the threshold:
+\[4674000, [(3.0922177229886216e-07, x3)]\]
+Feature x3 never returns to its original distribution, so up until the last event (5th million one) we report it as divergent:
+\[5000000, [(3.0922176674774704e-07, x3)]\]
+
+\section{Experiments with real data}
 
 
-LOOK INTO EVERY1000.TXT AND COMMENT ALERT RESULTS.
-SPECIFY THAT THIS PERIOD IS AD-HOC
