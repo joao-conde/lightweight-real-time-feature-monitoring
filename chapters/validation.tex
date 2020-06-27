@@ -289,13 +289,55 @@ Before moving to real data, we performed one last experiment, using synthetic da
   \end{minipage} 
 \end{figure}
 
-We used a target dataset T6 with 5 million events and the same four features (x1, x2, x3 and x4). Feature x1 followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature x1. 
+We used a target dataset T6 with 5 million events and the same four features (x1, x2, x3 and x4). Feature x1 followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature x1.
 
-Feature x2's underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature x2. Feature x2 followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event.
+Feature x2's underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature x2. Feature x2 followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event. Table \ref{tbl:multi-feat-x2-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature x2.
+\begin{table}[!htb]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|l}
+    \cline{1-4}
+    \textbf{From Event} & \textbf{To Event} & \textbf{Distribution} & \multicolumn{1}{l|}{\textbf{Parameters}} &  \\ \cline{1-4}
+    0                   & 1,000,000         & Gaussian              & $\mu=100, \sigma=5$                      &  \\ \cline{1-4}
+    1,000,000           & 2,500,000         & Gaussian              & $\mu=100, \sigma=10$                     &  \\ \cline{1-4}
+    2,500,000           & 3,000,000         & Gaussian              & $\mu=100, \sigma=15$                     &  \\ \cline{1-4}
+    3,000,000           & 4,000,000         & Gaussian              & $\mu=100, \sigma=5$                      &  \\ \cline{1-4}
+    \end{tabular}
+    \end{center}
+    \caption{Feature x2 generating distributions}
+    \label{tbl:multi-feat-x2-changes}
+\end{table}
 
-Feature x3's underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature x3. Feature x3 followed a uniform distribution with $a=200$ and $b=250$ like in the reference period up to the 1.5 millionth event mark, then a uniform distribution with $a=200$ and $b=220$ up to the 2 millionth event, then a uniform distribution with $a=180$ and $b=200$ until the 3.5 millionth event and finally a gaussian with $\mu=50$ and $\sigma=20$ until the last event.
+Feature x3's underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature x3. Feature x3 followed a uniform distribution with $a=200$ and $b=250$ like in the reference period up to the 1.5 millionth event mark, then a uniform distribution with $a=200$ and $b=220$ up to the 2 millionth event, then a uniform distribution with $a=180$ and $b=200$ until the 3.5 millionth event and finally a gaussian with $\mu=50$ and $\sigma=20$ until the last event. Table \ref{tbl:multi-feat-x3-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature x3.
+\begin{table}[!htb]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|l}
+    \cline{1-4}
+    \textbf{From Event} & \textbf{To Event} & \textbf{Distribution} & \multicolumn{1}{l|}{\textbf{Parameters}} &  \\ \cline{1-4}
+    0                   & 1,500,000         & Uniform               & $a=200, b=250$                           &  \\ \cline{1-4}
+    1,500,000           & 2,000,000         & Uniform               & $a=200, b=220$                           &  \\ \cline{1-4}
+    2,000,000            & 3,500,000         & Uniform               & $a=180, b=200$                           &  \\ \cline{1-4}
+    3,500,000           & 5,000,000         & Gaussian              & $\mu=50, \sigma=20$                      &  \\ \cline{1-4}
+    \end{tabular}
+    \end{center}
+    \caption{Feature x3 generating distributions}
+    \label{tbl:multi-feat-x3-changes}
+\end{table}
 
-Feature x4's underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature x4. Feature x4 followed a uniform distribution like the reference one, with $a=50$ and $b=125$ up until the 1.5 millionth event. After that, it followed a uniform distribution with $a=125$ and $b=200$ until the 3 millionth event where it resumed its original uniform distribution (with $a=50$ and $b=125$) until the end.
+Feature x4's underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature x4. Feature x4 followed a uniform distribution like the reference one, with $a=50$ and $b=125$ up until the 1.5 millionth event. After that, it followed a uniform distribution with $a=125$ and $b=200$ until the 3 millionth event where it resumed its original uniform distribution (with $a=50$ and $b=125$) until the end. Table \ref{tbl:multi-feat-x4-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature x4.
+\begin{table}[!htb]
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|l}
+    \cline{1-4}
+    \textbf{From Event} & \textbf{To Event} & \textbf{Distribution} & \multicolumn{1}{l|}{\textbf{Parameters}} &  \\ \cline{1-4}
+    0                   & 1,500,000         & Uniform               & $a=50, b=125$                            &  \\ \cline{1-4}
+    1,500,000           & 3,000,000         & Uniform               & $a=125, b=200$                           &  \\ \cline{1-4}
+    3,000,000           & 5,000,000         & Uniform               & $a=50, b=125$                            &  \\ \cline{1-4}
+    \end{tabular}
+    \end{center}
+    \caption{Feature x4 generating distributions}
+    \label{tbl:multi-feat-x4-changes}
+\end{table}
+
 
 \begin{figure}[!htb] 
   \begin{minipage}[b]{0.5\linewidth}
