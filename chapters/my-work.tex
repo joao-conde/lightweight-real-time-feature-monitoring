@@ -234,7 +234,10 @@ Note that we periodically apply this test (Equation \ref{eq:alert-test}) for eac
 The Holm-Bonferroni correction takes Equation \ref{eq:alert-test} and corrects the right-side threshold $\alpha$ for each feature. This correction is done by dividing the threshold $\alpha$ by a correction factor, as described next.
 
 First, we compute the \textit{p-value} of each feature. We then order our features by \textit{p-value}, in ascending order. Next, starting from the first feature, the one with the smallest \textit{p-value}, and proceeding until the end of the list of features, we check if:
-\[  \textit{p-value\textsubscript{distance\textsubscript{x}}} < \alpha / (\textit{m} - \textit{k}) \]
+\begin{equation}
+    p-value_{distance_{x}} < \alpha / (m - k)
+    \label{eq:corrected-pvalue}
+\end{equation}
 with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test, in our case the number of features and corresponding \textit{p-values} and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and alerts are raised.
 
 \subsection{Final remarks}

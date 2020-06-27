@@ -240,7 +240,7 @@ Let's take a look at the signal computed for the target period. Figure \ref{fig:
 \end{center}
 
 \subsection{Multi Feature Analysis}
-Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the distributions and their parameters for each of the four features (x1, x2, x3 and x4) present in the reference multi-feature dataset R6. Figures \ref{fig:timeseries-r6-x1}, \ref{fig:timeseries-r6-x2}, \ref{fig:timeseries-r6-x3} and \ref{fig:timeseries-r6-x4} show the reference time-series for features x1, x2, x3 and x4 on the reference dataset R6, respectively.
+Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the underlying generating distributions and parameters for each of the four features (x1, x2, x3 and x4) in the reference multi-feature dataset R6. Figures \ref{fig:timeseries-r6-x1}, \ref{fig:timeseries-r6-x2}, \ref{fig:timeseries-r6-x3} and \ref{fig:timeseries-r6-x4} show the reference time-series for features x1, x2, x3 and x4 on the reference dataset R6, respectively.
 
 \begin{table}[!htb]
     \begin{center}
@@ -300,7 +300,8 @@ Feature x2's underlying distribution changed four times and returned to normal, 
     0                   & 1,000,000         & Gaussian              & $\mu=100, \sigma=5$                      &  \\ \cline{1-4}
     1,000,000           & 2,500,000         & Gaussian              & $\mu=100, \sigma=10$                     &  \\ \cline{1-4}
     2,500,000           & 3,000,000         & Gaussian              & $\mu=100, \sigma=15$                     &  \\ \cline{1-4}
-    3,000,000           & 4,000,000         & Gaussian              & $\mu=100, \sigma=5$                      &  \\ \cline{1-4}
+    3,000,000           & 4,000,000         & Gaussian              & $\mu=100, \sigma=20$                      &  \\ \cline{1-4}
+    4,000,000           & 5,000,000         & Gaussian              & $\mu=100, \sigma=5$                      &  \\ \cline{1-4}
     \end{tabular}
     \end{center}
     \caption{Feature x2 generating distributions}
@@ -370,28 +371,73 @@ Feature x4's underlying distribution changed two times and returned to normal, s
   \end{minipage} 
 \end{figure}
 
-In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.} sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of performing ad-hoc 1000 samples as we did previously, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum.
+In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.} sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of doing 1000 samples as we did previously in an ad-hoc way, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum. Using 300 Spark executors, each given 3G of memory, we finished the batch phase in 418 seconds.
 
-In our stream analysis, we periodically performed our divergence test using the Holm-Bonferroni correction \ref{sec:holmbonferroni}. The frequency of the test used was a user-defined constant of 1000 events. We generated a list of alerts where each one contained the alert timestamp and a list of divergent features with the corresponding p-value. We achieved a throughput of 24,630 transactions per second (TPS). This value can be made higher if we decrease the frequency of the test.
+In Section \ref{sec:stream-phase}, we mention that, in our stream analysis, we perform our multiple hypothesis divergence test on a fixed user-defined frequency. Finding an optimal frequency value for the test falls out of scope for this Thesis, but ideally we set it to be large enough so that we do less computations and achieve higher throughput but still get alerts in useful time. In this experiment, we performed the divergence test with the Holm-Bonferroni correction \ref{sec:holmbonferroni} for every new event (frequency of 1 event). We did this to collect a list of ordered corrected p-values for each feature. A corrected p-value (derived from Equation \ref{eq:corrected-pvalue}) is given by:
+\begin{equation}
+    p-value_{corrected} = p-value_{distance_{x}} * (m - k)
+    \label{for:corrected-pvalue}
+\end{equation}
+With this list, for each feature, we are able to plot the corrected p-values on each event and compare it with the FWER threshold $\alpha$. Note that despite performing the test at maximum frequency (in real-time) we still achieved a throughput of 17,921 transactions per second (TPS), even if only for four features.
 
-The first alert we obtain is:
-\[1001000, [(0.0019999568566211323, x2)]\]
-This tells us that at event 1,001,000 the only diverging feature in the system is feature \textit{x2} and what the p-value for the feature value at that time is about 0.2\%. This is consistent with our target period induced changes. We introduced a change in distribution at the 1 millionth event for feature x2. We caught this change 1000 events later because of our test frequency, which is adjustable to obtain results as recent as we need them to be.
+In the following plots, unlike the JSD signal plots presented before, a feature is in a divergent state if its p-value is below the threshold, according to Equation \ref{eq:corrected-pvalue}. Working with corrected p-values (Formula \ref{for:corrected-pvalue}), a feature is considered divergent if its corrected p-value is below the threshold.
 
-The second alert is:
-\[1501000, [(0.001746900672135232, x2), (0.001989149448289207, x4), (0.0019999899243986485, x3)]\]
-We observe that besides x2, features x3 and x4 are now considered divergent as well. This is consistent with the changes we introduced for both x3 and x4 at the 1.5 millionth event. Again, we get the alert 1000 events after, exactly then the test is performed.
+In Figure \ref{fig:x1-corrected-pvalues} we see the plot of corrected p-values for feature x1 and the probability threshold black horizontal line at the bottom. Recall that feature x1' values were generated by a Gaussian distribution for both the reference period (Figure \ref{fig:timeseries-r6-x1}) and the target period (Figure \ref{fig:timeseries-t6-x1}), with the same parameters. We observe that the corrected p-values never pass below the threshold, as we expected. Hence, this feature is never alerted as divergent.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.8]{figures/x1-corrected-pvalues.png}
+      \caption{Feature x1 corrected p-values and threshold}
+      \label{fig:x1-corrected-pvalues}
+    \end{center}
+\end{figure}
 
-Note that the p-value gives us a measure of divergence and allows us to order features from most divergent to least. The lower the p-value (probability value) the more divergent the feature is considered. For example, feature x3 has its distribution further changed at the 2 millionth event. At the 2 millionth event, we have the following state:
-\[2000000, [(5.953078867981798e-05, x4), (0.0012242703961621304, x3), (0.0017464046986205295, x2)]\]
-Note that x4 has the lowest p-value, being considered the most divergent feature. However, because we change feature x3 at the 2 millionth mark, the p-values observed for feature x3 gradually grow and, at the 2,535,000-th event, feature x3 is now considered the most divergent feature:
-\[2535000, [(2.3389481637825504e-05, x3), (2.342775340591352e-05, x4), (0.0016641704588643558, x2)]\]
-At the 3 millionth event, we change the distribution of feature x4 to its original reference one. x4's p-value gradually increases and after 804,000 events we stop reporting this feature as divergent:
-\[3804000, [(3.0928114358452774e-07, x3), (0.0012947913998524463, x2)]\]
-Similarly, we change feature x2's underlying distribution at the 4 millionth event to its original one. Its p-value gradually increases until we no longer report it as divergent. It took 674,000 events for the feature p-value to raise above the threshold:
-\[4674000, [(3.0922177229886216e-07, x3)]\]
-Feature x3 never returns to its original distribution, so up until the last event (5th million one) we report it as divergent:
-\[5000000, [(3.0922176674774704e-07, x3)]\]
+Figure \ref{fig:x2-corrected-pvalues} shows a plot of feature x2's corrected p-values and the FWER threshold. Feature x2 underlying distribution was changed four times (Table \ref{tbl:multi-feat-x2-changes}): at the 1, 2.5, 3 and 4 millionth events. The first change is consistent with the sudden drop in corrected p-value for this feature, as we cross below the threshold and enter a divergent state. Around a thousand events after the change we saw p-values of 0.2\% (or 0.002). The values keep dropping as time passes and as we introduce bigger changes in distribution.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.8]{figures/x2-corrected-pvalues.png}
+      \caption{Feature x2 corrected p-values and threshold}
+      \label{fig:x2-corrected-pvalues}
+    \end{center}
+\end{figure}
+We resume the reference or original distribution at the 4 millionth event. However, as we can see from a close-up on the original plot (Figure \ref{fig:x2-corrected-pvalues-zoom}), it takes around 600,000 events for the target sliding histogram aggregation to once again resemble the reference one, resulting in a high enough p-value and thus stop alerting x2 as divergent.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.8]{figures/x2-corrected-pvalues-zoom2.png}
+      \caption{Feature x2 zoomed in corrected p-values and threshold}
+      \label{fig:x2-corrected-pvalues-zoom}
+    \end{center}
+\end{figure}
+
+
+Feature x3 was the only feature that never returned to its original distribution and is the only one that should be reported until the end as divergent. This is in fact the case as illustrated in Figure \ref{fig:x3-corrected-pvalues}. The first change to x3's generating distribution was introduced at the 1.5 millionth event and we clearly see the corrected p-value rapidly approaching values close to zero. For the rest of the dataset, this x3's p-value remains below the threshold, as we never swap to its original distribution.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.8]{figures/x3-corrected-pvalues.png}
+      \caption{Feature x3 corrected p-values and threshold}
+      \label{fig:x3-corrected-pvalues}
+    \end{center}
+\end{figure}
+
+
+Finally, feature x4's corrected p-value plot is given by Figure \ref{fig:x4-corrected-pvalues}. Similarly to feature x2, we resume the original distribution at a certain point, in this case at the 3-millionth event. However, as we can see from a close-up on the original plot (Figure \ref{fig:x4-corrected-pvalues-zoom}), it takes around 810,000 events for the target sliding window aggregation to be considered similar enough to the reference one and stop alerting x4 as divergent.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.8]{figures/x4-corrected-pvalues.png}
+      \caption{Feature x4 corrected p-values and threshold}
+      \label{fig:x4-corrected-pvalues}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.8]{figures/x4-corrected-pvalues-zoom2.png}
+      \caption{Feature x4 zoomed in corrected p-values and threshold}
+      \label{fig:x4-corrected-pvalues-zoom}
+    \end{center}
+\end{figure}
+
+
+With this experiment, we further validate that the p-value is a measure of how divergent a feature is: the closer to zero, the lower the probability of the statistical test result and hence the more divergent a feature is considered to be. At the 1.5 millionth event, we swap both x3 and x4's distribution. For the first 2,535,000 events, x4 has a lower p-value than x3 and hence is considered more divergent. However, after that, we change x3's distribution so aggressively that x3 starts being reported as most divergent, with a lower p-value than x4.
+
 
 \section{Experiments with real data}
 
