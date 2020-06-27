@@ -7,9 +7,11 @@ In order to test our proposed system, we generated multiple synthetic datasets b
 \subsection{Single Feature Analysis}
 
 \subsubsection{Varying sample sizes}
-We began with single-feature scenarios and by experimenting with different tuple-based half-lives $n_{1/2}$ which in turn controls the size of the samples we make. In Section \ref{sec:ema-hist}, we mentioned we discarded events whose contribution was less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%).
+We began with single-feature scenarios and by experimenting with different tuple-based half-lives $n_{1/2}$. The half-life $n_{1/2}$ parameter in turn controls the size of the samples we make in the batch phase and the target sliding window size of the streaming phase. 
 
-The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1.
+In Section \ref{sec:ema-hist}, we mentioned that we choose to discard events whose contribution is less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%).
+
+All the synthetic datasets used throughout this Section are a time-series where at each time-step we sample uniformly from a fixed distribution, \textit{i.e.} there are no time correlations in the used datasets. The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/01-reference.png}
@@ -17,7 +19,7 @@ The reference dataset R1 used in this first experiment contained a single featur
       \label{fig:timeseries-r1}
     \end{center}
 \end{figure}
-The dataset used to process as a data stream or the target dataset also had 5 million events with a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$, like the reference dataset. For the other half, we changed the generating distribution to be a continuous uniform one with lower bound $a=100$ and upper bound $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in the target dataset T1 where we see the abrupt change in feature values.
+The dataset processed in the streaming phase (\textit{i.e.} the target dataset) was generated with a size of 5 million events and a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$, like the reference dataset. For the other half, we changed the generating distribution to be a continuous uniform one with lower bound $a=100$ and upper bound $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in the target dataset T1 where we see the abrupt change in feature values.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/01-target.png}
@@ -26,7 +28,7 @@ The dataset used to process as a data stream or the target dataset also had 5 mi
     \end{center}
 \end{figure}
 
-We conducted three different experiments varying the tuple-based half-life $n_{1/2}$, using the reference dataset R1 and the target dataset T1. These experiments, corresponding varying half-lifes and execution times are shown in Table \ref{tbl:tests-half-life}. Notice that $Sample Size$ corresponds to the size of each sample made in the batch phase and will be four times the half-life. We used 100 bins (plus the two special infinity bins) for the reference histogram and made 1000 samples.
+We conducted three different experiments varying the tuple-based half-life $n_{1/2}$, using the reference dataset R1 and the target dataset T1. The experiment identifiers, the corresponding half-lives and the execution times are shown in Table \ref{tbl:tests-half-life}. Notice that $Sample Size$ corresponds to the size of each sample made in the batch phase and so it is four times the half-life. We used 100 bins (plus the two special infinity bins) for the reference histogram and made 1000 samples.
 \begin{table}[!htb]
     \begin{center}
         \begin{tabular}{|c|c|c|c|c|}
@@ -40,8 +42,7 @@ We conducted three different experiments varying the tuple-based half-life $n_{1
     \caption{Experiments with varying half-life}
     \label{tbl:tests-half-life}
 \end{table}
-7 6 8
-Table \ref{tbl:tests-half-life} shows the execution time for the batch phase in seconds. All experiments used 300 Spark executor instances. The batch phase comprises more than the sampling process but the remaining tasks take the same time across experiment. From the Table we conclude that the larger the half-life, the larger the sample size. Larger samples imply longer processing times when computing the EMA-like histogram for each sample. With no surprise, we see that the larger the sample the longer it takes to finish the batch phase.
+Table \ref{tbl:tests-half-life} shows the execution time for the batch phase in seconds. All experiments used 300 Spark executor instances. From the Table we conclude that the larger the half-life, the larger the sample size. Larger samples imply longer processing times when computing the EMA-like histogram for each sample. With no surprise, we see that the larger the sample the longer it takes to finish the batch phase.
 
 From a functional point of view, were we able to detect the abrupt change introduced in the target dataset T1? Recall that from the 2.5 millionth event forward we change the distribution from a gaussian to an uniform one (Figure \ref{fig:timeseries-t1}). Figure \ref{fig:JSD-signal-01} shows the distance (JSD) values computed during streaming at each event of the 5 million events from dataset T1, using the outputs from the batch phase of experiment 01. We clearly see a change in JSD values, and we move from values close to 0 to values close to 1 (or even 1). Figure \ref{fig:JSD-signal-zoom-01} shows the same signal but for the first half of the streaming period (essentially a zoom-in). We see our JSD values before the change were very low (magnitudes of $10^{-2}$).
 \begin{figure}[!htb]
@@ -58,7 +59,7 @@ From a functional point of view, were we able to detect the abrupt change introd
       \label{fig:JSD-signal-zoom-01}
     \end{center}
 \end{figure}
-However, the change in JSD value is very abrupt as well. Almost instantly we go from close to 0 values to 1. We also had some false-positives, \textit{i.e.}, some JSD values above the threshold. This indicates to us that the window used is too small and sensible to small changes.
+However, the change in JSD value is very abrupt as well. Almost instantly we go from close to 0 values to 1. We also had some false-positives, \textit{i.e.}, some JSD values above the threshold. This indicates to us that the window used is too small and sensitive to small changes, or that we can choose a more strict threshold.
 
 In experiment 02, we use larger sampling windows. Remember our target sliding window in streaming is of the same size as the sampling windows. In the second experiment, we increase the size of the sampling and target windows by 100 times.
 
@@ -96,8 +97,8 @@ In experiment 03, we increase the sampling and target windows size once again, t
 \end{figure}
 
 
-\subsubsection{Multiple distribution changes, each contained within the previous one}
-In this experiment, we wanted to see how our signal behaved when there were multiple change points, where each distribution was contained within the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$.
+\subsubsection{Multiple distribution changes}
+In this experiment, we wanted to see how our signal behaved when there were multiple change points, where each gaussian distribution was a scaled down version of the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/timeseries-r2.png}
@@ -134,8 +135,7 @@ In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample
 Furthermore, we observe that the computed JSD signal varies accordingly with the changes in distribution. Despite us changing the distributions to subsets of the previous ones to try and deceive our method, our signal accurately represents these changes. In Figure \ref{fig:JSD-signal-test02}, we see several growth points that correspond to the points where the generating gaussian distribution parameters changed. Hence, we are able to detect changes in distribution parameter changes and quantify how big the change is (the closer to 1 our signal is).
 
 \subsubsection{Multiple distribution changes, each a superset of the previous one}
-
-In this experiment, we wanted to do the reverse of the previous one. In this one, there are multiple change points but each new distribution is a superset of the previous one. Figure \ref{fig:timeseries-r3} shows the reference period used, with 5 million events and one feature following a gaussian distribution of mean $\mu=100$ and standard deviation $\sigma=10$.
+In this experiment, we wanted to do the reverse of the previous one. In this one, there are multiple change points but each new distribution spans a domain that is a superset of the previous one. Figure \ref{fig:timeseries-r3} shows the reference period used, with 5 million events and one feature following a gaussian distribution of mean $\mu=100$ and standard deviation $\sigma=10$.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/timeseries-r3.png}
@@ -169,7 +169,7 @@ Figure \ref{fig:JSD-signal-zoom-test03} shows a zoomed in portion of the origina
     \end{center}
 \end{figure}
 
-\newpage
+\clearpage
 
 \subsubsection{Return to normality after change}
 Our goal with this experiment was to check if our signal returned to its normal values (below the alert threshold) if we changed our distribution to the original reference one, as intended.
@@ -202,6 +202,7 @@ Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target 
     \end{center}
 \end{figure}
 As expected, our JSD signal increases at the 2 millionth and 3 millionth event marks, because the distribution parameters change. At the 4 millionth event, we use the original reference distribution and notice that the JSD signal returns to values below the threshold, considering it a normal state, as we intended. Figure \ref{fig:JSD-signal-zoom-test04} is a zoom in on the first 2 millionth events, before any change occurs, and we see no false positives.
+
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/stream-analysis-viz-zoom-test04.png}
@@ -345,7 +346,7 @@ In our stream analysis, we periodically performed our divergence test using the 
 
 The first alert we obtain is:
 \[1001000, [(0.0019999568566211323, x2)]\]
-The previous alert tells us that at event 1,001,000 the only diverging feature in the system is feature \textit{x2} and what the p-value for the feature value at that time is. This is consistent with our target period induced changes. We introduced a change in distribution at the 1 millionth event for feature x2. We caught this change 1000 events later because of our test frequency, which is adjustable to obtain results as recent as we need them to be.
+This tells us that at event 1,001,000 the only diverging feature in the system is feature \textit{x2} and what the p-value for the feature value at that time is about 0.2\%. This is consistent with our target period induced changes. We introduced a change in distribution at the 1 millionth event for feature x2. We caught this change 1000 events later because of our test frequency, which is adjustable to obtain results as recent as we need them to be.
 
 The second alert is:
 \[1501000, [(0.001746900672135232, x2), (0.001989149448289207, x4), (0.0019999899243986485, x3)]\]
