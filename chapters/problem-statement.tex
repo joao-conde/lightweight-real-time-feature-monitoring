@@ -11,7 +11,7 @@ Aggregations, specifically sliding window ones, were introduced in Chapter \ref{
 \begin{itemize}
     \item \textbf{Low memory consumption:} need for a low memory footprint system that avoids linear growth relative to the sliding window size used
     
-    \item \textbf{Low time complexity:} need for a time efficient method that updates the sliding window aggregation and raises alerts in constant time
+    \item \textbf{Low time complexity:} need for a time-efficient method that updates the sliding window aggregation and raises alerts in constant time
     
     \item \textbf{Fixed reference period:} the reference window must be kept the same throughout run-time, the opposite of an online learning algorithm
     
@@ -22,7 +22,7 @@ Aggregations, specifically sliding window ones, were introduced in Chapter \ref{
 
 
 \section{Proposal}
-We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, our method guarantees to monitor each event' fields and alert if they are considered divergent from their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on the number of divergent features and the corresponding divergence measure, a system administrator has an easier time determining when to reconfigure the system.
+We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, our method guarantees to monitor each event's fields and alert if they are considered divergent from their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on the number of divergent features and the corresponding divergence measure, a system administrator has an easier time determining when to reconfigure the system.
 
 
 \section{Research Questions}
