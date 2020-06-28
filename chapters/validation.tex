@@ -438,7 +438,15 @@ Finally, feature x4's corrected p-value plot is given by Figure \ref{fig:x4-corr
 
 With this experiment, we further validate that the p-value is a measure of how divergent a feature is: the closer to zero, the lower the probability of the statistical test result and hence the more divergent a feature is considered to be. At the 1.5 millionth event, we swap both x3 and x4's distribution. For the first 2,535,000 events, x4 has a lower p-value than x3 and hence is considered more divergent. However, after that, we change x3's distribution so aggressively that x3 starts being reported as most divergent, with a lower p-value than x4.
 
-
+\clearpage
 \section{Experiments with real data}
 
+Due to time constraints, we experimented with data from only one merchant. The merchant's entity will remain anonymous due to legal reasons. \textcolor{red}{merchancs use-case, how to define?}
+
+Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets from DATEX to DATEY. We used the older one as the reference dataset and the other one as the target one. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 182 numerical and categorical features. Both datasets were known to suffer a lot from concept drift. Additionally, the data scientists at Feedzai performed some data preprocessing and cleaning, removing some of the missing values, but only on the reference dataset, which further augmented the differences between the target and reference datasets. Because of these reasons, we expected a lot of divergence alarms.
+
+TALK ABOUT DATASETS (size)
+
+
+In our first analysis, for the batch phase, we used 100 Spark executors, each with 12G of memory. We also determined that one week worth of data for this merchant was on average equivalent to 37,803 events. Hence, we set the half-life $n_{1/2}=37,803$ and discard events whose contribution is 6\% or less, which is equivalent to using windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}).
 
