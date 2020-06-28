@@ -197,7 +197,7 @@ Hard-coding a threshold value to be used for all features is cumbersome, impract
 \subsubsection*{Burn-in period at system initialization}
 When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the target sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
 
-\subsubsection*{Batch phase artifacts}
+\subsubsection*{Batch phase artifacts} \label{sec:batch-artifacts-summary}
 By the end of the batch phase, we should have, for each feature: 
 \begin{itemize}
     \item a reference histogram

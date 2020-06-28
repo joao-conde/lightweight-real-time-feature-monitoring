@@ -441,12 +441,60 @@ With this experiment, we further validate that the p-value is a measure of how d
 \clearpage
 \section{Experiments with real data}
 
-Due to time constraints, we experimented with data from only one merchant. The merchant's entity will remain anonymous due to legal reasons. \textcolor{red}{merchancs use-case, how to define?}
+Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to legal reasons. \textcolor{red}{merchancs use-case, how to define?}
 
-Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets from DATEX to DATEY. We used the older one as the reference dataset and the other one as the target one. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 182 numerical and categorical features. Both datasets were known to suffer a lot from concept drift. Additionally, the data scientists at Feedzai performed some data preprocessing and cleaning, removing some of the missing values, but only on the reference dataset, which further augmented the differences between the target and reference datasets. Because of these reasons, we expected a lot of divergence alarms.
+Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets that combined covered a period of 1 year and 9 months. We used the older one as the reference dataset and the other one as the target one. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus categorical features. Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
+\begin{table}[!htb]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Dataset} & \textbf{From}              & \textbf{To}           & \multicolumn{1}{l|}{\textbf{Transactions}} \\ \hline
+        Reference        & Tuesday, September 5, 2017 & Friday, June 29, 2018 & 1,604,509                                  \\ \hline
+        Target           & Friday, June 29, 2018      & Sunday, June 30, 2019 & 4,032,505                                  \\ \hline
+        \end{tabular}
+        \caption{Summary statistics for reference and target merchant datasets}
+        \label{tbl:merchant1-datasets-summary}
+    \end{center}
+\end{table}
 
-TALK ABOUT DATASETS (size)
+In the batch phase, we used 100 Spark executors, each with 12G of memory. We determined that one week worth of data for this merchant was on average equivalent to 37,803 events. We set the half-life to be $n_{1/2}=37,803$ and discard events whose contribution is 6\% or less, which is equivalent to using windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}). Hence, our samples' windows had 151,212 events. Using Equation \ref{eq:optimal-n-samples}, we determined that for 183 features, a FWER of 1\% and $\gamma$ (as defined in Section \ref{sec:nsamples}) of 10\% we needed to make a minimum of 42,137 samples. We conclude the batch analysis in 5 hours and 34 minutes.
+
+After the batch phase, we were in possession of the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed event by event and reported divergent features and associated p-values. We performed our multiple hypothesis with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for each 1000 events. It took us 382,363 milliseconds to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
+
+Our system produced a large list of alerts. In fact, we had alerts from nearly the beginning of the target period until the end. To try and make sense of these alerts, we questioned Feedzai's data scientists that worked directly with these data sources. We found out that this merchant and in particular these datasets were known to suffer a lot from concept drift. Additionally, the data scientists performed some data preprocessing and cleaning, removing some of the missing values, but only on the reference dataset, which further augmented the differences between the target and reference datasets. These seemed like plausible reasons for the large number of alarms generated.
 
 
-In our first analysis, for the batch phase, we used 100 Spark executors, each with 12G of memory. We also determined that one week worth of data for this merchant was on average equivalent to 37,803 events. Hence, we set the half-life $n_{1/2}=37,803$ and discard events whose contribution is 6\% or less, which is equivalent to using windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}).
+%x1 = completion_rate_per_card_72h
+We set out to validate this hypothesis. Due to the large number of features (183) we will only show the plots and visualizations drawn for one. Furthermore, we will refer to features with anonymized identifiers. Consider this first feature x1. Figure \textcolor{red}{THIS FIGURE MUST PIONT TO A CORRECT PVALUES PLOT}
+
+\textcolor{red}{INSERT FIGURE}
+
+From the previous plot, we can see this feature drops below the alarm threshold and never rises above it, effectively being considered divergent for the rest of the target period. Furthermore, it reaches p-values very close to zero and eventually becomes zero, throughout the remaining target period. Is such divergence possible? To find out, let us plot the reference and target time-series for feature x1. 
+
+
+Figure \ref{fig:merchant-x1-reference} shows the reference time-series plot and Figure \ref{fig:merchant-x1-target} shows the target time-series for feature x1.
+\begin{center}
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{figures/merchant-x1-reference.png}
+  \captionof{figure}{x1 reference time-series}
+  \label{fig:merchant-x1-reference}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{figures/merchant-x1-target.png}
+  \captionof{figure}{x1 target time-series}
+  \label{fig:merchant-x1-target}
+\end{minipage}
+\end{center}
+It became clear to us why this feature and many others were being alerted from the start of the dataset until the end. The domain of values is significantly differene. The reference period was cleaned of missing values, usually represented by -1. Hence, our reference was built expecting values from 0 to 1 with a certain distribution and in the stream analysis we found a large volume of missing values or -1. This explains the high number of alerts.
+
+A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. We discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain entity responsible for reporting one feature stops working, we want to know that. This scenario is very likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data.
+
+From this experiment, we conclude that for high concept drift scenarios the system works properly, and alerts all divergent features.
+
+
+In this next experiment, we set out to test our system in low drift scenario, .... 
+
+\textcolor{red}{SPLIT TARGET PERIOD IN TWO, USING SAME PERIOD GUARANTEES SIMILAR PERIODS? BUT MAYBE IT DOES NOT (LOOK AT x1 TIMESERIES, 1/3 has no MISSING VALUES AS WELL)}.
 
