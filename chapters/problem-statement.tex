@@ -3,35 +3,47 @@
 With this Chapter, we further discuss the problem we aim to solve with this Thesis making use of concepts discussed in Chapter \ref{chap:background} and explaining why none of the reviewed methods from Chapter \ref{chap:sota} works for our use case.
 
 \section{The problem}
-Many real-time stream monitoring systems are static once deployed in a production environment. Engineers of said systems configure them under the assumption that future data flowing through the system follows roughly the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. The problem at hand is determining when to reconfigure the system, whatever it may be (\textit{e.g.} a Machine Learning model), based on streaming analysis.
+Many real-time stream monitoring systems are static once deployed in a production environment. Engineers of said systems configure them under the assumption that future data flowing through the system follows roughly the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. The problem at hand is to determine when to reconfigure the system, \textit{e.g.} a Machine Learning model, based on streaming analysis.
 
 \section{State of the art issues}
-Aggregations, specifically sliding window ones, were introduced in Chapter \ref{chap:background} along with several windowing techniques required to monitor streaming data patterns in real-time. In Chapter \ref{chap:sota} we presented state of the art sliding window aggregation algorithms as well as outlier detection methods. However, the reviewed methods were deemed unfit for our use-case because none of them simultaneously showed all of the below characteristics:
+Aggregations, specifically sliding window ones, were introduced in Chapter \ref{chap:background} along with several windowing techniques required to monitor streaming data patterns in real-time. In Chapter \ref{chap:sota} we presented state of the art sliding window aggregation algorithms as well as outlier detection methods. However, the reviewed methods were deemed unfit for our use-case because none of them simultaneously showed all of the desired characteristics, namely:
 
 \begin{itemize}
     \item \textbf{Low memory consumption:} need for a low memory footprint system that avoids linear growth relative to the sliding window size used
     
     \item \textbf{Low time complexity:} need for a time-efficient method that updates the sliding window aggregation and raises alerts in constant time
     
-    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout run-time, the opposite of an online learning algorithm
+    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout run-time
     
     \item \textbf{Sliding window maintainability:} possibility to evict old events and insert new ones while updating the aggregation state
     
-    \item \textbf{Explainable alerts:} have some measure of divergence to understand why an alert was raised
+    \item \textbf{Explainable alerts:} have an interpretable measure of divergence to understand why an alert was raised
 \end{itemize}
 
 
 \section{Proposal}
-We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, our method guarantees to monitor each event's fields and alert if they are considered divergent from their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on the number of divergent features and the corresponding divergence measure, a system administrator has an easier time determining when to reconfigure the system.
+We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, our method guarantees to monitor each event's fields and alert if they are considered divergent relative to their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on the number of divergent features and the corresponding divergence measure, a system administrator has an easier time determining when to reconfigure the system.
 
 
 \section{Research Questions}
 The goal of this Thesis is to develop a lightweight stream monitoring system that detects changes in features distribution between a reference period and a sliding window in real-time. To that end, we devise a series of research questions to be answered by the end of this Thesis:
 
-\begin{enumerate}[label=\textbf{(RQ\arabic*)}]
+\begin{enumerate}[leftmargin=1.5cm, label=\textbf{(RQ\arabic*)}]
     \item What aggregation can we use to properly encode data distributions?
-    \item How can we maintain said aggregation in a sliding window fashion in real-time with constant memory usage?
+    \item How can we maintain such an aggregation in a sliding window fashion in real-time with constant memory usage?
     \item How can we measure divergence between the reference and sliding window aggregations?
     \item Based on a divergence measure, when should we raise an alert?
 \end{enumerate}
+
+
+
+%Assumptions section
+%
+%
+%
+%
+%
+
+
+
 

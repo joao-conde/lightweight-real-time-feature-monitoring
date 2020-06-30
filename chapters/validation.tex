@@ -9,7 +9,7 @@ In order to test our proposed system, we generated multiple synthetic datasets b
 \subsubsection{Varying sample sizes}
 We began with single-feature scenarios and by experimenting with different tuple-based half-lives $n_{1/2}$. The half-life $n_{1/2}$ parameter in turn controls the size of the samples we make in the batch phase and the target sliding window size of the streaming phase. 
 
-In Section \ref{sec:ema-hist}, we mentioned that we choose to discard events whose contribution is less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal or less than 6\%). 
+In Section \ref{sec:ema-hist}, we mentioned that we choose to discard events whose contribution is less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal to or less than 6\%). 
 
 All the synthetic datasets used throughout this Section are a time-series where at each time-step we sample uniformly from a fixed distribution, \textit{i.e.} there are no time correlations in the used datasets. The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1. The dataset processed in the streaming phase (\textit{i.e.} the target dataset) was generated with a size of 5 million events and a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$, like the reference dataset. For the other half, we changed the generating distribution to be a continuous uniform one with lower bound $a=100$ and upper bound $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in the target dataset T1 where we see the abrupt change in feature values.
 \begin{center}
@@ -443,7 +443,7 @@ With this experiment, we further validate that the p-value is a measure of how d
 
 Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to legal reasons.
 
-Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that combined covered a period of 1 year and 9 months. We used the older one as the reference dataset and the other one as the target one. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus categorical features. Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
+Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that combined covered a period of 1 year and 9 months. We used the older one as the reference dataset and the more recent one as the target one. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus categorical features. Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
 \begin{table}[!htb]
     \begin{center}
         \begin{tabular}{|c|c|c|c|}
@@ -457,53 +457,118 @@ Feedzai provides a fraud detection solution for this merchant and had stored two
     \end{center}
 \end{table}
 
-In the batch phase, we used 100 Spark executors, each with 12G of memory. We determined that one week's worth of data for this merchant was on average equivalent to 37,803 events. We set the half-life to be $n_{1/2}=37,803$ and discard events whose contribution is 6\% or less, which is equivalent to using windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}). Hence, our samples' windows had 151,212 events. Using Equation \ref{eq:optimal-n-samples}, we determined that for 183 features, a FWER of 1\% and $\gamma$ (as defined in Section \ref{sec:nsamples}) of 10\% we needed to make a minimum of 42,137 samples. We conclude the batch analysis in 5 hours and 34 minutes.
+In the batch phase, we used 100 Spark executors, each with 12G of memory. We determined that one week's worth of data for this merchant was on average equivalent to 37,803 events. We set the half-life to be $n_{1/2}=37,803$ and discard events whose contribution is 6\% or less, which is equivalent to using windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}). Hence, our samples' windows had 151,212 events. Using Equation \ref{eq:optimal-n-samples}, we determined that for 183 features, a FWER of 1\% and $\gamma$ (as defined in Section \ref{sec:nsamples}) of 10\% we needed to make a minimum of 42,137 samples, concluding the batch analysis in 5 hours and 34 minutes.
 
-After the batch phase, we had the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed event by event and reported divergent features and associated p-values. We performed our multiple hypotheses with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for every 1000 events. It took us 382,363 milliseconds to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
-
-Our system produced a large list of alerts. We had alerts from nearly the beginning of the target period until the end. To try and make sense of these alerts, we questioned Feedzai's data scientists that worked directly with these data sources. We found out that this merchant and in particular these datasets were known to suffer a lot from concept drift. Additionally, the data scientists performed some data preprocessing and cleaning, removing some of the missing values, but only on the reference dataset, which further augmented the differences between the target and reference datasets. These seemed like plausible reasons for the large number of alarms generated.
-
-%x1 = completion_rate_per_card_72h
-We set out to validate this hypothesis. Due to the large number of features (183) we only show the plots and visualizations drawn for one. Furthermore, we refer to features with anonymized identifiers, like our example feature, x1. Figure \ref{fig:merchant-x1-corrected-pvalues} shows the corrected p-values (Formula \ref{for:corrected-pvalue}) for feature x1 at for each event of the time-series and Figure \ref{fig:merchant-x1-corrected-pvalues-zoom} provides a closer look on the region where the p-values drop below the threshold (FWER = 1\%).
-\begin{center}
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[width=1\linewidth]{figures/merchant-x1-corrected-pvalues.png}
-  \captionof{figure}{x1 corrected p-values and threshold}
-  \label{fig:merchant-x1-corrected-pvalues}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[width=1\linewidth]{figures/merchant-x1-corrected-pvalues-zoom.png}
-  \captionof{figure}{x1 zoomed in corrected p-values and threshold}
-  \label{fig:merchant-x1-corrected-pvalues-zoom}
-\end{minipage}
-\end{center}
-We see that this feature drops below the alarm threshold and never rises above it, effectively being considered divergent for the rest of the target period. Furthermore, it reaches p-values very close to zero and eventually becomes zero, throughout the remaining target period. Is such divergence possible? To find out, let us plot the reference and target time-series for feature x1. Figure \ref{fig:merchant-x1-reference} shows the reference time-series plot and Figure \ref{fig:merchant-x1-target} shows the target time-series for feature x1.
-\begin{center}
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[width=1\linewidth]{figures/merchant-x1-reference.png}
-  \captionof{figure}{x1 reference time-series}
-  \label{fig:merchant-x1-reference}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[width=1\linewidth]{figures/merchant-x1-target.png}
-  \captionof{figure}{x1 target time-series}
-  \label{fig:merchant-x1-target}
-\end{minipage}
-\end{center}
-It became clear to us why this feature and many others were being alerted from the start of the dataset until the end. The domain of values is significantly different. The reference period was cleaned of missing values, usually represented by -1. Hence, our reference was built expecting values from 0 to 1 with a certain distribution and in the stream analysis, we found a large volume of missing values or -1. This explains the high number of alerts.
-
-A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. We discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain entity responsible for reporting one feature stops working, we want to know that. This scenario is very likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data.
-
-From this experiment, we conclude that for high concept drift scenarios the system works properly, and alerts all divergent features.
+After the batch phase, we had the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed the dataset event by event in sequential, time-ordered fashion, emulating a stream computation and reported divergent features and associated p-values. We performed our multiple hypotheses with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for every 1000 events. It took us 382,363 milliseconds (roughly 6 minutes) to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
 
 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x1-reference.png}
+      \caption{Merchant feature x1 reference time-series}
+      \label{fig:merchant-x1-reference}
+    \end{center}
+\end{figure}
 
-\subsection{Similar reference and target periods}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x1-target.png}
+      \caption{Merchant feature x1 target time-series}
+      \label{fig:merchant-x1-target}
+    \end{center}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x2-reference.png}
+      \caption{Merchant feature x2 reference time-series}
+      \label{fig:merchant-x2-reference}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x2-target.png}
+      \caption{Merchant feature x2 target time-series}
+      \label{fig:merchant-x2-target}
+    \end{center}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x3-reference.png}
+      \caption{Merchant feature x3 reference time-series}
+      \label{fig:merchant-x3-reference}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x3-target.png}
+      \caption{Merchant feature x3 target time-series}
+      \label{fig:merchant-x3-target}
+    \end{center}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x4-reference.png}
+      \caption{Merchant feature x4 reference time-series}
+      \label{fig:merchant-x4-reference}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x4-target.png}
+      \caption{Merchant feature x4 target time-series}
+      \label{fig:merchant-x4-target}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x5-reference.png}
+      \caption{Merchant feature x5 reference time-series}
+      \label{fig:merchant-x5-reference}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x5-target.png}
+      \caption{Merchant feature x5 target time-series}
+      \label{fig:merchant-x5-target}
+    \end{center}
+\end{figure}
+
+%This merchant and in particular these datasets were known to suffer a lot from concept drift. Our system produced a large list of alerts. We had alerts from nearly the beginning of the target period until the end.
+
+%low drift:
+    %x1 - max_amt_rate_per_location_72h
+    %x2 - num_preauths_per_card_1w
+    %x3 - user_avg_amount_completions_1h
+    %x4 - completions_rate_per_location_zip3_72h
+    
+
+%high drift:
+    %x5 - completion_rate_per_card_72h
+
+%Due to the large number of features (183) we only show the plots and visualizations drawn for some. Furthermore, we refer to features with anonymized identifiers, like our example feature, x1. Figure \ref{fig:merchant-x1-corrected-pvalues} shows the corrected p-values (Formula \ref{for:corrected-pvalue}) for feature x1 at for each event of the time-series and Figure \ref{fig:merchant-x1-corrected-pvalues-zoom} provides a closer look on the region where the p-values drop below the threshold (FWER = 1\%).
+
+%We see that this feature drops below the alarm threshold and never rises above it, effectively being considered divergent for the rest of the target period. Furthermore, it reaches p-values very close to zero and eventually becomes zero, throughout the remaining target period. Is such divergence possible? To find out, let us plot the reference and target time-series for feature x1. Figure \ref{fig:merchant-x1-reference} shows the reference time-series plot and Figure \ref{fig:merchant-x1-target} shows the target time-series for feature x1.
+
+
+%It became clear to us why this feature and many others were being alerted from the start of the dataset until the end. The domain of values is significantly different. The reference period was cleaned of missing values, usually represented by -1. Hence, our reference was built expecting values from 0 to 1 with a certain distribution and in the stream analysis, we found a large volume of missing values or -1. This explains the high number of alerts.
+
+%A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. We discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain entity responsible for reporting one feature stops working, we want to know that. This scenario is very likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data.
+
+%missing values streaming 
+
+\subsection{Same reference and target periods}
 In this next experiment, we set out to test our system in a low drift scenario,... 
 
-\textcolor{red}{SPLIT TARGET PERIOD IN TWO, USING SAME PERIOD GUARANTEES SIMILAR PERIODS? BUT MAYBE IT DOES NOT (LOOK AT x1 TARGET TIMESERIES, 1/3 has no MISSING VALUES AS WELL. STILL VERY DIFFERENT FROM 2/3)}.
 
