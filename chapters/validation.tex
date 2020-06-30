@@ -462,6 +462,26 @@ In the batch phase, we used 100 Spark executors, each with 12G of memory. We det
 After the batch phase, we had the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed the dataset event by event in sequential, time-ordered fashion, emulating a stream computation and reported divergent features and associated p-values. We performed our multiple hypotheses with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for every 1000 events. It took us 382,363 milliseconds (roughly 6 minutes) to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
 
 
+This merchant and in particular these datasets were known to suffer a lot from concept drift. Our system produced a large list of alerts, from nearly the beginning of the target period until the end. Due to the large number of features (183) we only show some plots. Furthermore, we refer to features with anonymized identifiers, like feature $x_t$. In the following plots, we show the corrected p-values (Formula \ref{for:corrected-pvalue}) for some features at each event of the time-series and the FWER threshold set at 1\%. A feature is considered divergent at a given timestamp if below that threshold line.
+
+%feats = [max_amt_rate_per_location_72h, num_preauths_per_card_1w, user_avg_amount_completions_1h, completions_rate_per_location_zip3_72h, completion_rate_per_card_72h]
+%low drift:
+    %x1 - max_amt_rate_per_location_72h
+    %x2 - num_preauths_per_card_1w
+    %x3 - user_avg_amount_completions_1h
+    %REMOVED %x4 - completions_rate_per_location_zip3_72h
+%high drift:
+    %x4 - completion_rate_per_card_72h
+
+
+
+%We see that this feature drops below the alarm threshold and never rises above it, effectively being considered divergent for the rest of the target period. Furthermore, it reaches p-values very close to zero and eventually becomes zero, throughout the remaining target period. Is such divergence possible? To find out, let us plot the reference and target time-series for feature x1. Figure \ref{fig:merchant-x1-reference} shows the reference time-series plot and Figure \ref{fig:merchant-x1-target} shows the target time-series for feature x1.
+
+
+%It became clear to us why this feature and many others were being alerted from the start of the dataset until the end. The domain of values is significantly different. The reference period was cleaned of missing values, usually represented by -1. Hence, our reference was built expecting values from 0 to 1 with a certain distribution and in the stream analysis, we found a large volume of missing values or -1. This explains the high number of alerts.
+
+%A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. We discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain entity responsible for reporting one feature stops working, we want to know that. This scenario is very likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data.
+
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x1-reference.png}
@@ -512,7 +532,6 @@ After the batch phase, we had the necessary inputs for the streaming phase (deta
     \end{center}
 \end{figure}
 
-
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x4-reference.png}
@@ -529,42 +548,42 @@ After the batch phase, we had the necessary inputs for the streaming phase (deta
     \end{center}
 \end{figure}
 
+
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x5-reference.png}
-      \caption{Merchant feature x5 reference time-series}
-      \label{fig:merchant-x5-reference}
+      \includegraphics[scale=0.5]{figures/merchant-x1-correctedpvalues.png}
+      \caption{Merchant feature x1 corrected p-values}
+      \label{fig:merchant-x1-correctedpvalues}
     \end{center}
 \end{figure}
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x5-target.png}
-      \caption{Merchant feature x5 target time-series}
-      \label{fig:merchant-x5-target}
+      \includegraphics[scale=0.5]{figures/merchant-x2-correctedpvalues.png}
+      \caption{Merchant feature x2 corrected p-values}
+      \label{fig:merchant-x2-correctedpvalues}
     \end{center}
 \end{figure}
 
-%This merchant and in particular these datasets were known to suffer a lot from concept drift. Our system produced a large list of alerts. We had alerts from nearly the beginning of the target period until the end.
 
-%low drift:
-    %x1 - max_amt_rate_per_location_72h
-    %x2 - num_preauths_per_card_1w
-    %x3 - user_avg_amount_completions_1h
-    %x4 - completions_rate_per_location_zip3_72h
-    
-
-%high drift:
-    %x5 - completion_rate_per_card_72h
-
-%Due to the large number of features (183) we only show the plots and visualizations drawn for some. Furthermore, we refer to features with anonymized identifiers, like our example feature, x1. Figure \ref{fig:merchant-x1-corrected-pvalues} shows the corrected p-values (Formula \ref{for:corrected-pvalue}) for feature x1 at for each event of the time-series and Figure \ref{fig:merchant-x1-corrected-pvalues-zoom} provides a closer look on the region where the p-values drop below the threshold (FWER = 1\%).
-
-%We see that this feature drops below the alarm threshold and never rises above it, effectively being considered divergent for the rest of the target period. Furthermore, it reaches p-values very close to zero and eventually becomes zero, throughout the remaining target period. Is such divergence possible? To find out, let us plot the reference and target time-series for feature x1. Figure \ref{fig:merchant-x1-reference} shows the reference time-series plot and Figure \ref{fig:merchant-x1-target} shows the target time-series for feature x1.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x3-correctedpvalues.png}
+      \caption{Merchant feature x3 corrected p-values}
+      \label{fig:merchant-x3-correctedpvalues}
+    \end{center}
+\end{figure}
 
 
-%It became clear to us why this feature and many others were being alerted from the start of the dataset until the end. The domain of values is significantly different. The reference period was cleaned of missing values, usually represented by -1. Hence, our reference was built expecting values from 0 to 1 with a certain distribution and in the stream analysis, we found a large volume of missing values or -1. This explains the high number of alerts.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x4-correctedpvalues.png}
+      \caption{Merchant feature x4 corrected p-values}
+      \label{fig:merchant-x4-correctedpvalues}
+    \end{center}
+\end{figure}
 
-%A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. We discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain entity responsible for reporting one feature stops working, we want to know that. This scenario is very likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data.
+
 
 %missing values streaming 
 
