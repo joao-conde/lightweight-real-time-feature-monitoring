@@ -443,7 +443,7 @@ With this experiment, we further validate that the p-value is a measure of how d
 
 Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to legal reasons.
 
-Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that combined covered a period of roughly 1 year and 9 months. We used the older one as the reference dataset and the more recent one as the target period. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus categorical features. Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
+Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that combined covered a period of roughly 1 year and 9 months. In this experiment, we used the older one as the reference dataset and the more recent one as the target period. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus categorical features. Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
 \begin{table}[!htb]
     \begin{center}
         \begin{tabular}{|c|c|c|c|}
@@ -459,9 +459,9 @@ Feedzai provides a fraud detection solution for this merchant and had stored two
 
 In the batch phase, we used 100 Spark executors, each with 12G of memory. We determined that one week's worth of data for this merchant was on average equivalent to 37,803 events. We set the half-life to be $n_{1/2}=37,803$ and discard events whose contribution is 6\% or less, which is equivalent to using sampling windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}). Hence, our samples' windows had 151,212 events. Using Equation \ref{eq:optimal-n-samples}, we determined that for 183 features, a FWER of 1\% and $\gamma$ (as defined in Section \ref{sec:nsamples}) of 10\% we needed to make a minimum of 42,137 samples. Our batch analysis took 5 hours and 34 minutes.
 
-After the batch phase, we had the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed the dataset event by event in sequential, time-ordered fashion, emulating a stream computation and reported divergent features and associated p-values. We performed our multiple hypotheses with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for every 1000 events. It took us 382,363 milliseconds (roughly 6 minutes) to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
+After the batch phase, we had the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed the dataset event by event in sequential, time-ordered fashion, emulating a stream computation and reported divergent features with associated p-values. We performed our multiple hypotheses with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for every 1000 events. It took us 382,363 milliseconds (roughly 6 minutes) to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
 
-This merchant and in particular these datasets were known to suffer a lot from concept drift. Our system produced a large list of alerts, from nearly the beginning of the target period until the end. Due to the large number of features (183) we only show some plots. Furthermore, we refer to features with anonymized identifiers, like feature $x_t$. In the following plots, we show the corrected p-values (Formula \ref{for:corrected-pvalue}) for some features at each event of the time-series and the FWER threshold set at 1\%. A feature is considered divergent at a given timestamp if below that threshold line.
+This merchant and in particular these datasets were known to suffer a lot from concept drift. Our system produced a large list of alerts, from nearly the beginning of the target period until the end. Due to a large number of features (183), we only show some plots. Furthermore, we refer to features with anonymized identifiers, like feature $x_t$. In the following plots, we show the corrected p-values (Formula \ref{for:corrected-pvalue}) for some features at each event of the time-series and the FWER threshold set at 1\%. A feature is considered divergent at a given timestamp if below that threshold line.
 
 Figure \ref{fig:merchant-x1-reference} is a plot of the reference time-series of feature x1 and Figure \ref{fig:merchant-x1-target} the corresponding target time-series.
 \begin{figure}[!htb]
@@ -519,9 +519,7 @@ Figures \ref{fig:merchant-x3-reference} and \ref{fig:merchant-x3-target} show fe
     \end{center}
 \end{figure}
 \clearpage
-Similarly to x1, features x2 and x3 have very similar reference and target periods (not between each other). Just like feature x1, we expect to have some alarms but still not too many. 
-
-Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature x2' corrected p-values and the FWER threshold of 1\%.
+Similarly to x1, features x2 and x3 have very similar reference and target periods (not between each other). Just like feature x1, we expect to have some alarms but still not too many. Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature x2' corrected p-values and the FWER threshold of 1\%. Likewise, Figure \ref{fig:merchant-x3-correctedpvalues} shows the same plot but for feature x3.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x2-correctedpvalues.png}
@@ -563,7 +561,7 @@ Notice that even if for the most part both reference and target periods values b
 \end{figure}
 Like the previous analyzed features, x4 also drops below the threshold some times. However, unlike the other features, where feature values return to normal and alarms stopped being raised, x4 remains below the threshold line until the end of the target period, where a small spike occurs. The last time feature x4 was ever above the threshold line (and hence considered normal) was before the appearance of the -1 values in the target period. This seems to work as expected: -1 values were so off the reference domain that for here on out, as long as these values keep appearing, we will not stop reporting x4 as divergent.
 
-The -1 value is often used as placeholder for missing values, \textit{i.e.}, if some problem occurs and the value for a feature is missing at a given timestamp or event, -1 is used. A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. However, we discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain device responsible for reporting one feature stops working, we want to know that. This scenario is very likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data. 
+The -1 value is often used as a placeholder for missing values, \textit{i.e.}, if some problem occurs and the value for a feature is missing at a given timestamp or event, -1 is used. A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. However, we discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain device responsible for reporting one feature stops working, we want to know that. This scenario is likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data. 
 
 %feats = [max_amt_rate_per_location_72h, num_preauths_per_card_1w, user_avg_amount_completions_1h, completions_rate_per_location_zip3_72h, completion_rate_per_card_72h]
 %low drift:
@@ -573,6 +571,7 @@ The -1 value is often used as placeholder for missing values, \textit{i.e.}, if 
 %high drift:
     %x4 - completion_rate_per_card_72h
 \subsection{Same reference and target periods}
-In this next experiment, we set out to test our system in a low drift scenario,... 
+In this experiment, we set out to test our system in a low drift scenario. To guarantee the reference and target periods are as similar as possible, we decide to use the same dataset to work as reference and target. We chose to use the reference dataset from the previous experiment (Reference of Table \ref{tbl:merchant1-datasets-summary}) and feed it as input for both our batch and stream analysis as the reference and target periods, respectively.
 
 
+\textcolor{red}{TODO: visualizations and conclusions of this experiment}

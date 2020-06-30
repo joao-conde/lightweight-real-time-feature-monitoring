@@ -22,28 +22,17 @@ Aggregations, specifically sliding window ones, were introduced in Chapter \ref{
 
 
 \section{Proposal}
-We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, our method guarantees to monitor each event's fields and alert if they are considered divergent relative to their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on the number of divergent features and the corresponding divergence measure, a system administrator has an easier time determining when to reconfigure the system.
+We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, we monitor each event's fields and alert if they are considered divergent relative to their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on this information, it is our belief that a system administrator would have an easier time determining when to reconfigure the system.
 
+\section{Assumptions}
+Our feature monitoring method assumes only that the monitored features are numerical or categorical and that the events arrive in an orderly fashion during streaming. If the latter is not true, our method will still work but results may be imprecise, as our sliding window histogram aggregation relies on Exponential Moving Averages (EMAs), which give different weights to each event according to its age.
 
 \section{Research Questions}
 The goal of this Thesis is to develop a lightweight stream monitoring system that detects changes in features distribution between a reference period and a sliding window in real-time. To that end, we devise a series of research questions to be answered by the end of this Thesis:
 
-\begin{enumerate}[leftmargin=1.5cm, label=\textbf{(RQ\arabic*)}]
+\begin{enumerate}[leftmargin=1.75cm, label=\textbf{(RQ\arabic*)}]
     \item What aggregation can we use to properly encode data distributions?
     \item How can we maintain such an aggregation in a sliding window fashion in real-time with constant memory usage?
     \item How can we measure divergence between the reference and sliding window aggregations?
     \item Based on a divergence measure, when should we raise an alert?
 \end{enumerate}
-
-
-
-%Assumptions section
-%
-%
-%
-%
-%
-
-
-
-
