@@ -482,14 +482,14 @@ This merchant and in particular these datasets were known to suffer a lot from c
 Figure \ref{fig:merchant-x1-reference} is a plot of the reference time-series of feature x1 and Figure \ref{fig:merchant-x1-target} the corresponding target time-series.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x1-reference.png}
+      \includegraphics[scale=0.5]{figures/merchant-x1-reference.pdf}
       \caption{Merchant feature x1 reference time-series}
       \label{fig:merchant-x1-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x1-target.png}
+      \includegraphics[scale=0.5]{figures/merchant-x1-target.pdf}
       \caption{Merchant feature x1 target time-series}
       \label{fig:merchant-x1-target}
     \end{center}
@@ -497,7 +497,7 @@ Figure \ref{fig:merchant-x1-reference} is a plot of the reference time-series of
 In Figure \ref{fig:merchant-x1-correctedpvalues} we plot the corrected p-values for the each event of the target period. The reference and target periods look very similar and in fact we have very few alarms for this feature, \textit{i.e.}, the number of times the line crosses to the bottom half of the plot, imposed by the threshold line. 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x1-correctedpvalues.png}
+      \includegraphics[scale=0.5]{figures/merchant-x1-correctedpvalues.pdf}
       \caption{Merchant feature x1 corrected p-values}
       \label{fig:merchant-x1-correctedpvalues}
     \end{center}
@@ -507,14 +507,14 @@ Furthermore, the alarms appear to be roughly in the middle portion of the time-s
 Now let us look at features x2 and x3. Figures \ref{fig:merchant-x2-reference} and \ref{fig:merchant-x2-target} show feature x2' time-series plots for the reference and target periods, respectively.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x2-reference.png}
+      \includegraphics[scale=0.5]{figures/merchant-x2-reference.pdf}
       \caption{Merchant feature x2 reference time-series}
       \label{fig:merchant-x2-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x2-target.png}
+      \includegraphics[scale=0.5]{figures/merchant-x2-target.pdf}
       \caption{Merchant feature x2 target time-series}
       \label{fig:merchant-x2-target}
     \end{center}
@@ -522,14 +522,14 @@ Now let us look at features x2 and x3. Figures \ref{fig:merchant-x2-reference} a
 Figures \ref{fig:merchant-x3-reference} and \ref{fig:merchant-x3-target} show feature x3' time-series plots for the reference and target periods, respectively.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x3-reference.png}
+      \includegraphics[scale=0.5]{figures/merchant-x3-reference.pdf}
       \caption{Merchant feature x3 reference time-series}
       \label{fig:merchant-x3-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x3-target.png}
+      \includegraphics[scale=0.5]{figures/merchant-x3-target.pdf}
       \caption{Merchant feature x3 target time-series}
       \label{fig:merchant-x3-target}
     \end{center}
@@ -538,14 +538,14 @@ Figures \ref{fig:merchant-x3-reference} and \ref{fig:merchant-x3-target} show fe
 Relative to x1, features x2 and x3 also have very similar reference and target periods. Just like feature x1, we expect to have some alarms but still not too many. Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature x2' corrected p-values and the FWER threshold of 1\%. Likewise, Figure \ref{fig:merchant-x3-correctedpvalues} shows the same plot but for feature x3.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x2-correctedpvalues.png}
+      \includegraphics[scale=0.5]{figures/merchant-x2-correctedpvalues.pdf}
       \caption{Merchant feature x2 corrected p-values}
       \label{fig:merchant-x2-correctedpvalues}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x3-correctedpvalues.png}
+      \includegraphics[scale=0.5]{figures/merchant-x3-correctedpvalues.pdf}
       \caption{Merchant feature x3 corrected p-values}
       \label{fig:merchant-x3-correctedpvalues}
     \end{center}
@@ -555,14 +555,14 @@ The corrected p-values plot shows us once again that both x2 and x3 features had
 Next, we analyze a feature with very different reference and target time-series. Feature x4' reference time-series is presented in Figure \ref{fig:merchant-x4-reference} and its target period in Figure \ref{fig:merchant-x4-target}.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x4-reference.png}
+      \includegraphics[scale=0.5]{figures/merchant-x4-reference.pdf}
       \caption{Merchant feature x4 reference time-series}
       \label{fig:merchant-x4-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x4-target.png}
+      \includegraphics[scale=0.5]{figures/merchant-x4-target.pdf}
       \caption{Merchant feature x4 target time-series}
       \label{fig:merchant-x4-target}
     \end{center}
@@ -570,7 +570,7 @@ Next, we analyze a feature with very different reference and target time-series.
 Notice that even if for the most part both reference and target periods values belong to a domain between 0 and 1, at a certain point in time, in the target time-series, a lot of -1 values appear. In Figure \ref{fig:merchant-x4-correctedpvalues} we plot the corrected p-values for feature x4 target time-series.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant-x4-correctedpvalues.png}
+      \includegraphics[scale=0.5]{figures/merchant-x4-correctedpvalues.pdf}
       \caption{Merchant feature x4 corrected p-values}
       \label{fig:merchant-x4-correctedpvalues}
     \end{center}
@@ -586,8 +586,52 @@ The -1 value is often used as a placeholder for missing values, \textit{i.e.}, i
     %x3 - user_avg_amount_completions_1h
 %high drift:
     %x4 - completion_rate_per_card_72h
+    %x5 - dif_last_and_current_trx
 \subsection{Same reference and target periods}
 In this experiment, we set out to test our system in a low drift scenario. To guarantee the reference and target periods are as similar as possible, we decide to use the same dataset to work as reference and target. We chose to use the reference dataset from the previous experiment (Reference of Table \ref{tbl:merchant1-datasets-summary}) and feed it as input for both our batch and stream analysis as the reference and target periods, respectively.
 
 
 \textcolor{red}{TODO: visualizations and conclusions of this experiment}
+
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x5-reference.pdf}
+      \caption{Merchant feature x5 reference time-series}
+      \label{fig:merchant-x5-reference}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x5-target.pdf}
+      \caption{Merchant feature x5 target time-series}
+      \label{fig:merchant-x5-target}
+    \end{center}
+\end{figure}
+
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant-x5-correctedpvalues.pdf}
+      \caption{Merchant feature x5 corrected p-values}
+      \label{fig:merchant-x5-correctedpvalues}
+    \end{center}
+\end{figure}
+
+
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant2-x4-correctedpvalues.pdf}
+      \caption{Merchant feature x5 corrected p-values}
+      \label{fig:merchant2-x4-correctedpvalues}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant2-x5-correctedpvalues.pdf}
+      \caption{Merchant feature x5 corrected p-values}
+      \label{fig:merchant2-x5-correctedpvalues}
+    \end{center}
+\end{figure}
