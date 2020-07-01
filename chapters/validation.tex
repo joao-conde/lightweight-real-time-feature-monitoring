@@ -15,13 +15,13 @@ All the synthetic datasets used throughout this Section are a time-series where 
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/01-reference.png}
+  \includegraphics[width=1\linewidth]{figures/01-reference.pdf}
   \captionof{figure}{Time-series for dataset R1}
   \label{fig:timeseries-r1}
 \end{minipage}%
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/01-target.png}
+  \includegraphics[width=1\linewidth]{figures/01-target.pdf}
   \captionof{figure}{Time-series for dataset T1}
   \label{fig:timeseries-t1}
 \end{minipage}
@@ -44,69 +44,77 @@ We conducted three different experiments varying the tuple-based half-life $n_{1
 Table \ref{tbl:tests-half-life} shows the execution time for the batch phase in seconds. All experiments used 300 Spark executor instances. From the Table we conclude that the larger the half-life, the larger the sample size. Larger samples imply longer processing times when computing the EMA-like histogram for each sample. With no surprise, we see that the larger the sample the longer it takes to finish the batch phase.
 
 From a functional point of view, were we able to detect the abrupt change introduced in the target dataset T1? Recall that from the 2.5 millionth event forward we change the distribution from a gaussian to an uniform one (Figure \ref{fig:timeseries-t1}). Figure \ref{fig:JSD-signal-01} shows the distance (JSD) values computed during streaming at each event of the 5 million events from dataset T1, using the outputs from the batch phase of experiment 01. We clearly see a change in JSD values, and we move from values close to 0 to values close to 1 (or even 1). Figure \ref{fig:JSD-signal-zoom-01} shows the same signal but for the first half of the streaming period (essentially a zoom-in). We see our JSD values before the change were very low (magnitudes of $10^{-2}$).
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-625.png}
-  \captionof{figure}{JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-625.pdf}
+  \caption{For the whole time-series}
   \label{fig:JSD-signal-01}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-625.png}
-  \captionof{figure}{Zoomed in JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-625.pdf}
+  \caption{Zoom in on the first 2.5 million events}
   \label{fig:JSD-signal-zoom-01}
-\end{minipage}
-\end{center}
+\end{subfigure}
+\caption{Experiment 01: JSD signal and threshold}
+\end{figure}
+
 However, the change in JSD value is very abrupt as well. Almost instantly we go from close to 0 values to 1. We also had some false-positives, \textit{i.e.}, some JSD values above the threshold. This indicates to us that the window used is too small and sensitive to small changes, or that we can choose a more strict threshold.
 
 In experiment 02, we use larger sampling windows. Remember our target sliding window in streaming is of the same size as the sampling windows. In the second experiment, we increase the size of the sampling and target windows by 100 times.
 
 Figure \ref{fig:JSD-signal-02} shows the JSD signal during streaming for dataset T1, using the outputs from the batch phase of experiment 02. Again, we see a change in signal from the middle of the streaming period forward. Figure \ref{fig:JSD-signal-zoom-02} shows the same signal for the first half of the streaming period.
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-62500.png}
-  \captionof{figure}{JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-62500.pdf}
+  \caption{For the whole time-series}
   \label{fig:JSD-signal-02}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-62500.png}
-  \captionof{figure}{Zoomed in JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-62500.pdf}
+  \caption{Zoom in on the first 2.5 million events}
   \label{fig:JSD-signal-zoom-02}
-\end{minipage}
-\end{center}
+\end{subfigure}
+\caption{Experiment 02: JSD signal and threshold}
+\end{figure}
 Notice that this time the growth of our signal is slower. Notice also that we do not have false positives in the first half of the signal. This is because we use a larger window, which means each event has a smaller contribution to the aggregation state. Hence, outliers will have less impact on the aggregation and corresponding signal value.
 
 In experiment 03, we increase the sampling and target windows size once again, this time four times larger than in experiment 02. We would expect an even smoother growth of our signal and, again, no false positives. And indeed, judging by the corresponding signal computation and zoom-in, Figures \ref{fig:JSD-signal-03} and \ref{fig:JSD-signal-zoom-03}, respectively, the signal looks smoother and we see no false positives.
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-250000.png}
-  \captionof{figure}{JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-250000.pdf}
+  \caption{For the whole time-series}
   \label{fig:JSD-signal-03}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-250000.png}
-  \captionof{figure}{Zoomed in JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-250000.pdf}
+  \caption{Zoom in on the first 2.5 million events}
   \label{fig:JSD-signal-zoom-03}
-\end{minipage}
-\end{center}
+\end{subfigure}
+\caption{Experiment 03: JSD signal and threshold}
+\end{figure}
+
 
 \subsubsection{Multiple distribution changes}
 In this experiment, we wanted to see how our signal behaved when there were multiple change points, where each gaussian distribution was a scaled down version of the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. The time-series for target dataset T2 is shown in Figure \ref{fig:timeseries-t2}. Notice that we change distributions at 2, 3 and 4 millionth events. Notice also that each subsequent distribution produces values whose domain is a subset of the previous distribution.
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-r2.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-r2.pdf}
   \captionof{figure}{Time-series for dataset R2}
   \label{fig:timeseries-r2}
 \end{minipage}%
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-t2.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-t2.pdf}
   \captionof{figure}{Time-series for dataset T2}
   \label{fig:timeseries-t2}
 \end{minipage}
@@ -115,20 +123,22 @@ In this experiment, we wanted to see how our signal behaved when there were mult
 The target dataset T2 begins with the same distribution as the reference dataset R2, a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. At the 2 millionth event mark, we use another Gaussian distribution, this time with mean $\mu=100$ and standard deviation $\sigma=30$. At the 3 millionth event, we change the standard deviation to be $\sigma=10$. From the 4 millionth event to the end, we use a standard deviation of $\sigma=5$. 
 
 In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample size of 250,000 events, like in the previous Section' experiment 02. Figure \ref{fig:JSD-signal-test02} shows the computed JSD signal for the target dataset and Figure \ref{fig:JSD-signal-zoom-test02} zooms in on the first 2 millionth events, before any distribution is changed. We observe that once again we have no false positives in the first 2 million events, which is ideal. 
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test02.png}
-  \captionof{figure}{JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test02.pdf}
+  \caption{For the whole time-series}
   \label{fig:JSD-signal-test02}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test02.png}
-  \captionof{figure}{Zoomed in JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test02.pdf}
+  \caption{Zoom in on the first 2 million events}
   \label{fig:JSD-signal-zoom-test02}
-\end{minipage}
-\end{center}
+\end{subfigure}
+\caption{JSD signal and threshold}
+\end{figure}
 Furthermore, we observe that the computed JSD signal varies accordingly with the changes in distribution. Despite us changing the distributions to subsets of the previous ones to try and deceive our method, our signal accurately represents these changes. In Figure \ref{fig:JSD-signal-test02}, we see several growth points that correspond to the points where the generating gaussian distribution parameters changed. Hence, we are able to detect changes in distribution parameter changes and quantify how big the change is (the closer to 1 our signal is).
 
 \subsubsection{Multiple distribution changes, each a superset of the previous one}
@@ -136,34 +146,35 @@ In this experiment, we wanted to do the reverse of the previous one. In this one
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-r3.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-r3.pdf}
   \captionof{figure}{Time-series for dataset R3}
   \label{fig:timeseries-r3}
 \end{minipage}%
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1.2\linewidth]{figures/timeseries-t3.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-t3.pdf}
   \captionof{figure}{Time-series for dataset T3}
   \label{fig:timeseries-t3}
 \end{minipage}
 \end{center}
 
 Figure \ref{fig:JSD-signal-test03} shows the JSD signal for the target dataset in this experiment. Once again, we were able to detect the changes introduced at the 2, 3 and 4 millionth events. We are also able to identify bigger distribution changes, relative to the reference, by observing bigger JSD values. Figure \ref{fig:JSD-signal-zoom-test03} shows a zoomed in portion of the original signal, where we can verify that there are no false positives.
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test03.png}
-  \captionof{figure}{JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test03.pdf}
+  \caption{For the whole time-series}
   \label{fig:JSD-signal-test03}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test03.png}
-  \captionof{figure}{Zoomed in JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test03.pdf}
+  \caption{Zoom in on the first 2 million events}
   \label{fig:JSD-signal-zoom-test03}
-\end{minipage}
-\end{center}
-
+\end{subfigure}
+\caption{JSD signal and threshold}
+\end{figure}
 
 \subsubsection{Return to normality after change}
 Our goal with this experiment was to check if our signal returned to its normal values (below the alert threshold) if we changed our distribution to the original reference one, as intended.
@@ -172,13 +183,13 @@ In this experiment, we used reference dataset R4 (Figure \ref{fig:timeseries-r4}
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-r4.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-r4.pdf}
   \captionof{figure}{Time-series for dataset R4}
   \label{fig:timeseries-r4}
 \end{minipage}%
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-t4.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-t4.pdf}
   \captionof{figure}{Time-series for dataset T4}
   \label{fig:timeseries-t4}
 \end{minipage}
@@ -189,20 +200,23 @@ The reference dataset R4 had a single feature that followed a Gaussian distribut
 
 Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target period. As expected, our JSD signal increases at the 2 millionth and 3 millionth event mark, because the distribution parameters change. At the 4 millionth event, we use the original reference distribution and notice that the JSD signal returns to values below the threshold, considering it a normal state, as we intended. Figure \ref{fig:JSD-signal-zoom-test04} is a zoom in on the first 2 millionth events before any change occurs, and we see no false positives.
 
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test04.png}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test04.pdf}
   \captionof{figure}{JSD signal and threshold}
   \label{fig:JSD-signal-test04}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test04.png}
-  \captionof{figure}{Zoomed in JSD signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test04.pdf}
+  \caption{Zoom in on the first 2 million events}
   \label{fig:JSD-signal-zoom-test04}
-\end{minipage}
-\end{center}
+\end{subfigure}
+\caption{JSD signal and threshold}
+\end{figure}
+
 
 \subsubsection{An attempt to deceive our method}
 In this experiment, we attempt to deceive our method by using a different distribution from the reference period but ensuring its domain is roughly the same as the reference one.
@@ -211,33 +225,35 @@ We used the reference dataset R5 (Figure \ref{fig:timeseries-r5}) which had 5 mi
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-r5.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-r5.pdf}
   \captionof{figure}{Time-series for dataset R5}
   \label{fig:timeseries-r5}
 \end{minipage}%
 \begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/timeseries-t5.png}
+  \includegraphics[width=1\linewidth]{figures/timeseries-t5.pdf}
   \captionof{figure}{Time-series for dataset T5}
   \label{fig:timeseries-t5}
 \end{minipage}
 \end{center}
 
 Let's take a look at the signal computed for the target period. Figure \ref{fig:JSD-signal-test05} shows us the JSD signal for dataset T5 \ref{fig:timeseries-t5}. As expected, we see a rapid growth of JSD value after the 2 millionth event, when we change the Gaussian parameters. We then change the distribution type, from a gaussian to a uniform one. Despite the latter having a domain contained within the former, we see that our signal is accurate and does not drop below the alert threshold. This is still a different distribution that we want to alert. Figure \ref{fig:JSD-signal-zoom-test05} is a zoom in of the first 2 millionth events and once again we have no false positives.
-\begin{center}
-\begin{minipage}{.5\textwidth}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test05.png}
-  \captionof{figure}{Distance (JSD) signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-test05.pdf}
+  \captionof{figure}{JSD signal and threshold}
   \label{fig:JSD-signal-test05}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test05.png}
-  \captionof{figure}{Zoomed in distance (JSD) signal and threshold}
+  \includegraphics[width=1\linewidth]{figures/stream-analysis-viz-zoom-test05.pdf}
+  \caption{Zoom in on the first 2 million events}
   \label{fig:JSD-signal-zoom-test05}
-\end{minipage}
-\end{center}
+\end{subfigure}
+\caption{JSD signal and threshold}
+\end{figure}
 
 \subsection{Multi Feature Analysis}
 Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the underlying generating distributions and parameters for each of the four features (x1, x2, x3 and x4) in the reference multi-feature dataset R6. Figures \ref{fig:timeseries-r6-x1}, \ref{fig:timeseries-r6-x2}, \ref{fig:timeseries-r6-x3} and \ref{fig:timeseries-r6-x4} show the reference time-series for features x1, x2, x3 and x4 on the reference dataset R6, respectively.
@@ -261,28 +277,28 @@ Before moving to real data, we performed one last experiment, using synthetic da
 \begin{figure}[!htb] 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x1.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x1.pdf} 
     \caption{Feature x1 reference time-series} 
     \label{fig:timeseries-r6-x1} 
     \vspace{4ex}
   \end{minipage}%%
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x2.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x2.pdf} 
     \caption{Feature x2 reference time-series} 
     \label{fig:timeseries-r6-x2} 
     \vspace{4ex}
   \end{minipage} 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x3.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x3.pdf} 
     \caption{Feature x3 reference time-series} 
     \label{fig:timeseries-r6-x3} 
     \vspace{4ex}
   \end{minipage}%% 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x4.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-r6-x4.pdf} 
     \caption{Feature x4 reference time-series} 
     \label{fig:timeseries-r6-x4} 
     \vspace{4ex}
@@ -343,28 +359,28 @@ Feature x4's underlying distribution changed two times and returned to normal, s
 \begin{figure}[!htb] 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x1.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x1.pdf} 
     \caption{Feature x1 target time-series} 
     \label{fig:timeseries-t6-x1} 
     \vspace{4ex}
   \end{minipage}%%
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x2.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x2.pdf} 
     \caption{Feature x2 target time-series} 
     \label{fig:timeseries-t6-x2} 
     \vspace{4ex}
   \end{minipage} 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x3.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x3.pdf} 
     \caption{Feature x3 target time-series} 
     \label{fig:timeseries-t6-x3} 
     \vspace{4ex}
   \end{minipage}%% 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
-    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x4.png} 
+    \includegraphics[width=1\linewidth]{figures/timeseries-t6-x4.pdf} 
     \caption{Feature x4 target time-series} 
     \label{fig:timeseries-t6-x4} 
     \vspace{4ex}
@@ -519,7 +535,7 @@ Figures \ref{fig:merchant-x3-reference} and \ref{fig:merchant-x3-target} show fe
     \end{center}
 \end{figure}
 \clearpage
-Similarly to x1, features x2 and x3 have very similar reference and target periods (not between each other). Just like feature x1, we expect to have some alarms but still not too many. Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature x2' corrected p-values and the FWER threshold of 1\%. Likewise, Figure \ref{fig:merchant-x3-correctedpvalues} shows the same plot but for feature x3.
+Relative to x1, features x2 and x3 also have very similar reference and target periods. Just like feature x1, we expect to have some alarms but still not too many. Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature x2' corrected p-values and the FWER threshold of 1\%. Likewise, Figure \ref{fig:merchant-x3-correctedpvalues} shows the same plot but for feature x3.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x2-correctedpvalues.png}
