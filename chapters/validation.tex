@@ -590,11 +590,11 @@ The -1 value is often used as a placeholder for missing values, \textit{i.e.} if
     %x4 - completion_rate_per_card_72h
     %x5 - dif_last_and_current_trx
 \subsection{Same reference and target periods}
-In this experiment, we set out to test our system in a low drift scenario. To guarantee the reference and target periods are as similar as possible, we decide to use the same dataset to work as reference and target. We chose to use the reference dataset from the previous experiment (Reference of Table \ref{tbl:merchant1-datasets-summary}) and feed it as input for both our batch and stream analysis as the reference and target periods, respectively. We expect to have less alarms for each feature but not necessarily zero.
+In this experiment, we set out to test our system in a low drift scenario. To guarantee the reference and target periods are as similar as possible, we decided to use the same dataset to work as reference and target. We chose to use the reference dataset from the previous experiment (Reference of Table \ref{tbl:merchant1-datasets-summary}) and feed it as input for both our batch and stream analysis as the reference and target periods, respectively. We expect to have less alarms for each feature but not necessarily zero.
 
 We first show the corrected p-value plots when both reference and target periods are the same, for the previous features $x_1$, $x_2$ and $x_3$ in Figures \ref{fig:merchant2-x1-correctedpvalues}, \ref{fig:merchant2-x2-correctedpvalues} and \ref{fig:merchant2-x3-correctedpvalues}, respectively. 
 
-Feature x1 has less alerts in this experiment where we use equal reference and target periods. This is expected and clear when comparing Figure \ref{fig:merchant2-x1-correctedpvalues} and \ref{fig:merchant-x1-correctedpvalues}. When comparing Figures \ref{fig:merchant-x2-correctedpvalues} and \ref{fig:merchant-x3-correctedpvalues} with \ref{fig:merchant2-x2-correctedpvalues} and \ref{fig:merchant2-x3-correctedpvalues} for feature x2 and x3, respectively, we observe that the number of alerts stayed more or less the same. We think its because x2 and x3 reference and target periods were already pretty similar, so ensuring both periods were the same did not make much difference.
+Feature x1 has less alerts in this experiment where we use equal reference and target periods. However, the alarms last for about two months. This is unexpected as we predicted we would see no alarms or few ones with short duration. Likewise, we observe that for feature x2 (Figure \ref{fig:merchant2-x2-correctedpvalues}) and x3 (Figure \ref{fig:merchant2-x3-correctedpvalues}) we still have many alarms and some lasting up to one month.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x1-correctedpvalues.pdf}
@@ -616,10 +616,7 @@ Feature x1 has less alerts in this experiment where we use equal reference and t
       \label{fig:merchant2-x3-correctedpvalues}
     \end{center}
 \end{figure}
-
-
-
-
+We do not have a clear explanation for this and due to time constraints we leave further tests to future work. We suspect it may be related to the way EMAs work: they keep every past event in the aggregation state. In other words, despite the fact EMAs apply a smoothing factor to the aggregation state for each new event, the previous events never have their contribution set to zero, even though the weights tend to zero.
 
 Now we analyze feature x4 from the previous experiment, as this one was the one with the highest measured drift. Recall that feature x4' target time-series (Figure \ref{fig:merchant-x4-target}) was significantly different from the reference one (Figure \ref{fig:merchant-x4-reference}). Because of this, the corrected p-values plot from the previous experiment (Figure \ref{fig:merchant-x4-correctedpvalues}) crossed our threshold line multiple times and remained in an alert state for most of the target time-series. In this new experiment, we used the reference period twice. Because of this, the corrected p-values plot is now different. Figure \ref{fig:merchant2-x4-correctedpvalues} shows the corrected p-values plot for feature x4 when we used the reference period for both phases.
 \begin{figure}[!htb]
@@ -629,7 +626,7 @@ Now we analyze feature x4 from the previous experiment, as this one was the one 
       \label{fig:merchant2-x4-correctedpvalues}
     \end{center}
 \end{figure}
-Using the same period twice theoretically means we have no drift at all. Hence, we expected to see no alerts. Figure \ref{fig:merchant2-x4-correctedpvalues} shows that we have a few alerts but significantly less than in Figure \ref{fig:merchant-x4-correctedpvalues}. Furthermore, in this new experiment, x4 eventually stops being reported at all until the end of the dataset and ends at a high p-value. Recall that the higher the p-value the less divergent a feature is. Overall we see that this feature has fewer alarms and stabilizes well above our alarm threshold which is coherent since we used the same dataset as a reference and target periods.
+Using the same period twice theoretically means we have no drift at all. Hence, we expected to see no alerts. Figure \ref{fig:merchant2-x4-correctedpvalues} shows that we have a few alerts but significantly less than in Figure \ref{fig:merchant-x4-correctedpvalues}. Furthermore, in this new experiment, x4 eventually stops being reported at all until the end of the dataset and ends at a high p-value. Recall that the higher the p-value the less divergent a feature is. Overall, we see that this feature has fewer alarms and stabilizes well above our alarm threshold which is coherent since we used the same dataset as reference and target periods.
 
 We now introduce a new feature, x5. Feature x5 also suffers from a large amount of drift. In the reference and target datasets presented in Table \ref{tbl:merchant1-datasets-summary}, feature x5 reference time-series plot is given by Figure \ref{fig:merchant-x5-reference} and the target time-series by Figure \ref{fig:merchant-x5-target}.
 \begin{figure}[!htb]
@@ -655,7 +652,7 @@ The density in the upper domain of values is clearly different in both reference
     \end{center}
 \end{figure}
 
-However, when using the same reference and target periods, in this case using the time-series in Figure \ref{fig:merchant-x5-reference} twice, we achieve our lowest possible drift scenario. The difference in corrected p-values is clear. Figure \ref{fig:merchant2-x5-correctedpvalues} shows this plot when using both reference and target periods. We observe that our corrected p-values never go below the threshold line, in fact, they stay well above it. This is expected behavior when using equal reference and target periods.
+However, when using the same reference and target periods, in this case using the time-series in Figure \ref{fig:merchant-x5-reference} twice, we achieve our lowest possible drift scenario. The difference in corrected p-values is clear. Figure \ref{fig:merchant2-x5-correctedpvalues} shows this plot when using equal reference and target periods. We observe that our corrected p-values never go below the threshold line, in fact, they stay well above it. This is expected behavior when using equal reference and target periods.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x5-correctedpvalues.pdf}

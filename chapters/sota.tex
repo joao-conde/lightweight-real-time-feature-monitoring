@@ -467,7 +467,7 @@ Note that the time complexity does not at all depend on the number of elements p
 Considering a Bloom filter with \textit{m} bits, the space required is simply the array of \textit{m} bits, thus \textit{O(m)} space complexity. Similarly to the time complexity analysis, we point out that \textit{m} will be constant and that each of the array elements occupies 1 bit. Thus the Bloom filter has a constant space complexity.
 
 \subsection*{Applicability to our Hypothesis}
-Bloom filters exhibit constant space and time complexity making them possible methods to test our hypothesis. Their false positive rate is tolerable in most scenarios and can be controlled by tweaking the values of \textit{m} and \textit{k}. However, we need to evict old events, and for that reason, bloom filters are of no use to us (unless we find sliding window implementations).
+Bloom filters exhibit constant space and time complexity making them possible methods to test our hypothesis. Their false positive rate is tolerable in most scenarios and can be controlled by tweaking the values of \textit{m} and \textit{k}. However, we need to evict old events, and for that reason, bloom filters are of no use to us.
 
 \subsection{Item frequency and the Count-Min Sketch}
 % approx aggregation to compute

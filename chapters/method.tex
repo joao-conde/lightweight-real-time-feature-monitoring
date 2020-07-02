@@ -105,7 +105,7 @@ After processing \textit{x} tuples the oldest tuple is \emph{smoothed} by a fact
 \[ 2^{- \dfrac{4n_{1/2}}{n_{1/2}}} = 2^{-4} \]
 which is approximately 0.06. In other words, the \textit{x-th} event would have 6\% contribution towards the EMA state or value meaning older events would have even less weight.
 
-We choose to emulate windows with four times the half-life size (or $4n_{1/2}$), meaning we discard events whose contribution is less than 6\%. We set the half-life to be one-quarter of the size of the window we want to emulate. We want to monitor a period extending up to one month (at an error level of about 6\%) so we set the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
+We choose to emulate windows with four times the half-life size (or $4n_{1/2}$), meaning we discard events whose contribution is less than 6\%. We set the half-life to be one-quarter of the size of the window we want to emulate. The size of the window we want to monitor varies from situation to situation, but in the limited scope of this thesis we set to monitor a period extending up to one month (at an error level of about 6\%) so we set the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
 
 \subsection{Batch analysis phase} \label{sec:batch-phase}
 \textcolor{red}{TODO: add some pseudocode}
