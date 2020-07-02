@@ -558,12 +558,12 @@ with the `report' document style}{}}{}
   \newcommand{\PrintBib}[1]{%
     \renewcommand{\bibname}{Refer\^{e}ncias}%
     \if@numericrefs%
-      \bibliographystyle{plain-pt}%
+      \bibliographystyle{ieeetr}%
     \else%
       \if@alpharefs%
-        \bibliographystyle{alpha-pt}%
+        \bibliographystyle{ieeetr}%
       \else%
-        \bibliographystyle{plainnat-pt}%
+        \bibliographystyle{ieeetr}%
       \fi%
     \fi%
     \cleardoublepage%
@@ -588,12 +588,13 @@ with the `report' document style}{}}{}
   \newcommand{\PrintBib}[1]{%
     \renewcommand{\bibname}{References}%
     \if@numericrefs%
-      \bibliographystyle{plain}%
+      \bibliographystyle{ieeetr}%
     \else%
       \if@alpharefs%
-        \bibliographystyle{alpha}%
+        \bibliographystyle{ieeetr}%
+        %\bibliographystyle{ieeetr}
       \else%
-        \bibliographystyle{plainnat}%
+        \bibliographystyle{ieeetr}%
       \fi%
     \fi%
     \cleardoublepage%
