@@ -1,9 +1,9 @@
 \chapter{Problem Statement} \label{chap:statement} \minitoc
 
-With this Chapter, we further discuss the problem we aim to solve with this Thesis making use of concepts discussed in Chapter \ref{chap:background} and explaining why none of the reviewed methods from Chapter \ref{chap:sota} works for our use case.
+With this chapter, we further discuss the problem we aim to solve with this Thesis making use of concepts discussed in Chapter \ref{chap:background} and explaining why none of the reviewed methods from Chapter \ref{chap:sota} works for our use case.
 
 \section{The problem}
-Many real-time stream monitoring systems are static once deployed in a production environment. Engineers of said systems configure them under the assumption that future data flowing through the system follows roughly the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. The problem at hand is to determine when to reconfigure the system, \textit{e.g.} a Machine Learning model, based on streaming analysis.
+Many real-time stream monitoring systems are static once deployed in a production environment. The engineers of those systems configure them under the assumption that future data flowing through the system follows roughly the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. The problem at hand is to determine when to reconfigure the system, \textit{e.g.} a Machine Learning model, based on an analysis of the drifts in the stream of data.
 
 \section{State of the art issues}
 Aggregations, specifically sliding window ones, were introduced in Chapter \ref{chap:background} along with several windowing techniques required to monitor streaming data patterns in real-time. In Chapter \ref{chap:sota} we presented state of the art sliding window aggregation algorithms as well as outlier detection methods. However, the reviewed methods were deemed unfit for our use-case because none of them simultaneously showed all of the desired characteristics, namely:
@@ -13,7 +13,7 @@ Aggregations, specifically sliding window ones, were introduced in Chapter \ref{
     
     \item \textbf{Low time complexity:} need for a time-efficient method that updates the sliding window aggregation and raises alerts in constant time
     
-    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout run-time
+    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout runtime
     
     \item \textbf{Sliding window maintainability:} possibility to evict old events and insert new ones while updating the aggregation state
     
@@ -22,13 +22,21 @@ Aggregations, specifically sliding window ones, were introduced in Chapter \ref{
 
 
 \section{Proposal}
-We devise a two-phased (batch and streaming phases) and two-windowed (reference and target sliding windows) method. We devise a sliding window approximate histogram aggregation that encodes data distributions and provide a method for incrementally maintaining it with constant time and space complexity for every growing volumes of data, ideal for the streaming scenario. Given a user-defined reference period and a stream of data to process, we monitor each event's fields and alert if they are considered divergent relative to their reference distribution. We provide a measure of how divergent each field (or feature) is. Based on this information, it is our belief that a system administrator would have an easier time determining when to reconfigure the system.
+%2 phases, names and purpose
+We devise a two-phased and two-windowed method: the first phase is a batch analysis that makes use of a reference window; and the second phase is a streaming analysis that makes use of a target sliding window. The batch analysis main goal is to compute the reference aggregation for the reference window. The stream analysis main goals are to incrementally maintain the same type of aggregation but over the streaming data and alert when the difference between the reference aggregation and the target sliding one is high.
+
+%aggregations to represent distributions
+We choose to use an histogram aggregation with constant memory usage to encode the distribution of the observed values. Furthermore, we devise a sliding window approximate histogram aggregation that is maintainable in constant time in a sliding window fashion, through the use of Exponential Moving Averages (EMAs). Hence, our EMA-like histogram aggregation is ideal for the streaming scenario because of its constant time and space complexity, for every growing volumes of data.
+
+Given a user-defined reference period and a stream of data to process, we monitor each event's fields and alert if they are considered divergent relative to their reference aggregation. We provide a measure of how divergent each field is. Based on this information, it is our belief that a system administrator would have an easier time determining when to reconfigure the system.
 
 \section{Assumptions}
 Our feature monitoring method assumes only that the monitored features are numerical or categorical and that the events arrive in an orderly fashion during streaming. If the latter is not true, our method will still work but results may be imprecise, as our sliding window histogram aggregation relies on Exponential Moving Averages (EMAs), which give different weights to each event according to its age.
 
-\section{Research Questions}
+\section{Research questions}
 The goal of this Thesis is to develop a lightweight stream monitoring system that detects changes in features distribution between a reference period and a sliding window in real-time. To that end, we devise a series of research questions to be answered by the end of this Thesis:
+
+\textcolor{red}{TODO: further describe each RQ?}
 
 \begin{enumerate}[leftmargin=1.75cm, label=\textbf{(RQ\arabic*)}]
     \item What aggregation can we use to properly encode data distributions?

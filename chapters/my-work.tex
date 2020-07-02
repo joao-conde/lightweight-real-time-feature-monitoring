@@ -56,7 +56,7 @@ Another challenge when using this approach is defining the set of aggregations t
 \subsection*{Conclusion}
 This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, the need to choose a set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
 
-\section{Method: Feature Distribution Monitoring} \label{sec:ft-monitoring}
+\section{Method: Feature distribution monitoring} \label{sec:ft-monitoring}
 
 In Section \ref{sec:stream-superset}, we defined a data stream as a continuous collection of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are named features. Our goal is to detect data pattern shifts for each feature in a streaming fashion. Such shifts will be measured between a static in time or reference period versus the observed reality during the streaming phase. Figure \ref{fig:timelines} shows the separated reference and streaming timelines.
 
