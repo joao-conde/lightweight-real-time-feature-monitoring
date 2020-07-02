@@ -716,10 +716,18 @@ Both inserting an element and estimating sliding window cardinality require a sc
 This approach still uses \textit{m} buckets but each one contains a Distance Recorder Vector (DRV). A DRV is a vector of \textit{$\lceil ln(n/m) \rceil$} elements. Hence, \textit{$m \lceil ln(n/m) \rceil$} elements must be kept in memory, giving us a space complexity of \textit{O(ln(n))} with \textit{n} as the cardinality of the set.
 
 \subsubsection*{Applicability to our Hypothesis}
-Despite having the same time and space complexities, the Sliding HLL DRV approach uses a smaller amount of memory that does not change during runtime, while the LFPM requires heap resizing because the lists dynamically shrink and grow. Hence, the DRV approach is a better fit to integrate our lightweight real-time solution.
+Despite having the same time and space complexities, the Sliding HLL DRV approach uses a smaller amount of memory that does not change during runtime, while the LFPM requires heap resizing because the lists dynamically shrink and grow. Hence, the DRV approach is a better fit to integrate our lightweight real-time solution, if we need to perform cardinality estimation.
 
 
 \textcolor{red}{TODO Find and add versions of Sliding Bloom Filter and Sliding CMS}
 
 
 \section{Summary}
+
+In this chapter, we presented state-of-the-art outlier detection methods and classified them according to Blázquez-García \emph{et al.} taxonomy \cite{Blazquez-Garcia-Review-Anomaly-Detection}. Additionally, we presented sliding window aggregation algorithms, probabilistic data structures and their respective sliding window implementations, with the intent of researching how to incrementally maintain an aggregation in a streaming environment.
+
+In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource intensive (both time and memory wise), provided no measure of how divergent and outlier was or because they lost track of their reference period.
+
+In Section \ref{sec:sota-swag-algs}, we presented sliding window aggregation algorithms that we intended on using to compute our aggregations. However, their time or memory complexities did not meet our sub-linear requirements.
+
+We then discussed probabilistic data structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}). Despite being efficient, both time and memory wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use for us.
