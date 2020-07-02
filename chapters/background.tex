@@ -266,3 +266,12 @@ For example, with a tuple-based half-life of $n_{1/2}=1$ tuple, for each new tup
 Definition \ref{def:ema} introduces the recurrence formula for time-based EMAs whereas Definition \ref{def:tuple-ema} works for tuple-based ones. In this Thesis we chose to work with tuple-based EMAs due to its simplicity, since it does not require keeping track of timestamp variations, but our approach can be adjusted to use time-based ones.
 
 \section{Summary}
+In this chapter, we introduced fundamental concepts to understand the set of methods that will allow us to test our hypothesis, presented in Chapter \ref{chap:sota}.
+
+In Section \ref{sec:stream-superset}, we introduced batch and stream processing as two large scale data processing techniques. We defined each and elaborated on the fundamental differences between both paradigms. We conclude that there is no best technique and that each serves a different use case.
+
+In Section \ref{sec:windows} we discussed windowing mechanisms that allowed us to convert unbounded data streams (or infinite datasets) to finite datasets.
+
+In Section \ref{sec:aggregations} we introduced aggregations over datasets. We gave examples of computable aggregations over unbounded datasets at first, but then discussed sliding window aggregations, which make use of windowing techniques to obtain a finite dataset, on which the aggregation is computed. We further discussed algorithms used for the efficient computation of sliding window aggregations. Lastly, we presented a set of aggregation properties. 
+
+While sliding window aggregation algorithms keep the window contents in memory, Exponential Moving Averages, presented in Section \ref{sec:emas}, replace them for a lighter representation, providing an approximate estimation of the aggregation value.
