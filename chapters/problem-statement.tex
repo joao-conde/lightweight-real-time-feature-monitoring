@@ -2,10 +2,10 @@
 
 With this chapter, we further discuss the problem we aim to solve with this Thesis making use of concepts discussed in Chapter \ref{chap:background} and explaining why none of the reviewed methods from Chapter \ref{chap:sota} works for our use case.
 
-\section{The problem}
+\section{The Problem}
 Many real-time stream monitoring systems are static once deployed in a production environment. The engineers of those systems configure them under the assumption that future data flowing through the system follows roughly the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. The problem at hand is to determine when to reconfigure the system, \textit{e.g.} a Machine Learning model, based on an analysis of the drifts in the stream of data.
 
-\section{State of the art issues}
+\section{State of the Art Issues}
 Aggregations, specifically sliding window ones, were introduced in Chapter \ref{chap:background} along with several windowing techniques required to monitor streaming data patterns in real-time. In Chapter \ref{chap:sota} we presented state of the art sliding window aggregation algorithms as well as outlier detection methods. However, the reviewed methods were deemed unfit for our use-case because none of them simultaneously showed all of the desired characteristics, namely:
 
 \begin{itemize}
@@ -33,7 +33,7 @@ Given a user-defined reference period and a stream of data to process, we monito
 \section{Assumptions}
 Our feature monitoring method assumes only that the monitored features are numerical or categorical and that the events arrive in an orderly fashion during streaming. If the latter is not true, our method will still work but results may be imprecise, as our sliding window histogram aggregation relies on Exponential Moving Averages (EMAs), which give different weights to each event according to its age.
 
-\section{Research questions}
+\section{Research Questions}
 The goal of this Thesis is to develop a lightweight stream monitoring system that detects changes in features distribution between a reference period and a sliding window in real-time. To that end, we devise a series of research questions to be answered by the end of this Thesis:
 
 \textcolor{red}{TODO: further describe each RQ?}

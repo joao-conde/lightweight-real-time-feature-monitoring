@@ -2,7 +2,7 @@
 
 A data stream has a temporal dimension and the underlying process that generates data can change over time \cite{Aggarwal-Evolving-Data-Streams, Domingos-Mining-Time-Data-Streams}. In this chapter, we discuss the most relevant work for the problem of detecting data pattern shifts in real-time over true sliding windows using resource-lightweight approaches on streaming systems, presented in Chapter \ref{chap:intro}. We present a wide analysis of several categories of algorithms to be able to identify what's the region of this vast landscape of methods that may be useful to build the desired system. 
 
-\section{Outlier detection in time-series data} \label{sec:outliers}
+\section{Outlier Detection in Time-Series Data} \label{sec:outliers}
 Blázquez-García \emph{et al.} review state-of-the-art outlier detection techniques and present a taxonomy based on the main aspects of outlier detection methods \cite{Blazquez-Garcia-Review-Anomaly-Detection}. From multiple reviews on these kind of methods \cite{Aggarwal-Outlier-survey, Aguinis-Outlier-survey, Chandola-Outlier-survey-2009, Hodge-Outlier-survey, Xu-outlier-survey-2019} we chose to adopt the taxonomy presented by Blázquez-García \emph{et al.} due to its focus on time-series data.
 
 In this work, the authors define a time-series as a collection of data points sorted by time; and outliers as observations that do not follow the expected behavior. This definition is similar to the concept of outlier provided by Hawkins in 1980 where he states that an outlier is “an observation which deviates so much from other observations as to arouse suspicions that it was
@@ -24,7 +24,7 @@ The \textit{nature of the method} axis refers to the type of analysis performed 
 
 The third and final axis is the \textit{outlier type} the method aims to report. The authors identify three distinct outlier types: point outliers, subsequence outliers and time-series outliers. A point outlier corresponds to a single data point in time that deviates from the expected value. These point outliers can be uni or multivariate, depending on the nature of the method. A univariate point outlier is a single time-dependent variable that stands out from the rest of the time-series. On the other hand, a multivariate point outlier takes into account multiple time-dependent variables in comparison to the remaining time-series. Subsequence outliers refer to a sequence of points in time that together show anomalous behavior, but may not be individually considered outliers. Similarly to point outliers, a subsequence outlier may take into account a single time-dependent variable or multiple ones. The authors classify them as univariate subsequence outliers and multivariate subsequence outliers, respectively. Lastly, time-series outliers refer to entire time-series being outliers themselves. This type of outliers can only be detected if the input data is multivariate, so as to be able to compare multiple time-series.
 
-\subsection{Univariate point outlier detection}
+\subsection{Univariate Point Outlier Detection}
 
 Univariate point outlier detection methods are further broken down into three categories: model-based, density-based and histogram-based (Figure \ref{fig:point-outlier-taxonomy} \cite{Blazquez-Garcia-Review-Anomaly-Detection}) .
 \begin{figure}[!htb]
@@ -103,7 +103,7 @@ DeepAnT takes as input a uni or multivariate time-series but is a univariate met
 \subsubsection*{Applicability to our Hypothesis}
 Similar to the HTM algorithm presented, DeepAnT adapts to the underlying distribution of the data stream. In other words, if the data patterns shift from the initial configuration but stabilize, DeepAnT will accept it as it is. As mentioned, our goal is to build a monitoring system that alerts data pattern shifts continuously, until they match the initial configuration again.
 
-\subsection{Univariate subsequence outlier detection} \label{sec:uni-sub-out}
+\subsection{Univariate Subsequence Outlier Detection} \label{sec:uni-sub-out}
 Similarly to point outlier detection methods, Blázquez-García \emph{et al.} \cite{Blazquez-Garcia-Review-Anomaly-Detection} split subsequence outlier detection methods into uni and multivariate ones (Figure \ref{fig:outlier-taxonomy}). Furthermore, the authors split univariate subsequence outlier detection methods into five different axes as seen in Figure \ref{fig:subsequence-outlier-taxonomy}.
 
 \begin{figure}[!htb]
@@ -159,7 +159,7 @@ However, this two-window paradigm encodes a static normal or reference period in
 %\textcolor{red}{TODO: write this}
 
 
-\section{Sliding window aggregation algorithms} \label{sec:sota-swag-algs}
+\section{Sliding Window Aggregation Algorithms} \label{sec:sota-swag-algs}
 
 As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this Section we analyze other more sophisticated SWAG algorithms that fit different use-cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
 
@@ -355,12 +355,12 @@ DABA stores the window contents in the \textit{vals} queue. Queue \textit{aggs} 
 Even though DABA improves on the time complexity of Two-Stacks, it still shows linear space complexity regarding window size. In our monitoring system, we need to analyze large windows of data, thus making DABA inapplicable for our Hypothesis.
 
 
-\section{Probabilistic data structures} \label{sec:pds}
+\section{Probabilistic Data Structures} \label{sec:pds}
 In Section \ref{sec:sota-swag-algs} we presented some state-of-the-art algorithms for computing sliding window aggregations (SWAGs). However, if the aggregation we desire to compute can be approximated, there may exist more memory efficient methods. These aggregators are commonly denoted as sketches or probabilistic data structures and produce results orders-of-magnitude faster than some exact approaches while keeping the memory consumption constant and providing mathematically proven error bounds. Each probabilistic data structure is used for efficient computation of one approximate aggregation, hence we say they are aggregation-specific.
 
 Probabilistic data structures use hash functions to compactly represent a set of items. They require a single pass through the data, which is appropriate for a streaming scenario. Probabilistic data structures have constant space and time complexity \cite{Singh-PDS-BIGD} making them ideal aggregators to build our real-time and low memory footprint system. 
 
-\subsection{Membership queries and the Bloom Filter} \label{sec:bloom}
+\subsection{Membership Queries and the Bloom Filter} \label{sec:bloom}
 % approx aggregation to compute
 A Bloom Filter \cite{BLOOM-BLOOMFILTER} approximate aggregator allows membership queries on a set of elements. Bloom filters answer the query: "Is element \textit{el} in the set of seen elements so far?". Being a probabilistic data structure and approximate aggregator, Bloom filters' answers have an error associated. \textit{False positive} matches are possible --- \textit{i.e.} saying \textit{el} is in the set when it is not --- but \textit{false negatives} are not --- \textit{i.e.} saying \textit{el} is not in the set but it actually is. In other words, a Bloom filter will accurately identify all items that do not belong in the set but will misclassify some items as being present in the set. Hence, a query returns either \textit{possibly in set} or \textit{definitely not in set}.
 
@@ -469,7 +469,7 @@ Considering a Bloom filter with \textit{m} bits, the space required is simply th
 \subsection*{Applicability to our Hypothesis}
 Bloom filters exhibit constant space and time complexity making them possible methods to test our hypothesis. Their false positive rate is tolerable in most scenarios and can be controlled by tweaking the values of \textit{m} and \textit{k}. However, we need to evict old events, and for that reason, bloom filters are of no use to us.
 
-\subsection{Item frequency and the Count-Min Sketch}
+\subsection{Item Frequency and the Count-Min Sketch}
 % approx aggregation to compute
 The Count-Min Sketch (CMS) uses two principles from the discussed Bloom filters in Section \ref{sec:bloom}. First, Bloom filters show that precision can be sacrificed to achieve space savings. Second, they are very similar at a technical level.
 
@@ -533,7 +533,7 @@ The Count-Min Sketch relies on a two-dimensional matrix as its only data structu
 \subsection*{Applicability to our Hypothesis}
 Count-Min Sketches are constant in both time and space. Similarly to Bloom filters, this makes them ideal candidates for our solution. 
 
-\subsection{Cardinality estimation and the HyperLogLog} \label{sec:hyper-log-log}
+\subsection{Cardinality Estimation and the HyperLogLog} \label{sec:hyper-log-log}
 
 A set of probabilistic counting algorithms is introduced by Flajolet et al. in \cite{Flajolet-PCA} to estimate the number of distinct elements of a set --- also known as the cardinality of the set. These techniques are based on \textit{"bit-pattern observables"} in the binary representation of the hashed values. Bit-pattern observables are defined by the authors as \textit{"patterns of bits occurring at the beginning of the (binary) S-values"}, with \textit{S} as the target set.
 
@@ -605,7 +605,7 @@ An improvement to this structure was defined in \cite{Kirsch-Better-Bloom} where
 Bloom filters are not the only approximate aggregators that use hash functions as a basis of their algorithm. All of the studied probabilistic data structures do so. Therefore, the technique proposed is beneficial in Count-Min Sketches and Bloom filters.
 \fi
 
-\section{Sliding window aggregations with probabilistic data structures} \label{sec:sliding-pds}
+\section{Sliding Window Aggregations with Probabilistic Data Structures} \label{sec:sliding-pds}
 In Section \ref{sec:pds} we presented a set of probabilistic data structures constant in time and space. These structures aggregate an endless stream of data. However, when working with sliding windows there is the need not only to insert new events but to evict old ones. The probabilistic data structures described until now can aggregate new incoming data but do not address the type of temporality needed for sliding windows --- \textit{i.e.} the ability to expire old elements from the aggregated state.
 
 The probabilistic data structures studied can be implemented under generic sliding window aggregation algorithms like Recalculate-From-Scratch or DABA. However, doing so means we lose the main advantage of using these approximate aggregators: the constant space complexity. For example, cardinality estimation of a sliding window can be done employing the HyperLogLog heuristic of estimating cardinality as $2^\textit{p}$, with \textit{p} as the maximum position seen for the leftmost 1-bit, using DABA \ref{sec:daba} for the computation of \textit{p} per sliding window. With this approach, despite computing the aggregation state in constant time, we have a linear in window size space complexity solution. Thus, in this Section, we explore sliding window implementations of the previously discussed probabilistic data structures that keep the space and time complexity at the very least logarithmic.

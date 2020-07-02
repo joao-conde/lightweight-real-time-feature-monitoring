@@ -1,6 +1,6 @@
 \chapter{Lightweight Real-Time Feature Monitoring} \label{chap:my-work} \minitoc
 
-\section{State of the art outlier detection methods}
+\section{State of the Art Outlier Detection Methods}
 Our first theoretical approach was to use one of the outlier detection methods presented in Section \ref{sec:outliers}. For that, we reviewed subsequence and point outlier detection methods. Using point outlier detection methods, the main idea is to keep track of the rate of point outliers detected. For instance, keep track of how many outliers were alerted in the past hour. The decision to alert for a data pattern shift of the system would be made when comparing this rate of point outliers detected in the past hour with a user-defined threshold. On the other hand, using subsequence outlier detection methods would allow us to report the whole target sliding window as an outlier when compared to the reference window. 
 
 
@@ -12,7 +12,7 @@ For this Thesis, we need constant time complexity to process events one by one i
 \subsection*{Conclusion}
 The outlier detection methods reviewed in Section \ref{sec:outliers} were discarded as viable solutions to our problem because of the aforementioned problems of memory and/or time complexity, \textit{"memory loss"} and non-explainable alerts.
 
-\section{State of the art aggregation algorithms}
+\section{State of the Art Aggregation Algorithms}
 Dissimilarity-based univariate subsequence outlier detection methods as presented in Section \ref{sec:uni-sub-out} focus on measuring the distance between two periods of time and report an outlier when the distance is above a certain threshold. Keeping both reference and target windows in memory means our memory consumption grows linearly regarding both windows size. In an attempt to solve this, we focus on storing only an aggregation of both windows. 
 
 In Section \ref{sec:sota-swag-algs} we reviewed algorithms to compute sliding window aggregations and in Sections \ref{sec:pds} and \ref{sec:sliding-pds} we discussed special aggregators and respective sliding window implementations. 
@@ -56,7 +56,7 @@ Another challenge when using this approach is defining the set of aggregations t
 \subsection*{Conclusion}
 This approach requires efficient sliding window aggregation state maintenance, which can be done using sliding window probabilistic data structures and/or exponential moving averages. However, the need to choose a set of aggregations to use and the deviation threshold itself ultimately led us to discard this approach.
 
-\section{Method: Feature distribution monitoring} \label{sec:ft-monitoring}
+\section{Method: Feature Distribution Monitoring} \label{sec:ft-monitoring}
 
 In Section \ref{sec:stream-superset}, we defined a data stream as a continuous collection of events. Each event is timestamped and contains multiple fields. In the context of this Thesis, each of the event's fields are named features. Our goal is to detect data pattern shifts for each feature in a streaming fashion. Such shifts will be measured between a static in time or reference period versus the observed reality during the streaming phase. Figure \ref{fig:timelines} shows the separated reference and streaming timelines.
 
@@ -67,7 +67,6 @@ In Section \ref{sec:stream-superset}, we defined a data stream as a continuous c
       \label{fig:timelines}
     \end{center}
 \end{figure}
-
 
 To detect data pattern shifts, we do not need to directly compare the entire window contents of the reference and sliding windows. This approach would require storing all window contents hence making the memory consumption grow linearly with target sliding window and/or reference period size. Instead, we want to use a \textit{(a)} fixed cost in-memory aggregation that can be \textit{(b)} incrementally maintained during the streaming phase. Additionally, we want a streaming aggregation that \textit{(c)} reliably encodes the distribution of each feature. 
 
@@ -93,7 +92,7 @@ Given a divergence or distance value for the two aggregations (reference and tar
 To implement the proposed methodology, we devised a two-phase method. The first phase relies on a batch analysis that, for each feature, builds a reference histogram and computes the distribution of divergence values (details presented in Section \ref{sec:batch-phase}). The second phase (detailed in Section \ref{sec:stream-phase}) focuses on efficiently updating the target sliding window histogram for each feature and periodically performing a divergence test between the static reference aggregation and the target sliding one, alerting for changes if need be. The proposed method currently works only for numerical features, that is, only for event fields or variables that are of numeric type, but can be extended to other types.
 
 
-\subsection{Exponential Moving Average based histogram} \label{sec:ema-hist}
+\subsection{Exponential Moving Average Based Histogram} \label{sec:ema-hist}
 As stated, we compute histogram aggregations for the reference and target sliding windows. The computation of the reference histogram is done once in batch. Since the reference data is fixed and does not change over time, computing this histogram in batch is more efficient and easier to implement in a distributed system like Spark. In addition, a batch computation also allows us to compute an exact reference histogram. However, the target sliding window histogram is an EMA-like histogram to ensure that we are able to encode the feature distribution with constant space complexity and maintain it in real-time.
 
 In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and how they compute sliding window aggregations without actually storing the window contents. Definition \ref{def:tuple-ema} shows how to compute an EMA using its recursive formula. An EMA state or value depends only on the previous one multiplied by an exponential decay. Recall that a tuple-based decay is given by:
@@ -107,7 +106,7 @@ which is approximately 0.06. In other words, the \textit{x-th} event would have 
 
 We choose to emulate windows with four times the half-life size (or $4n_{1/2}$), meaning we discard events whose contribution is less than 6\%. We set the half-life to be one-quarter of the size of the window we want to emulate. The size of the window we want to monitor varies from situation to situation, but in the limited scope of this thesis we set to monitor a period extending up to one month (at an error level of about 6\%) so we set the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
 
-\subsection{Batch analysis phase} \label{sec:batch-phase}
+\subsection{Batch Analysis Phase} \label{sec:batch-phase}
 \textcolor{red}{TODO: add some pseudocode}
 
 The goal of the batch phase will be to build our reference aggregation for each feature and get to know the distribution of divergence or distance values between the reference and EMA-like aggregations. In other words, we:
@@ -120,7 +119,7 @@ The goal of the batch phase will be to build our reference aggregation for each 
 
 This distribution of values can then later be compared to a given value of divergence for a single sample to find out how probable that value is to occur (if it is very low an alert may be raised).
 
-\subsubsection*{Building the reference histogram for each feature}
+\subsubsection*{Building the Reference Histogram for each Feature}
 
 First, for each feature, we compute the reference histogram from the reference period dataset. This is an exact histogram aggregation. When building it we ensure the histogram has equal counts (or equal height) for all bins which often results in different sized bins. We make no assumption on the dataset distributions and hence use equal height histograms because they adjust better to wildly varying ones. Equal height means we have more bins covering very dense regions (regions with many data points) and fewer bins in lower density regions. 
 
@@ -133,7 +132,7 @@ First, for each feature, we compute the reference histogram from the reference p
 \end{figure}
 
 
-\subsubsection*{Finding the distribution of distances for each feature} \label{sec:sampling-batch}
+\subsubsection*{Finding the Distribution of Distances for each Feature} \label{sec:sampling-batch}
 
 Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make $S$ samples of transactions (in Section \ref{sec:nsamples} we discuss the minimum number $S$ of samples to make), each with the same tuple-based size of the target sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
 
@@ -194,10 +193,10 @@ Let's assume that the histogram from Figure \ref{fig:skewed-left-distro} encodes
 Hard-coding a threshold value to be used for all features is cumbersome, impractical and error-prone. The distance threshold must be computed based on the distribution of distances.
 
 
-\subsubsection*{Burn-in period at system initialization}
+\subsubsection*{Burn-In Period at System Initialization}
 When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the target sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
 
-\subsubsection*{Batch phase artifacts} \label{sec:batch-artifacts-summary}
+\subsubsection*{Batch Phase Artifacts} \label{sec:batch-artifacts-summary}
 By the end of the batch phase, we should have, for each feature: 
 \begin{itemize}
     \item a reference histogram
@@ -205,7 +204,7 @@ By the end of the batch phase, we should have, for each feature:
     \item the last sample's histogram, to be used as burn-in period for the target sliding window histogram
 \end{itemize}
 
-\subsection{Streaming phase} \label{sec:stream-phase}
+\subsection{Streaming Phase} \label{sec:stream-phase}
 \textcolor{red}{TODO: add some pseudocode}
 
 In the streaming or online phase, the system will process event by event in a true sliding window fashion (recall Section \ref{sec:windows}) and perform a change detection test periodically. This phase makes use of all of the batch phase artifacts, namely, for each feature, the reference histogram, the distribution of distance values and the last sample's histogram.
@@ -240,9 +239,9 @@ First, we compute the \textit{p-value} of each feature. We then order our featur
 \end{equation}
 with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test, in our case the number of features and corresponding \textit{p-values} and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and alerts are raised.
 
-\subsection{Final remarks}
+\subsection{Final Remarks}
 
-\subsubsection*{Minimum number of samples} \label{sec:nsamples}
+\subsubsection*{Minimum Number of Samples} \label{sec:nsamples}
 In Section \ref{sec:sampling-batch} we stated we made \textit{S} samples in the batch phase. But what is the optimal number of samples to make? How can we mathematically derive a formula for the number of samples to make and avoid \textit{ad hoc} user-defined constants?
 
 When checking for alerts we are performing one test for each feature, hence we perform \textit{n\textsubscript{features}} tests. We apply a multiple test correction on the tests performed and want to set the FWER to $\alpha$. In other words, we want to alert deviations for the full set of tests globally that have probability $\alpha$ < 1\%, for example.

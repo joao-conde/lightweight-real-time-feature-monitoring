@@ -2,13 +2,13 @@
 
 In this section, we provide summary statistics for our method's performance and draw visualizations for the obtained results to validate our alarms and reason about them.
 
-\section{Experiments with synthetic data}
+\section{Experiments with Synthetic Data}
 In order to test our proposed system, we generated multiple synthetic datasets before moving on to real data. In this section we present summary statistics for the synthetic datasets created and our generated alarms.
 
-\subsection{Single feature analysis}
+\subsection{Single Feature Analysis}
 As an initial step, we started by validating our system using single-feature datasets before moving to multi-feature scenarios to facilitate system validation, considering the complexities of multi-feature datasets and the problem of multiple test correction. In this section we validate our results for single-feature synthetic datasets.
 
-\subsubsection{Varying sample sizes}
+\subsubsection{Varying Sample Sizes}
 We began with single-feature scenarios and by experimenting with different tuple-based half-lives $n_{1/2}$. The half-life $n_{1/2}$ parameter in turn controls the size of the samples we make in the batch phase and the target sliding window size of the streaming phase. 
 
 In Section \ref{sec:ema-hist}, we mentioned that we choose to discard events whose contribution is less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal to or less than 6\%). 
@@ -105,7 +105,7 @@ In experiment 03, we increase the sampling and target windows size once again, t
 \end{figure}
 
 
-\subsubsection{Multiple distribution changes}
+\subsubsection{Multiple Distribution Changes}
 In this experiment, we wanted to see how our signal behaved when there were multiple change points, where each gaussian distribution was a scaled down version of the previous one. Figure \ref{fig:timeseries-r2} shows the time-series for the reference dataset R2 used in this experiment. It contained 5 million events with a single feature following a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. The time-series for target dataset T2 is shown in Figure \ref{fig:timeseries-t2}. Notice that we change distributions at 2, 3 and 4 millionth events. Notice also that each subsequent distribution produces values whose domain is a subset of the previous distribution.
 \begin{center}
 \begin{minipage}{.5\textwidth}
@@ -143,7 +143,7 @@ In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample
 \end{figure}
 Furthermore, we observe that the computed JSD signal varies accordingly with the changes in distribution. Despite us changing the distributions to subsets of the previous ones to try and deceive our method, our signal accurately represents these changes. In Figure \ref{fig:JSD-signal-test02}, we see several growth points that correspond to the points where the generating gaussian distribution parameters changed. Hence, we are able to detect changes in distribution parameter changes and quantify how big the change is (the closer to 1 our signal is).
 
-\subsubsection{Multiple distribution changes, each a superset of the previous one}
+\subsubsection{Multiple Distribution Changes, each a Superset of the Previous One}
 In this experiment, we wanted to do the reverse of the previous one. In this one, there are multiple change points but each new distribution spans a domain that is a superset of the previous one. Figure \ref{fig:timeseries-r3} shows the reference period used, with 5 million events and one feature following a gaussian distribution of mean $\mu=100$ and standard deviation $\sigma=10$. Figure \ref{fig:timeseries-t3} shows the target period used, also with 5 million events and one feature. Like in the previous experiment, we change distributions at the 2, 3 and 4 millionth event mark. On the other hand, unlike the previous experiment, we now make subsequent distributions cover the previous ones. We change the reference gaussian used with mean $\mu=100$ and standard deviation $\sigma=10$ at the 2, 3 and 4 millionth mark, to use standard deviations $\sigma=30$, $\sigma=40$ and $\sigma=50$, respectively.
 \begin{center}
 \begin{minipage}{.5\textwidth}
@@ -178,7 +178,7 @@ Figure \ref{fig:JSD-signal-test03} shows the JSD signal for the target dataset i
 \caption{JSD signal and threshold}
 \end{figure}
 
-\subsubsection{Return to normality after change}
+\subsubsection{Return to Normality After Change}
 Our goal with this experiment was to check if our signal returned to its normal values (below the alert threshold) if we changed our distribution to the original reference one, as intended.
 
 In this experiment, we used reference dataset R4 (Figure \ref{fig:timeseries-r4}) and target dataset T4 (Figure \ref{fig:timeseries-t4}). 
@@ -220,7 +220,7 @@ Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target 
 \end{figure}
 
 
-\subsubsection{An attempt to deceive our method}
+\subsubsection{An Attempt to Deceive our Method}
 In this experiment, we attempt to deceive our method by using a different distribution from the reference period but ensuring its domain is roughly the same as the reference one.
 
 We used the reference dataset R5 (Figure \ref{fig:timeseries-r5}) which had 5 million events, with a single-feature that followed a gaussian with  $\mu=100$ and $\sigma=10$. Our target dataset T5 is represented in Figure \ref{fig:timeseries-t5}. For the first 2 million events, the generating distribution used was similar to the one used in the reference dataset, a gaussian with $\mu=100$ and $\sigma=10$. However, at the 2 millionth event, we change the gaussian standard deviation to $\sigma=30$. Then, at the 4 millionth event, we change the distribution type. We use an uniform distribution with lower bound $a=80$ and upper bound $b=120$. Note in Figure \ref{fig:timeseries-t5} that this last portion resembles the first one, the reference.
@@ -257,7 +257,7 @@ Let's take a look at the signal computed for the target period. Figure \ref{fig:
 \caption{JSD signal and threshold}
 \end{figure}
 
-\subsection{Multi feature analysis}
+\subsection{Multi Feature Analysis}
 Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the underlying generating distributions and parameters for each of the four features ($x_1$, $x_2$, $x_3$ and $x_4$) in the reference multi-feature dataset R6. Figures \ref{fig:timeseries-r6-x1}, \ref{fig:timeseries-r6-x2}, \ref{fig:timeseries-r6-x3} and \ref{fig:timeseries-r6-x4} show the reference time-series for features $x_1$, $x_2$, $x_3$ and $x_4$ on the reference dataset R6, respectively.
 
 \begin{table}[!htb]
@@ -457,7 +457,7 @@ Finally, feature x4's corrected p-value plot is given by Figure \ref{fig:x4-corr
 With this experiment, we further validate that the p-value is a measure of how divergent a feature is: the closer to zero, the lower the probability of the statistical test result and hence the more divergent a feature is considered to be. At the 1.5 millionth event, we swap both x3 and x4's distribution. For the first 2,535,000 events, x4 has a lower p-value than x3 and hence is considered more divergent. However, after that, we change x3's distribution so aggressively that x3 starts being reported as most divergent, with a lower p-value than x4.
 
 \clearpage
-\section{Experiments with real data}
+\section{Experiments with Real Data}
 
 Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to confidentiality reasons.
 
@@ -589,7 +589,7 @@ The -1 value is often used as a placeholder for missing values, \textit{i.e.} if
 %high drift:
     %x4 - completion_rate_per_card_72h
     %x5 - dif_last_and_current_trx
-\subsection{Same reference and target periods}
+\subsection{Same Reference and Target Periods}
 In this experiment, we set out to test our system in a low drift scenario. To guarantee the reference and target periods are as similar as possible, we decided to use the same dataset to work as reference and target. We chose to use the reference dataset from the previous experiment (Reference of Table \ref{tbl:merchant1-datasets-summary}) and feed it as input for both our batch and stream analysis as the reference and target periods, respectively. We expect to have less alarms for each feature but not necessarily zero.
 
 We first show the corrected p-value plots when both reference and target periods are the same, for the previous features $x_1$, $x_2$ and $x_3$ in Figures \ref{fig:merchant2-x1-correctedpvalues}, \ref{fig:merchant2-x2-correctedpvalues} and \ref{fig:merchant2-x3-correctedpvalues}, respectively. 
@@ -660,3 +660,8 @@ However, when using the same reference and target periods, in this case using th
       \label{fig:merchant2-x5-correctedpvalues}
     \end{center}
 \end{figure}
+
+
+\section{Conclusions}
+
+With this set of experiments

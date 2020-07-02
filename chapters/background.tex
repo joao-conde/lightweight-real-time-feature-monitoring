@@ -2,7 +2,7 @@
 
 In this chapter we discuss fundamental concepts that will help us identify the set of relevant techniques that are suitable to address the problem to be formulated and tackled in this thesis. In Section \ref{sec:stream-superset} we introduce batch and stream processing as two large scale data processing techniques. In Section \ref{sec:windows} we review windowing mechanisms that essentially turn unbounded data streams to finite datasets. In Section \ref{sec:aggregations} we introduce aggregations as a whole. Then, we specifically discuss sliding window aggregations, algorithms used for its computation and aggregation properties. In Section \ref{sec:emas} we present Exponential Moving Averages as aggregators that replace the sliding window contents for a lighter representation, providing an approximate estimation of the aggregation value.
 
-\section{Stream processing as a superset of batch processing} \label{sec:stream-superset}
+\section{Stream Processing as a Superset of Batch Processing} \label{sec:stream-superset}
 
 Batch processing is the processing of data grouped by batches. A batch is a collection of data points that have been grouped by certain criteria. Examples of such criteria could be \textit{"all the transactions from the past two months"}, \textit{"the last million transactions"} or even \textit{"all the transactions made by an user until now"}. Batch datasets are known as static data \cite{Martin-Batch-Defin}. An example application of such a technique would be processing all the keywords searched for in the google search engine, and then grouping the results by keyword to count how many times a keyword was used in searches (for trend analysis purposes). Between batch and stream processing, batch processing is the older paradigm. Historically, Apache Hadoop \cite{borthakur2007hadoop, Hadoop, ApacheHadoop} was one of the first widely known frameworks for large-scale batch processing, created in 2005. Hadoop uses a programming model called MapReduce \cite{MapReduce}. This paradigm applies a map function that processes key/value pairs and generates sets of intermediate ones, ultimately merging all intermediate values
 using a reducer function. To do this, the distributed computation framework reads and writes from disk on intermediate steps, which makes it inefficient for applications that reuse working sets of data across multiple parallel operations (\textit{e.g.} iterative Machine Learning algorithms). Nearly a decade later, Apache Spark \cite{ApacheSpark, Spark} was released as the industry accepted successor.
@@ -34,7 +34,7 @@ The Venn diagram in Figure \ref{fig:stream-superset} from a blog post by Ververi
 
 In Section \ref{sec:windows} we will cover exactly how an unbounded dataset (also known as a data stream) can be converted into a bounded dataset with the use of windows.
 
-\section{From unbounded streams to finite datasets} \label{sec:windows}
+\section{From Unbounded Streams to Finite Datasets} \label{sec:windows}
 
 In Section \ref{sec:stream-superset} we have defined a data stream as an unbounded dataset. But what exactly are the issues of working with an infinite stream of data? Why might we need to convert it into a bounded dataset and how to do so? In this section, we will analyze such issues and present sliding windows as the solution.
 
@@ -96,7 +96,7 @@ The mathematical expression below summarizes our categorization of sliding windo
 
 For the scope of this Thesis, we will work under a tuple-based true sliding window framework. However, despite focusing on tuple-based true sliding windows, our approach is just as valid for time-based windows and other step values as well.
 
-\section{Aggregations over data} \label{sec:aggregations}
+\section{Aggregations over Data} \label{sec:aggregations}
 
 An aggregation --- also known as a fold, reduce or accumulate function --- is an operation that reduces a collection of values into a single one. Examples of such are the computation of dataset sums, minima, averages or the number of distinct elements (cardinality). An aggregation may be exact or approximate. Exact aggregations compute a value from a sequence of elements, where no error or loss of resolution exists. On the other hand, approximate aggregations have an error margin to the associated aggregation value which is usually controllable by adjusting a set of parameters. 
 Approximate aggregations are most useful in situations where memory is limited, the volume of data to process is large and/or computing the exact aggregation can not be done in useful time. Thus, approximate aggregators trade precision of results for efficient time and space usage. In Section \ref{sec:pds} we explore approximate aggregators that make such a trade-off.
@@ -104,7 +104,7 @@ Approximate aggregations are most useful in situations where memory is limited, 
 Aggregations are present in most programming languages and frameworks. Quoting from the Java programming language documentation on the \textit{Stream.reduce()} method \cite{Java13StreamReduce}: 
 \textit{"A reduction operation (also called a fold) takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation"}. Similarly, the MapReduce \cite{MapReduce} paradigm consists of first applying \textit{map} steps to the collection of data and then a \textit{reduce} one. \textit{Map} tasks will transform each item as desired and the \textit{reduce} task will merge the collection into a single value. Reduce methods make use of a \textit{combine} function and recursively apply it. The \textit{combine} function takes the current aggregation value and combines it with the next item in the set, returning the new aggregated state. Doing this recursively for each item in the collection results in a single value: the aggregate value. The combine function is from here onwards represented as $\oplus$ and the identity or neutral element of the aggregation as $\overline{\theta}$.
 
-\subsection{Sliding window aggregations}
+\subsection{Sliding Window Aggregations}
 
 While some aggregations can be computed on an infinite dataset, often we want to compute these over a finite one. As we have seen in Section \ref{sec:windows}, we can obtain a bounded dataset from a data stream by applying windowing techniques. When doing so, we obtain a finite dataset denoted as a sliding window and compute aggregations over it. Tangwongsan \emph{et. al} define such aggregations over sliding windows as Sliding Window Aggregations (SWAGs) \cite{Tangwongsan-Sliding-Window-Aggregation-Algorithms}. As an example of a SWAG, consider the data center temperature monitoring problem from Section \ref{sec:windows}. In this example, we wanted to compute the average temperature per rack in the data center in the last 5 minutes. If we translate this SWAG into streaming SQL following a similar syntax to the one provided by Apache Flink \cite{ApacheFlink} we would get:
 
@@ -118,7 +118,7 @@ In the query above, the
 \texttt{TUMBLE(timestamp, Time.minutes(5), rack\_id)} statement groups incoming data using time-based tumbling windows of 5 minutes duration, using the \texttt{timestamp} field to evict events not in this time interval. The resulting list of rows has \texttt{rack\_id} as its key and as corresponding value a list of temperatures, from the past 5 minutes. Finally, for each rack and its list of temperatures, we compute an \texttt{AVG} aggregation, resulting in the average temperature per rack in the past 5 minutes. Note that this is very similar to any aggregation made in a standard Database Management System (DBMS). The main difference is that in standard SQL the \texttt{GROUP BY} clause includes only the columns on which the data will be grouped while in streaming SQL the \texttt{GROUP BY} also specifies the type of window used (\textit{e.g.} in this case, a tumbling window).
 
 
-\subsection{Sliding window aggregation algorithms} \label{sec:back-swag-algs}
+\subsection{Sliding Window Aggregation Algorithms} \label{sec:back-swag-algs}
 
 A sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. A SWAG algorithm may restrict the set of computable aggregations based on their properties. Different SWAG algorithms use different data structures for the window contents and the incremental aggregation state.
 
@@ -178,7 +178,7 @@ Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementall
     \end{algorithmic}
 \end{algorithm}
 
-\subsection{Aggregation properties}
+\subsection{Aggregation Properties}
 \label{sec:agg-properties}
 
 On the previous Section, we presented Subtract-On-Evict as an improvement over Recalculate-From-Scratch based on the idea of aggregation invertibility. The question then becomes if there are other aggregation properties besides invertibility that must be taken into account when analyzing general stream processing algorithms.
@@ -264,3 +264,5 @@ EMA\textsubscript{t} = EMA\textsubscript{t-1} * $2^{-\frac{1}{n_{1/2}}}$ + val\t
 For example, with a tuple-based half-life of $n_{1/2}=1$ tuple, for each new tuple all weights are reduced by half.
 
 Definition \ref{def:ema} introduces the recurrence formula for time-based EMAs whereas Definition \ref{def:tuple-ema} works for tuple-based ones. In this Thesis we chose to work with tuple-based EMAs due to its simplicity, since it does not require keeping track of timestamp variations, but our approach can be adjusted to use time-based ones.
+
+\section{Summary}
