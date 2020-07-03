@@ -46,6 +46,43 @@ Density-based univariate point outlier detection methods rely on the clustering 
 Quoting the authors, histogram-based univariate point outlier detection methods are \textit{"based on detecting the points whose removal from the univariate time series results in a histogram representation with lower error than the original"}.
 
 \subsubsection{Neighbor-Based Pattern Detection for Windows Over Streaming Data} \label{alg:extran}
+ 
+Track changes is off
+Everyone
+Track changes for everyone
+You
+Track changes for You
+Guests
+Track changes for guests
+pedro.cardoso: How is this error calculated?
+Jun 18, 2020 2:52 PM
+You: Same as above
+Jun 20, 2020 5:09 PM • Edit • Delete
+Hit Enter to reply
+pedro.cardoso: This 3rd option is under-explained compared to the other 2. Please elaborate
+Jun 18, 2020 2:53 PM
+You: Not sure myself, that is why is so poorly written. Im going to revisit this
+Jun 19, 2020 4:42 PM • Edit • Delete
+Hit Enter to reply
+pedro.cardoso: Thought: This reads like leftover from the original work. Is there a way to better relate your investigation into SWAGs into the methodology you ended up taking?
+Jun 30, 2020 10:19 AM
+pedro.cardoso: Please revisit this entire section. Particularly the applicability sections of each algorithm in the context of your current approach.
+Jun 30, 2020 10:20 AM
+Hit Enter to reply
+pedro.cardoso: Remove these TODOs. If you want keep a note of them elsewhere, but not as text render being rendered.
+Jul 3, 2020 5:28 PM
+pedro.cardoso: You will forget to do it with other tasks still needed to be done.
+Jul 3, 2020 5:29 PM
+Hit Enter to reply
+pedro.cardoso: "because they evolved their reference period"
+Jul 3, 2020 5:30 PM
+Hit Enter to reply
+pedro.cardoso: Where is Model Monitoring?
+Jul 3, 2020 5:31 PM
+Hit Enter to reply
+Current file
+Overview
+16
 
 Yang et al. propose \emph{Extra-N} \cite{Yang-Neighbor-Based-Pattern-Detection}, a method for incremental detection of point outliers in sliding window scenarios. Data points are considered outliers if they have few neighbors, \textit{i.e.}, less than a user-defined threshold $\alpha$ of neighbors within a user-defined range $\theta$. Figure \ref{fig:point-outlier} depicts points plotted in their feature space (in this case only two dimensions or features are used, x1 and x2) and a point outlier for $alpha=2$ points and any given $\theta$.
 \begin{figure}[!htb]
@@ -156,7 +193,7 @@ However, this two-window paradigm encodes a static normal or reference period in
 
 %\subsubsection{Automatic Model Monitoring for Data Streams}
 %ALSO a 2 WINDOW MODEL
-%\textcolor{red}{TODO: write this}
+
 
 
 \section{Sliding Window Aggregation Algorithms} \label{sec:sota-swag-algs}
@@ -719,15 +756,12 @@ This approach still uses \textit{m} buckets but each one contains a Distance Rec
 Despite having the same time and space complexities, the Sliding HLL DRV approach uses a smaller amount of memory that does not change during runtime, while the LFPM requires heap resizing because the lists dynamically shrink and grow. Hence, the DRV approach is a better fit to integrate our lightweight real-time solution, if we need to perform cardinality estimation.
 
 
-\textcolor{red}{TODO Find and add versions of Sliding Bloom Filter and Sliding CMS}
-
-
 \section{Summary}
 
 In this chapter, we presented state-of-the-art outlier detection methods and classified them according to Blázquez-García \emph{et al.} taxonomy \cite{Blazquez-Garcia-Review-Anomaly-Detection}. Additionally, we presented sliding window aggregation algorithms, probabilistic data structures and their respective sliding window implementations, with the intent of researching how to incrementally maintain an aggregation in a streaming environment.
 
-In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource intensive (both time and memory wise), provided no measure of how divergent and outlier was or because they lost track of their reference period.
+In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource intensive (both time and memory wise), provided no measure of how divergent and outlier was or because they evolved their reference period.
 
 In Section \ref{sec:sota-swag-algs}, we presented sliding window aggregation algorithms that we intended on using to compute our aggregations. However, their time or memory complexities did not meet our sub-linear requirements.
 
-We then discussed probabilistic data structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}). Despite being efficient, both time and memory wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use for us.
+We then discussed probabilistic data structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}). Despite being efficient, both time and memory wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use to us.

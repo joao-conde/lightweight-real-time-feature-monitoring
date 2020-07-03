@@ -48,7 +48,7 @@ We summarize our contributions as follows:
     
     \item a set of synthetic datasets and experiments where the method in question accurately detected anomalies
     
-    \item experiments on real data that did not show reasonable results but where we provide insights and possible hypothesis to test for future work
+    \item experiments on real data that showed unexpected results but where we provide insights and possible hypothesis to test for future work
 \end{enumerate}
 
 \section{Future Work}
@@ -66,6 +66,6 @@ In this thesis we used the Jensen–Shannon Divergence (JSD) as statistical test
 \end{figure}
 The Wassertein distance measures the work required to transport the probability mass from one histogram to the other. This measure will be larger the further way the probability mass is. In Figure \ref{fig:wasserteinvsjsd} scenario, while in the JSD measure is the same for both cases, the Wassertein distance is larger in case 2 because the probability mass has to be transported further.
 
-In this thesis we had to deal with the multiple test problem and apply a multiple test correction. In our case, we used Holm-Bonferroni due to its simplicity and because it was similar to past work \cite{SAMM}. There are many other multiple test correction methods, and we leave the testing of each as future work.
+In this thesis we had to deal with the multiple test problem and apply a multiple test correction. In our case, we used Holm-Bonferroni due to its simplicity and because it controls the family wise error rate with a larger power than some other methods (thus providing a good trade-off between simplicity and power). There are many other multiple test correction methods, and we leave the testing of each as future work.
 
 Lastly, we propose another type of validation method. We mentioned in the beginning that our objective is to detect data pattern shifts before the performance of the systems relying on the data declines. We propose a test where we train a Machine Learning model on a reference period and measure its prediction accuracy on a target period. Then, we propose running our method on reference and target periods to find out timestamps with a high number of divergent features. We propose that the model is retrained at these timestamps (tantamount to system reconfiguration) and then used to predict for the remaining target period. Finally, we propose that the accuracy should be compared to the previously observed model performance, expecting it to be better after retraining in one of the high divergent timestamps.
