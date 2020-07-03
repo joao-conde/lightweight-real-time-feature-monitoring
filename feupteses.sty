@@ -492,6 +492,7 @@ with the `report' document style}{}}{}
   \fi
 \fi
 
+\iffalse
 \if@onpaper 
   \hypersetup{%
     plainpages=false, 
@@ -518,6 +519,23 @@ with the `report' document style}{}}{}
     anchorcolor=green
   }
 \fi
+\fi
+
+\RequirePackage[table]{xcolor}
+
+\definecolor{feup}{rgb}{0.55,0.18,0.1}
+
+\hypersetup{%
+  linktocpage,
+  colorlinks=true,
+  linkcolor=feup,
+  anchorcolor=feup,
+  citecolor=feup,
+  urlcolor=feup,
+  pdfstartview={FitV},
+  pdfauthor = {João Conde},
+  pdfborder=0 0 0
+}
 
 %% Some more internal commands
 \newcommand{\Activate@lineno}{\if@uselineno\linenumbers\switchlinenumbers*\fi}
