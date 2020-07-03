@@ -33,10 +33,8 @@ Given a user-defined reference period and a stream of data to process, we monito
 \section{Assumptions}
 Our feature monitoring method assumes only that the monitored features are numerical or categorical and that the events arrive in an orderly fashion during streaming. If the latter is not true, our method will still work but results may be imprecise, as our sliding window histogram aggregation relies on Exponential Moving Averages (EMAs), which give different weights to each event according to its age.
 
-\section{Research Questions}
+\section{Research Questions} \label{sec:rqs}
 The goal of this Thesis is to develop a lightweight stream monitoring system that detects changes in features distribution between a reference period and a sliding window in real-time. To that end, we devise a series of research questions to be answered by the end of this Thesis:
-
-\textcolor{red}{TODO: further describe each RQ?}
 
 \begin{enumerate}[leftmargin=1.75cm, label=\textbf{(RQ\arabic*)}]
     \item What aggregation can we use to properly encode data distributions?
