@@ -3,21 +3,21 @@
 With this chapter, we further discuss the problem we aim to solve with this Thesis making use of concepts discussed in Chapter \ref{chap:background} and explaining why none of the reviewed methods from Chapter \ref{chap:sota} works for our use case.
 
 \section{The Problem}
-Many real-time stream monitoring systems are static once deployed in a production environment. The engineers of those systems configure them under the assumption that future data flowing through the system follows roughly the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. The problem at hand is to determine when to reconfigure the system, \textit{e.g.} a Machine Learning model, based on an analysis of the drifts in the stream of data.
+Many real-time stream monitoring systems are static once deployed in a production environment. These systems are configured \textit{a priori} and make assumptions about future streaming data based on the observable past events. The problem is that if these assumptions no longer hold in the future, the stream monitoring systems' performance decays. Thus, the problem at hand is to determine when to reconfigure the system based on an analysis of the drifts in the stream of data. For example, consider a Machine Learning (ML) model that monitors a data stream of credit card transactions and detects fraud. The ML model trains on a reference period and learns from this training period, \textit{i.e.}, makes assumptions based on the analyzed data. In streaming, throughout time, the data patterns will change and the assumptions made will no longer hold (\textit{e.g.}, buying patterns change on holidays), which leads to a decay in model performance. Our objective is to alert data pattern shifts. Our motivation is doing it so that system administrators can reconfigure the system before the system's performance decays. In this example, system reconfiguration is tantamount to model retraining.
 
 \section{State of the Art Issues}
 Aggregations, specifically sliding window ones, were introduced in Chapter \ref{chap:background} along with several windowing techniques required to monitor streaming data patterns in real-time. In Chapter \ref{chap:sota} we presented state of the art sliding window aggregation algorithms as well as outlier detection methods. However, the reviewed methods were deemed unfit for our use-case because none of them simultaneously showed all of the desired characteristics, namely:
 
 \begin{itemize}
-    \item \textbf{Low memory consumption:} need for a low memory footprint system that avoids linear growth relative to the sliding window size used
+    \item \textbf{Low memory consumption:} need for a low memory footprint system that avoids linear growth relative to the sliding window size used;
     
-    \item \textbf{Low time complexity:} need for a time-efficient method that updates the sliding window aggregation and raises alerts in constant time
+    \item \textbf{Low time complexity:} need for a time-efficient method that updates the sliding window aggregation and raises alerts in constant time;
     
-    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout runtime
+    \item \textbf{Fixed reference period:} the reference window must be kept the same throughout runtime;
     
-    \item \textbf{Sliding window maintainability:} possibility to evict old events and insert new ones while updating the aggregation state
+    \item \textbf{Sliding window maintainability:} possibility to evict old events and insert new ones while updating the aggregation state;
     
-    \item \textbf{Explainable alerts:} have an interpretable measure of divergence to understand why an alert was raised
+    \item \textbf{Explainable alerts:} have an interpretable measure of divergence to understand why an alert was raised.
 \end{itemize}
 
 

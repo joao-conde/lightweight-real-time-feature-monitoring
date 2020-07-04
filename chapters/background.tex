@@ -13,12 +13,12 @@ Stream processing, on the other hand, refers to the processing of data streams. 
 
 In order to provide a streaming solution, Apache Spark created the Spark Streaming \cite{SparkStreaming} module. Being a batch system in its core, Spark implements streaming as micro-batching \cite{SparkStreamingPaper}. This approach handles streaming data by grouping incoming events into very small batches. Then, in order to process the entire defined window of data, it joins all micro-batches into a larger one and performs the desired computations. However, this creates an artificial barrier that does not truly exist in the streaming context. More than conceptually different from a true stream processing system, processing a stream in a batch fashion, even if in small ones, presents some issues. First, since we are indeed working with batches, results will never be updated in real-time per event being processed. For example, if we use a batch size of 100 events, the system would only produce accurate results every 100 events. To handle system inactivity usually these micro-batch systems also have the notion of updating the aggregations with incomplete batches, if no event has entered the system after a pre-specified time period has elapsed. As such, micro-batching was created as a natural implementation of stream processing using the available batch processing systems of the time, but can not be considered true stream processing.
 
-The Venn diagram in Figure \ref{fig:stream-superset} from a blog post by Ververica \footnote{https://www.ververica.com/blog/batch-is-a-special-case-of-streaming} illustrates the relation of both processing techniques. A data stream is unbounded or infinite while a bounded data stream has a beginning and an end. Using these definitions, the concept of an unbounded data stream contains that of a bounded dataset. That is, from an infinite stream, it is possible to fix a left and right limits in order to obtain a bounded and finite dataset. This relation is visible in Figure \ref{fig:unbounded-bounded-superset} from the same blog post.
+The Venn diagram in Figure \ref{fig:stream-superset} \cite{batch-is-a-special-case-of-streaming} illustrates the relation of both processing techniques. A data stream is unbounded or infinite while a bounded data stream has a beginning and an end. Using these definitions, the concept of an unbounded data stream contains that of a bounded dataset. That is, from an infinite stream, it is possible to fix a left and right limits in order to obtain a bounded and finite dataset. This relation is visible in Figure \ref{fig:unbounded-bounded-superset} from the same blog post.
 
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/streaming-subset-batch.png}
-      \caption{Stream processing as a superset of batch processing}
+      \caption[Stream processing as a superset of batch processing]{Stream processing as a superset of batch processing \cite{batch-is-a-special-case-of-streaming}}
       \label{fig:stream-superset}
     \end{center}
 \end{figure}
@@ -26,7 +26,7 @@ The Venn diagram in Figure \ref{fig:stream-superset} from a blog post by Ververi
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/unbounded-superset-bounded.png}
-      \caption{Unbounded data streams as a superset of bounded datasets}
+      \caption[Unbounded data streams as a superset of bounded datasets]{Unbounded data streams as a superset of bounded datasets \cite{batch-is-a-special-case-of-streaming}}
       \label{fig:unbounded-bounded-superset}
     \end{center}
 \end{figure}

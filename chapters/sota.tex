@@ -26,11 +26,11 @@ The third and final axis is the \textit{outlier type} the method aims to report.
 
 \subsection{Univariate Point Outlier Detection}
 
-Univariate point outlier detection methods are further broken down into three categories: model-based, density-based and histogram-based (Figure \ref{fig:point-outlier-taxonomy} \cite{Blazquez-Garcia-Review-Anomaly-Detection}) .
+Univariate point outlier detection methods are further broken down into three categories: model-based, density-based and histogram-based (Figure \ref{fig:point-outlier-taxonomy}) .
 \begin{figure}[!htb]
   \begin{center}
     \includegraphics[scale=1]{figures/taxonomy-point-outlier-uni.png}
-    \caption{Point outlier detection in univariate time-series taxonomy}
+    \caption[Point outlier detection in univariate time-series taxonomy]{Point outlier detection in univariate time-series taxonomy \cite{Blazquez-Garcia-Review-Anomaly-Detection}}
     \label{fig:point-outlier-taxonomy}
   \end{center}
 \end{figure}
@@ -146,7 +146,7 @@ Similarly to point outlier detection methods, Blázquez-García \emph{et al.} \c
 \begin{figure}[!htb]
   \begin{center}
     \includegraphics[scale=0.8]{figures/taxonomy-subsequence-outlier-uni.png}
-    \caption{Subsequence outlier detection in univariate time-series taxonomy}
+    \caption[Subsequence outlier detection in univariate time-series taxonomy]{Subsequence outlier detection in univariate time-series taxonomy \cite{Blazquez-Garcia-Review-Anomaly-Detection}}
     \label{fig:subsequence-outlier-taxonomy}
   \end{center}
 \end{figure}
@@ -167,7 +167,7 @@ Lastly, we have information theory based methods for univariate subsequence outl
 
 with $F(S)$ as the frequency of subsequence $S$, $I(S)$ as the information carried by $S$ and $\alpha$ as a given threshold. According to the authors, \textit{"I(S) is computed taking into account the number of times the symbols within S are repeated through the series"}. The authors explain that if \textit{F(S)} is large --- \textit{i.e.} S occurs frequently --- then \textit{I(S)} will be closer to 0.
 
-\subsubsection{A two window paradigm algorithm for change detection}
+\subsubsection{A two window paradigm algorithm for change detection} \label{kifer}
 Kifer \emph{et al.} propose that detecting change in data streams can be reduced to testing if two windows have different underlying distributions \cite{Kifer-Detecting-Change}. The proposed method uses two windows, a reference \textit{W\textsubscript{1}} and a sliding one \textit{W\textsubscript{2}}. Both windows are tuple-based, have size \textit{k} and the sliding window is a true sliding one (recall Section \ref{sec:windows} and the expression \ref{math:windows}). The reference window \textit{W\textsubscript{2}} works as a \textit{reference of normality} and contains the first \textit{k} points of the stream that occurred after the last detected change.
 
 The algorithm begins by filling both windows with the first \textit{k} tuples. Then it slides window \textit{W\textsubscript{2}} by one tuple, since it is a true sliding window, for each incoming event from the data stream. In between slides, the algorithm checks for change by applying a distance function \textit{d} taking as input both the reference and the sliding windows, which measures the discrepancy between both. Whenever this distance is above a certain threshold $\alpha$, the algorithm raises an alert. After raising an alert, both windows are re-initialized with the next \textit{k} items.
@@ -191,14 +191,38 @@ In this Thesis, we want to detect and alert data pattern shifts with a low memor
 However, this two-window paradigm encodes a static normal or reference period in one window and the observed streaming values in a sliding one. Since in this Thesis we want to report streaming data pattern shifts relatively to a reference period, we use a similar two-windowed model, but use lightweight and incrementally maintainable aggregations over both windows.
 
 
-%\subsubsection{Automatic Model Monitoring for Data Streams}
-%ALSO a 2 WINDOW MODEL
+\subsubsection{SAMM: Automatic Model Monitoring for Data Streams}
 
+Sampaio et al. present SAMM \cite{SAMM}, an automatic model monitoring system for data streams. Similarly to the method presented in Section \ref{kifer}, SAMM uses two windows: the reference window R and the target window T. Window T contains the last $n_t$ elemnts and window R the elements of a reference period, which is prior to T. SAMM has two main components that interest us: the one responsible for computing the signal and the one that defines the signal threshold. 
+
+The Machine Learning (ML) model being monitored outputs a series of scores for each transaction. The authors build two histograms: one with the model scores for the reference window R and another for the target window T. The signal is a measure of similarity between both histograms $H_R$ and $H_T$. The authors considered using the Kolmogorov-Smirnov, Kuiper and Anderson-Darling test but ultimately used the Jensen-Shannon Divergence (JSD) \cite{JSD} to measure similarity between both histograms. The JSD outputs a value between 0 and 1, with totally different histograms being assigned a value of 1. The signal is then computed by applying the JSD metric to both histograms $H_R$ and $H_T$ at each new event.
+
+To compute the threshold for the JSD signal, the authors maintain an histogram of observed JSD values during streaming. To efficiently maintain the JSD histogram, they devise an algorithm called SPEAR which stands for Streaming Percentiles EstimAtoR. SPEAR is linear in time and space complexity regarding the number of histogram bins, which is a small and fixed constant. This way, for a new JSD value measured between the histogram $H_R$ and histogram $H_T$, they compare it with the histogram and alert if above a certain percentile (\textit{e.g.}, the 99th percentile).
+
+\subsubsection*{Method classification}
+SAMM can take uni or multivariate time-series as input but performs a univariate analysis. This method is also a two-windowed method that measures the difference between reference and target sliding windows. The alerts produced report the entire target window as anomalous. According to the taxonomy presented in Figure \ref{fig:subsequence-outlier-taxonomy}, we classify this method as a dissimilarity-based univariate subsequence outlier detection method.
+
+\subsubsection*{Time complexity}
+For each new event, SAMM updates the target window T, updates the target histogram $H_T$, computes the JSD between $H_T$ and $H_R$, checks if this value is above a certain percentile and finally updates the histogram of JSDs with the new one. 
+
+Maintaining the target window, \textit{i.e.}, evicting old events and inserting new ones, updating the target histogram $H_T$, computing the JSD between $H_T$ and $H_R$ and checking if it is above a given percentile are all done in constant time. Updating the JSD histogram and dinamically resizing the bins with the SPEAR algorithm takes $O(n)$ time with $n$ as the number of bins. Because the number of bins is small and constant, the update of the JSD histogram is also done in constant time.
+
+Overall, SAMM can process each event in constant time and is suitable for data stream monitoring.
+
+\subsubsection*{Space complexity}
+SAMM keeps in memory a reference window, a target window, a reference histogram, a target histogram and a JSD histogram. The histograms can have a small and fixed number of bins so they are not the dominant factor contributing to SAMM's space complexity. Instead, because SAMM keeps two windows in memory, it stores all the events belonging to them. Assuming $n_t$ as the size of target window and $n_r$ as the size of the reference window, SAMM has $O(n_r + n_t)$ space complexity.
+
+\subsubsection*{Applicability to our Hypothesis}
+SAMM was designed to work for small time periods. Hence, for the authors, keeping the reference and target windows in memory was no issue. However, in our solution, we need sublinear time and space complexities to handle large windows of data. This implies we can not directly use SAMM to solve our problem.
+
+However, SAMM has interesting properties we can use in our final solution. First, SAMM also uses a two-window paradigm: a reference and a target sliding one. This is similar to the method seen in Section \ref{kifer}, which may indicate this is a valid and tested approach to follow. Additionally, SAMM aggregates the contents of both windows as histograms and utilizes a statistical divergence test, the Jensen-Shannon Divergence, to measure the similarity (or dissimilarity) between both. This gives them a measure of divergence which they use to raise alerts, which is another great idea to test. Finally, and contrarily to the previous method (Section \ref{kifer}), SAMM does not simply threshold this divergence value: it builds a distribution of divergence values and measures percentiles for new event's divergence values. This allows a user to easier define a threshold: instead of specifying a threshold between 0 and 1 for the JSD value, the user defines only a probability value, \textit{e.g.}, alert when the probability for a JSD value is equal or less than 1\% (percentile 99th).
+
+Even though SAMM is not directly applicable in our context, it provides us with valid and promissing ideas to test.
 
 
 \section{Sliding Window Aggregation Algorithms} \label{sec:sota-swag-algs}
 
-As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this Section we analyze other more sophisticated SWAG algorithms that fit different use-cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
+As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We want to find an aggregation that is suitable to encode our reference and streaming periods so we avoid keeping the entire sliding window in memory. Furthermore, we need an efficient algorithm to incrementally maintain this aggregation. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this Section we analyze other more sophisticated SWAG algorithms that fit different use-cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
 
 \subsection{Two-Stacks} \label{sec:2stacks}
 The Two-Stacks SWAG algorithm works for \textit{associative} aggregations (recall Table \ref{tbl:aggregations-properties}) in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.} elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Algorithm \ref{pseudo:2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
@@ -265,7 +289,7 @@ DABA uses two queues, \textit{vals} and \textit{aggs}, both of size \textit{n}, 
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/daba-ds.png}
-      \caption{DABA data structure}
+      \caption[DABA data structure]{DABA data structure \cite{Tangwongsan-DABA}}
       \label{fig:daba-ds}
     \end{center}
 \end{figure}

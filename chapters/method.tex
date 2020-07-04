@@ -107,8 +107,6 @@ which is approximately 0.06. In other words, the \textit{x-th} event would have 
 We choose to emulate windows with four times the half-life size (or $4n_{1/2}$), meaning we discard events whose contribution is less than 6\%. We set the half-life to be one-quarter of the size of the window we want to emulate. The size of the window we want to monitor varies from situation to situation, but in the limited scope of this thesis we set to monitor a period extending up to one month (at an error level of about 6\%) so we set the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
 
 \subsection{Batch Analysis Phase} \label{sec:batch-phase}
-\textcolor{red}{TODO: add some pseudocode}
-
 The goal of the batch phase will be to build our reference aggregation for each feature and get to know the distribution of divergence or distance values between the reference and EMA-like aggregations. In other words, we:
 
 \begin{enumerate}
@@ -205,8 +203,6 @@ By the end of the batch phase, we should have, for each feature:
 \end{itemize}
 
 \subsection{Streaming Phase} \label{sec:stream-phase}
-\textcolor{red}{TODO: add some pseudocode}
-
 In the streaming or online phase, the system will process event by event in a true sliding window fashion (recall Section \ref{sec:windows}) and perform a change detection test periodically. This phase makes use of all of the batch phase artifacts, namely, for each feature, the reference histogram, the distribution of distance values and the last sample's histogram.
 
 For each feature, we initialize the approximate histogram with the last sample's data, from the batch phase. Then, for each incoming event and each of the event's features, we update our streaming approximate histogram for that feature by adding the new value and then "cutting a slice" from the top of the histogram bars to simulate eviction, as described in Section \ref{sec:ema-hist}. This is all we do, regarding event processing.

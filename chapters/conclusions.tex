@@ -56,7 +56,6 @@ We summarize our contributions as follows:
 First and foremost, we believe the next steps are to reason about the obtained results in the real data experiments and find the root cause for the existence of many and large alert periods. As possible hypothesis to test, we suggest testing with EMAs with higher smoothing factors, so that past events are forgotten faster; additionally, we suggest decreasing $\gamma$, which further increases the number of samples to make in the batch phase.
 
 In this thesis we used the Jensen–Shannon Divergence (JSD) as statistical test to measure the distance or divergence between our reference and target sliding window aggregation. We chose to use the JSD metric due to its simplicity and because it was used in previous work successfully \cite{SAMM}. We believe that future work comprises testing new distances in the literature. In particular, we believe the Wassertein distance is worth trying next, and illustrate why in Figure \ref{fig:wasserteinvsjsd}.
-\textcolor{red}{TODO: make this image better}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.6]{figures/wasserstein-vs-jsd.pdf}
