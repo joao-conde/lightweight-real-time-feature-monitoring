@@ -19,15 +19,15 @@ Many market solutions monitor streams of credit card transactions with the inten
 Feedzai's data pattern shift challenge is not unique to them nor their field. Many analytical systems are static once deployed and are configured \textit{a priori} under the assumption that future data flowing through the system will roughly follow the same distribution as previously seen data.
 The problem is that data pattern shifts will lead to poor performance of the previously configured system. Monitoring the data patterns themselves and alerting for changes in the underlying distribution would allow users to reconfigure the system before its performance declines.
 
-Thus the objective of this Thesis is to build a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period.
+Thus the objective of this thesis is to build a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period.
 
 \section{Motivation} \label{sec:motivation}
-For any organization, the quality of their provided services is paramount. Therefore, it is common for companies to have auxiliary systems monitoring their services, testing their usage rate, availability and performance, just to name a few. The motivation behind this Thesis is to produce a system capable of real-time monitoring a stream of data so that changes in the underlying stream are caught early, preventing a fall in performance of the system analyzing said data stream. 
+For any organization, the quality of their provided services is paramount. Therefore, it is common for companies to have auxiliary systems monitoring their services, testing their usage rate, availability and performance, just to name a few. The motivation behind this thesis is to produce a system capable of real-time monitoring a stream of data so that changes in the underlying stream are caught early, preventing a fall in the performance of the system analyzing said data stream. 
 
 We want to build a lightweight enough solution that can be integrated into existing workflows. Ensuring constant time and space complexity means that the system will remain usable for the ever-growing volumes of data. Since such a monitoring system is not mission-critical --- \textit{i.e.} the provided services do not rely on it --- the operational cost associated with it must be kept to a minimum. Having a real-time system monitoring other real-time systems consuming as many resources as the latter would be far too costly.
 
 \section{Hypothesis} \label{sec:hypothesis}
-The question this Thesis aims to answer is whether \textit{sliding window aggregations and outlier detection methods combined can be used to detect data pattern shifts in data streaming scenarios in the presence of high volumes of high velocity, highly skewed and seasonal data in real-time and with a low memory footprint.} In this Thesis, we study sliding window aggregations that replace the sliding window events in memory by a lighter representation, while still being able to provide an estimate of the aggregation value.
+The question this thesis aims to answer is whether \textit{sliding window aggregations and outlier detection methods combined can be used to detect data pattern shifts in data streaming scenarios in the presence of high volumes of high velocity, highly skewed and seasonal data in real-time and with a low memory footprint.} In this thesis, we study sliding window aggregations that replace the sliding window events in memory by a lighter representation, while still being able to provide an estimate of the aggregation value.
 
 \section{Methodology} \label{sec:methodology}
 
@@ -49,12 +49,12 @@ This section outlines the content of each chapter of this thesis.
 
 In Chapter \ref{chap:background} of this document, we brief the reader with the necessary background and relevant concepts needed to understand the following work, namely the topics of Large Scale Data Processing, Sliding Window Aggregations and Outlier Detection, as well as all relevant sub-topics inherent to them. 
 
-In Chapter \ref{chap:sota}, we examine state of the art methods related with the previously mentioned topics and discuss shortcomings, strengths and the applicability of such methods to our hypothesis.
+In Chapter \ref{chap:sota}, we examine state of the art methods related to the previously mentioned topics and discuss shortcomings, strengths and the applicability of such methods to our hypothesis.
 
 In Chapter \ref{chap:statement}, we define the problem this thesis aims to solve, the issues with state of the art solutions, our proposed solution, the assumptions made on it and the research questions we intend to answer.
 
 In Chapter \ref{chap:my-work}, we discuss initial approaches and reasons to discard them before presenting our proposed solution.
 
-In Chapter \ref{chap:validation}, we describe the datasets used and the set of experiments that were performed to validate our method. We start with single feature experiments on synthetic data, then multi feature analysis and finally move on to multi feature analysis on real data.
+In Chapter \ref{chap:validation}, we describe the datasets used and the set of experiments that were performed to validate our method. We start with single feature experiments on synthetic data, then multi-feature analysis and finally move on to multi-feature analysis on real data.
 
 In Chapter \ref{chap:conclusion}, we draw our final conclusions. We reiterate our hypothesis and research questions and provide answers to them. Finally, we conclude by summarizing our contributions and, make explicit current issues to be addressed as future work.

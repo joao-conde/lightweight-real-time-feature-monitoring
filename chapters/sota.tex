@@ -22,7 +22,7 @@ The \textit{input data} axis refers to the type of time-series the method uses a
 
 The \textit{nature of the method} axis refers to the type of analysis performed by the outlier detection method. An outlier detection method may perform a univariate or multivariate analysis. A multivariate analysis considers all variables in the time-series simultaneously while univariate analysis looks at each variable independently. An outlier detection method can take as input a multivariate time-series but perform a univariate analysis, one per time-series of the multivariate input. On the other hand, to perform multivariate analysis, the input data type must be multivariate as well.
 
-The third and final axis is the \textit{outlier type} the method aims to report. The authors identify three distinct outlier types: point outliers, subsequence outliers and time-series outliers. A point outlier corresponds to a single data point in time that deviates from the expected value. These point outliers can be uni or multivariate, depending on the nature of the method. A univariate point outlier is a single time-dependent variable that stands out from the rest of the time-series. On the other hand, a multivariate point outlier takes into account multiple time-dependent variables in comparison to the remaining time-series. Subsequence outliers refer to a sequence of points in time that together show anomalous behavior, but may not be individually considered outliers. Similarly to point outliers, a subsequence outlier may take into account a single time-dependent variable or multiple ones. The authors classify them as univariate subsequence outliers and multivariate subsequence outliers, respectively. Lastly, time-series outliers refer to entire time-series being outliers themselves. This type of outliers can only be detected if the input data is multivariate, so as to be able to compare multiple time-series.
+The third and final axis is the \textit{outlier type} the method aims to report. The authors identify three distinct outlier types: point outliers, subsequence outliers and time-series outliers. A point outlier corresponds to a single data point in time that deviates from the expected value. These point outliers can be uni or multivariate, depending on the nature of the method. A univariate point outlier is a single time-dependent variable that stands out from the rest of the time-series. On the other hand, a multivariate point outlier takes into account multiple time-dependent variables in comparison to the remaining time-series. Subsequence outliers refer to a sequence of points in time that together show anomalous behavior, but may not be individually considered outliers. Similarly to point outliers, a subsequence outlier may take into account a single time-dependent variable or multiple ones. The authors classify them as univariate subsequence outliers and multivariate subsequence outliers, respectively. Lastly, time-series outliers refer to entire time-series being outliers themselves. This type of outliers can only be detected if the input data is multivariate, to be able to compare multiple time-series.
 
 \subsection{Univariate Point Outlier Detection}
 
@@ -47,43 +47,6 @@ Quoting the authors, histogram-based univariate point outlier detection methods 
 
 \subsubsection{Neighbor-Based Pattern Detection for Windows Over Streaming Data} \label{alg:extran}
  
-Track changes is off
-Everyone
-Track changes for everyone
-You
-Track changes for You
-Guests
-Track changes for guests
-pedro.cardoso: How is this error calculated?
-Jun 18, 2020 2:52 PM
-You: Same as above
-Jun 20, 2020 5:09 PM • Edit • Delete
-Hit Enter to reply
-pedro.cardoso: This 3rd option is under-explained compared to the other 2. Please elaborate
-Jun 18, 2020 2:53 PM
-You: Not sure myself, that is why is so poorly written. Im going to revisit this
-Jun 19, 2020 4:42 PM • Edit • Delete
-Hit Enter to reply
-pedro.cardoso: Thought: This reads like leftover from the original work. Is there a way to better relate your investigation into SWAGs into the methodology you ended up taking?
-Jun 30, 2020 10:19 AM
-pedro.cardoso: Please revisit this entire section. Particularly the applicability sections of each algorithm in the context of your current approach.
-Jun 30, 2020 10:20 AM
-Hit Enter to reply
-pedro.cardoso: Remove these TODOs. If you want keep a note of them elsewhere, but not as text render being rendered.
-Jul 3, 2020 5:28 PM
-pedro.cardoso: You will forget to do it with other tasks still needed to be done.
-Jul 3, 2020 5:29 PM
-Hit Enter to reply
-pedro.cardoso: "because they evolved their reference period"
-Jul 3, 2020 5:30 PM
-Hit Enter to reply
-pedro.cardoso: Where is Model Monitoring?
-Jul 3, 2020 5:31 PM
-Hit Enter to reply
-Current file
-Overview
-16
-
 Yang et al. propose \emph{Extra-N} \cite{Yang-Neighbor-Based-Pattern-Detection}, a method for incremental detection of point outliers in sliding window scenarios. Data points are considered outliers if they have few neighbors, \textit{i.e.}, less than a user-defined threshold $\alpha$ of neighbors within a user-defined range $\theta$. Figure \ref{fig:point-outlier} depicts points plotted in their feature space (in this case only two dimensions or features are used, x1 and x2) and a point outlier for $alpha=2$ points and any given $\theta$.
 \begin{figure}[!htb]
   \begin{center}
@@ -126,7 +89,7 @@ Similarly to Extra-N presented in Section \ref{alg:extran}, the Hierarchical Tem
 
 
 \subsubsection*{Applicability to our Hypothesis}
-Online learning algorithms that adapt to data pattern shifts and eventually consider them regular patterns are not viable to our goals. In fact, we need a monitoring system that alerts data pattern shifts continuously until they match the initial configuration again. Additionally, insights produced by machine learning models are not human-understandable, leaving the user confused on why an anomaly report was made. In conclusion, we do not deem HTM applicable to our solution.
+Online learning algorithms that adapt to data pattern shifts and eventually consider them regular patterns are not viable to our goals. We need a monitoring system that alerts data pattern shifts continuously until they match the initial configuration again. Additionally, insights produced by machine learning models are not human-understandable, leaving the user confused about why an anomaly report was made. In conclusion, we do not deem HTM applicable to our solution.
 
 
 \subsubsection{DeepAnT}
@@ -151,13 +114,13 @@ Similarly to point outlier detection methods, Blázquez-García \emph{et al.} \c
   \end{center}
 \end{figure}
 
-Methods in the discord detection category compare each subsequence in the time-series with the other subsequences within the time-series to find out the most unusual ones. Each subsequence is compared to the others using a distance metric, for instance, the Euclidean distance. The brute-force way of accomplishing this requires a pairwise comparison of all the subsequences, effectively resulting in quadratic time complexity. These methods find the most unusual subsequence in a time-series. However, as the authors put it, this type of methods lack a reference or normality state and hence do not accurately report outliers.
+Methods in the discord detection category compare each subsequence in the time-series with the other subsequences within the time-series to find out the most unusual ones. Each subsequence is compared to the others using a distance metric, for instance, the Euclidean distance. The brute-force way of accomplishing this requires a pairwise comparison of all the subsequences, effectively resulting in quadratic time complexity. These methods find the most unusual subsequence in a time-series. However, as the authors put it, these methods lack a reference or normality state and hence do not accurately report outliers.
 
 On the other hand, univariate subsequence outlier detection methods based on dissimilarity are identical to the previous discord detection based methods but use a reference of normality. The representations used for the subsequences and the reference of normality vary among methods in this class of outlier detection methods but they are based on comparison of the reference or normality subsequence with the ones being analyzed for outlier detection. Once again, the metric used to measure the distance between the reference period subsequence and the other ones depends entirely on the method and subsequence aggregation or representation. Finally, when the measured distance is above a certain threshold, these methods classify the subsequence as an outlier or an anomaly.
 
 Prediction model-based univariate subsequence outlier detection methods assume that the reference or normality period is composed of past events. Similarly to univariate point outlier detection methods based on prediction models, these models train on past data and make predictions of the future. Subsequences that deviate from the model's prediction are classified as outliers.
 
-Frequency-based univariate subsequence outlier detection methods also use a reference period and compute the frequency of each subsequence in the reference or normality period. Hence, a subsequence will be an outlier if it does not appear as frequently as expected in subsequent time periods.
+Frequency-based univariate subsequence outlier detection methods also use a reference period and compute the frequency of each subsequence in the reference or normality period. Hence, a subsequence will be an outlier if it does not appear as frequently as expected in subsequent periods.
 
 Lastly, we have information theory based methods for univariate subsequence outlier detection, which according to the authors \textit{"are closely related to the frequency-based methods"}. This type of method not only measures the frequency of subsequences but relates it with the information carried by the subsequence. Mathematically, a subsequence $S$ will be an outlier if
 
@@ -193,11 +156,11 @@ However, this two-window paradigm encodes a static normal or reference period in
 
 \subsubsection{SAMM: Automatic Model Monitoring for Data Streams}
 
-Sampaio et al. present SAMM \cite{SAMM}, an automatic model monitoring system for data streams. Similarly to the method presented in Section \ref{kifer}, SAMM uses two windows: the reference window R and the target window T. Window T contains the last $n_t$ elemnts and window R the elements of a reference period, which is prior to T. SAMM has two main components that interest us: the one responsible for computing the signal and the one that defines the signal threshold. 
+Sampaio et al. present SAMM \cite{SAMM}, an automatic model monitoring system for data streams. Similarly to the method presented in Section \ref{kifer}, SAMM uses two windows: the reference window R and the target window T. Window T contains the last $n_t$ elements and window R the $n_r$ elements of a reference period, which is prior to T. SAMM has two main components that interest us: the one responsible for computing the signal and the one that defines the signal threshold. 
 
-The Machine Learning (ML) model being monitored outputs a series of scores for each transaction. The authors build two histograms: one with the model scores for the reference window R and another for the target window T. The signal is a measure of similarity between both histograms $H_R$ and $H_T$. The authors considered using the Kolmogorov-Smirnov, Kuiper and Anderson-Darling test but ultimately used the Jensen-Shannon Divergence (JSD) \cite{JSD} to measure similarity between both histograms. The JSD outputs a value between 0 and 1, with totally different histograms being assigned a value of 1. The signal is then computed by applying the JSD metric to both histograms $H_R$ and $H_T$ at each new event.
+The Machine Learning (ML) model being monitored outputs a series of scores for each transaction. The authors build two histograms: one with the model scores for the reference window R and another for the target window T. The signal is a measure of similarity between both histograms $H_R$ and $H_T$. The authors considered using the Kolmogorov-Smirnov \cite{KolomogorovSmirnov, Kolmogorov-Smirnov}, Kuiper \cite{KuiperTest} and Anderson-Darling \cite{AndersonDarling} test but ultimately used the Jensen-Shannon Divergence (JSD) \cite{JSD} to measure the similarity between both histograms. The JSD outputs a value between 0 and 1, with totally different histograms being assigned a value of 1. The signal is then computed by applying the JSD metric to both histograms $H_R$ and $H_T$ at each new event.
 
-To compute the threshold for the JSD signal, the authors maintain an histogram of observed JSD values during streaming. To efficiently maintain the JSD histogram, they devise an algorithm called SPEAR which stands for Streaming Percentiles EstimAtoR. SPEAR is linear in time and space complexity regarding the number of histogram bins, which is a small and fixed constant. This way, for a new JSD value measured between the histogram $H_R$ and histogram $H_T$, they compare it with the histogram and alert if above a certain percentile (\textit{e.g.}, the 99th percentile).
+To compute the threshold for the JSD signal, the authors maintain a histogram of observed JSD values during streaming. To efficiently maintain the JSD histogram, they devise an algorithm called SPEAR which stands for Streaming Percentiles EstimAtoR. SPEAR is linear in time and space complexity regarding the number of histogram bins, which is a small and fixed constant. This way, for a new JSD value measured between the histogram $H_R$ and histogram $H_T$, they compare it with the histogram and alert if above a certain percentile (\textit{e.g.}, the 99th percentile).
 
 \subsubsection*{Method classification}
 SAMM can take uni or multivariate time-series as input but performs a univariate analysis. This method is also a two-windowed method that measures the difference between reference and target sliding windows. The alerts produced report the entire target window as anomalous. According to the taxonomy presented in Figure \ref{fig:subsequence-outlier-taxonomy}, we classify this method as a dissimilarity-based univariate subsequence outlier detection method.
@@ -205,7 +168,7 @@ SAMM can take uni or multivariate time-series as input but performs a univariate
 \subsubsection*{Time complexity}
 For each new event, SAMM updates the target window T, updates the target histogram $H_T$, computes the JSD between $H_T$ and $H_R$, checks if this value is above a certain percentile and finally updates the histogram of JSDs with the new one. 
 
-Maintaining the target window, \textit{i.e.}, evicting old events and inserting new ones, updating the target histogram $H_T$, computing the JSD between $H_T$ and $H_R$ and checking if it is above a given percentile are all done in constant time. Updating the JSD histogram and dinamically resizing the bins with the SPEAR algorithm takes $O(n)$ time with $n$ as the number of bins. Because the number of bins is small and constant, the update of the JSD histogram is also done in constant time.
+Maintaining the target window, \textit{i.e.}, evicting old events and inserting new ones, updating the target histogram $H_T$, computing the JSD between $H_T$ and $H_R$ and checking if it is above a given percentile are all done in constant time. Updating the JSD histogram and dynamically resizing the bins with the SPEAR algorithm takes $O(n)$ time with $n$ as the number of bins. Because the number of bins is small and constant, the update of the JSD histogram is also done in constant time.
 
 Overall, SAMM can process each event in constant time and is suitable for data stream monitoring.
 
@@ -213,11 +176,11 @@ Overall, SAMM can process each event in constant time and is suitable for data s
 SAMM keeps in memory a reference window, a target window, a reference histogram, a target histogram and a JSD histogram. The histograms can have a small and fixed number of bins so they are not the dominant factor contributing to SAMM's space complexity. Instead, because SAMM keeps two windows in memory, it stores all the events belonging to them. Assuming $n_t$ as the size of target window and $n_r$ as the size of the reference window, SAMM has $O(n_r + n_t)$ space complexity.
 
 \subsubsection*{Applicability to our Hypothesis}
-SAMM was designed to work for small time periods. Hence, for the authors, keeping the reference and target windows in memory was no issue. However, in our solution, we need sublinear time and space complexities to handle large windows of data. This implies we can not directly use SAMM to solve our problem.
+SAMM was designed to work for small-time periods. Hence, for the authors, keeping the reference and target windows in memory was no issue. However, in our solution, we need sublinear time and space complexities to handle large windows of data. This implies we can not directly use SAMM to solve our problem.
 
 However, SAMM has interesting properties we can use in our final solution. First, SAMM also uses a two-window paradigm: a reference and a target sliding one. This is similar to the method seen in Section \ref{kifer}, which may indicate this is a valid and tested approach to follow. Additionally, SAMM aggregates the contents of both windows as histograms and utilizes a statistical divergence test, the Jensen-Shannon Divergence, to measure the similarity (or dissimilarity) between both. This gives them a measure of divergence which they use to raise alerts, which is another great idea to test. Finally, and contrarily to the previous method (Section \ref{kifer}), SAMM does not simply threshold this divergence value: it builds a distribution of divergence values and measures percentiles for new event's divergence values. This allows a user to easier define a threshold: instead of specifying a threshold between 0 and 1 for the JSD value, the user defines only a probability value, \textit{e.g.}, alert when the probability for a JSD value is equal or less than 1\% (percentile 99th).
 
-Even though SAMM is not directly applicable in our context, it provides us with valid and promissing ideas to test.
+Even though SAMM is not directly applicable in our context, it provides us with valid and promising ideas to test.
 
 
 \section{Sliding Window Aggregation Algorithms} \label{sec:sota-swag-algs}
@@ -280,7 +243,7 @@ Two-Stacks is a general sliding window aggregation algorithm to compute \textit{
 
 \subsection{De-Amortized Banker’s Aggregator} \label{sec:daba}
 
-The De-Amortized Banker’s Aggregator (DABA) \cite{Tangwongsan-DABA} is a SWAG algorithm that allows the computation of \textit{associative} aggregations. This method carefully handles expensive operations and spreads them along the execution. As a resut, the authors are able to turn the average-case behavior into the worst-case behavior. This is commonly known as \textit{de-amortization}, hence the name. The main idea behind DABA's design is to avoid occasional expensive operations --- such as the flip operation in Two-Stacks --- by gradually executing them throughout run time.
+The De-Amortized Banker’s Aggregator (DABA) \cite{Tangwongsan-DABA} is a SWAG algorithm that allows the computation of \textit{associative} aggregations. This method carefully handles expensive operations and spreads them along the execution. As a result, the authors are able to turn the average-case behavior into worst-case behavior. This is commonly known as \textit{de-amortization}, hence the name. The main idea behind DABA's design is to avoid occasional expensive operations --- such as the flip operation in Two-Stacks --- by gradually executing them throughout runtime.
 
 \subsection*{Data Structure}
 
@@ -520,7 +483,7 @@ We want to choose the number of hash functions \textit{k} in order to minimize t
 \end{equation}
 
 \subsection*{Time complexity analysis}
-Considering a Bloom filter with \textit{m} bits and \textit{k} hash functions, insertion has \textit{O(k)} time complexity because all there is to do is run the input through all of the \textit{k} hash functions and set the bits in the given positions to 1. Similarly, query answering has \textit{O(k)} time complexity because it needs only to run the input through the \textit{k} hash functions and check if all bits are set to 1. If so, it returns \textit{possibly in set}. Otherwise it returns \textit{definitely not in set}. 
+Considering a Bloom Filter with \textit{m} bits and \textit{k} hash functions, insertion has \textit{O(k)} time complexity because all there is to do is run the input through all of the \textit{k} hash functions and set the bits in the given positions to 1. Similarly, query answering has \textit{O(k)} time complexity because it needs only to run the input through the \textit{k} hash functions and check if all bits are set to 1. If so, it returns \textit{possibly in set}. Otherwise it returns \textit{definitely not in set}. 
 
 Note that the time complexity does not at all depend on the number of elements processed by the Bloom filter and that \textit{k} will be a rather small constant. Hence, the Bloom filter is said to have constant time complexity.
 
@@ -601,15 +564,6 @@ A set of probabilistic counting algorithms is introduced by Flajolet et al. in \
 Later on, the authors propose the LogLog algorithm \cite{Flajolet-LogLog}. In LogLog, the bit-pattern observable recorded for each item is the position of the leftmost 1-bit, denoted as \textit{P}. The authors claim it is related to the total number of distinct elements in the data set in that it is \textit{"more or less a likely indication that the cardinality of S is at least $2^P$"}.
 
 
-% FOR EACH SKETCH DO:
-% approx aggregation to compute
-% data structures
-% algorithm for insertion
-% algorithm for query
-% error bound related with parameters
-% time complexity analysis
-% space complexity analysis
-% Applicability to our Hypothesis
 \subsection*{HyperLogLog}
 A couple of years later, the same authors propose HyperLogLog (HLL) \cite{Flajolet-HLL}, an approximate aggregator to compute the cardinality of a set. 
 
@@ -732,12 +686,12 @@ The memory used in the Sliding HLL aggregator implemented with Lists of Future P
 
 The lists are dynamic thus they shrink and grow at run time. However, \textit{ln(n/m)} was proved to be an upper bound for \textit{L\textsubscript{n}}. Hence, this sliding implementation of the HLL aggregator consumes up to \textit{(4+1) ln(n/m) m} bytes of memory. Considering that the number of buckets \textit{m} is constant, the space complexity of a Sliding HLL implementation with LFPM is \textit{O(ln(n))}.
 
-The authors claim that the proposed sliding version remains as accurate as of the original HLL aggregator. With an additional memory of only 35kB it is possible to estimate the number of distinct elements in the set with a standard error of 3\% in the presence of up to a million distinct elements.
+The authors claim that the proposed sliding version remains as accurate as of the original HLL aggregator. With an additional memory of only 35kB, it is possible to estimate the number of distinct elements in the set with a standard error of 3\% in the presence of up to a million distinct elements.
 
 \subsubsection*{Applicability to our Hypothesis}
 Implementing a Sliding HLL using Lists of Future Possible Maxima (LFPMs) shows logarithmic time and space complexity while providing estimates with the same accuracy as the original HLL approximate aggregator. However, the memory consumption is dynamic due to the variable size of the lists. 
 
-Despite the fact memory consumption dynamically changes during runtime, this is a valid approach to test our Hypothesis due to the worst-case scenario being a logarithmic space complexity. However, in Section \ref{sec:hll-drv} we analyze an implementation that is not dynamic in memory during run time making it a preferred approach.
+Despite the fact memory consumption dynamically changes during runtime, this is a valid approach to test our Hypothesis due to the worst-case scenario being a logarithmic space complexity. However, in Section \ref{sec:hll-drv} we analyze an implementation that is not dynamic in memory during runtime making it a preferred approach.
 
 
 \subsubsection{Sliding HyperLogLog using Distance Recorder Vectors} \label{sec:hll-drv}
@@ -784,8 +738,10 @@ Despite having the same time and space complexities, the Sliding HLL DRV approac
 
 In this chapter, we presented state-of-the-art outlier detection methods and classified them according to Blázquez-García \emph{et al.} taxonomy \cite{Blazquez-Garcia-Review-Anomaly-Detection}. Additionally, we presented sliding window aggregation algorithms, probabilistic data structures and their respective sliding window implementations, with the intent of researching how to incrementally maintain an aggregation in a streaming environment.
 
-In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource intensive (both time and memory wise), provided no measure of how divergent and outlier was or because they evolved their reference period.
+In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource-intensive (both time and memory-wise), provided no measure of how divergent and outlier was or because they evolved their reference period.
 
 In Section \ref{sec:sota-swag-algs}, we presented sliding window aggregation algorithms that we intended on using to compute our aggregations. However, their time or memory complexities did not meet our sub-linear requirements.
 
-We then discussed probabilistic data structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}). Despite being efficient, both time and memory wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use to us.
+We then discussed probabilistic data structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}). Despite being efficient, both time and memory-wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use to us.
+
+In the next chapter, we formally define the problem we aim to solve and the issues with current state of the art solutions. Then, we formulate our proposal along with the assumptions we make when approaching this problem. Finally, we pose some research questions we aim to answer by the end of this thesis.
