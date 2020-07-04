@@ -51,8 +51,7 @@ Windows can also be characterized by how they move across data, \textit{i.e.}, h
 
 \begin{figure}[!htb]
     \begin{center}
-      \hspace*{0.6in}
-      \includegraphics[scale=0.35]{figures/sliding.png}
+      \includegraphics[scale=1.1]{figures/sliding.pdf}
       \caption[True sliding window]{True sliding window, W=3, S=1}
       \label{fig:sliding-window} 
     \end{center}
@@ -62,11 +61,9 @@ Windows can also be characterized by how they move across data, \textit{i.e.}, h
 % stepping: step > 1 < window size
 A stepping window behaves exactly like a true sliding one but the step size \textit{S} is not unitary, \textit{i.e.}, $S > 1$. In other words, a stepping window is defined by any window size \textit{W} and steps \textit{S} greater than a unit. Figure \ref{fig:stepping-window} represents a stepping tuple-based window of size \textit{W} of three and a stepping size \textit{S} of two.
 
-\textcolor{red}{TODO change all window drawings to a not horrendous style}
-
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.3]{figures/stepping.png}
+      \includegraphics[scale=1.1]{figures/stepping.pdf}
       \caption[Stepping window]{Stepping window, W=3, S=2}
       \label{fig:stepping-window}
     \end{center}
@@ -77,7 +74,7 @@ A tumbling window is a window with a stepping size as large as the window, \text
 
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.3]{figures/tumbling.png}
+      \includegraphics[scale=1.1]{figures/tumbling.pdf}
       \caption[Tumbling window]{Tumbling window, W=S=3}
       \label{fig:tumbling-window}
     \end{center}
