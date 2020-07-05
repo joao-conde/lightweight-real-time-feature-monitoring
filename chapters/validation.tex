@@ -13,7 +13,7 @@ We began with single-feature scenarios and by experimenting with different tuple
 
 In Section \ref{sec:ema-hist}, we mentioned that we choose to discard events whose contribution is less than 6\%. We set a half-life $n_{1/2}$ value and then multiply it by a constant factor of 4 to get the size of the samples to make (a larger sample would contain events whose contribution was equal to or less than 6\%). 
 
-All the synthetic datasets used throughout this section are a time-series where at each time-step we sample uniformly from a fixed distribution, \textit{i.e.} there are no time correlations in the used datasets. The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1. The dataset processed in the streaming phase (\textit{i.e.} the target dataset) was generated with a size of 5 million events and a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$, like the reference dataset. For the other half, we changed the generating distribution to be a continuous uniform one with lower bound $a=100$ and upper bound $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in the target dataset T1 where we see the abrupt change in feature values.
+All the synthetic datasets used throughout this section are a time-series where at each time-step we sample uniformly from a fixed distribution, \textit{i.e.}, there are no time correlations in the used datasets. The reference dataset R1 used in this first experiment contained a single feature that followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$ for the 5 million rows of the dataset. Figure \ref{fig:timeseries-r1} shows the time-series of the single feature in dataset R1. The dataset processed in the streaming phase (\textit{i.e.}, the target dataset) was generated with a size of 5 million events and a single feature. For the first half, \textit{i.e.}, for the first 2.5 million events, the feature followed a normal distribution with mean $\mu=10$ and standard deviation $\sigma=2$, like the reference dataset. For the other half, we changed the generating distribution to be a continuous uniform one with lower bound $a=100$ and upper bound $b=200$. Figure \ref{fig:timeseries-t1} shows the time-series of the single feature in the target dataset T1 where we see the abrupt change in feature values.
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
@@ -124,7 +124,7 @@ In this experiment, we wanted to see how our signal behaved when there were mult
 
 The target dataset T2 begins with the same distribution as the reference dataset R2, a gaussian distribution with mean $\mu=100$ and standard deviation $\sigma=50$. At the 2 millionth event mark, we use another Gaussian distribution, this time with mean $\mu=100$ and standard deviation $\sigma=30$. At the 3 millionth event, we change the standard deviation to be $\sigma=10$. From the 4 millionth event to the end, we use a standard deviation of $\sigma=5$. 
 
-In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample size of 250,000 events, like in the previous Section' experiment 02. Figure \ref{fig:JSD-signal-test02} shows the computed JSD signal for the target dataset and Figure \ref{fig:JSD-signal-zoom-test02} zooms in on the first 2 millionth events, before any distribution is changed. We observe that once again we have no false positives in the first 2 million events, which is ideal. 
+In this experiment, we used a half-life $n_{1/2}=62500$ and corresponding sample size of 250,000 events, like in the previous section's experiment 02. Figure \ref{fig:JSD-signal-test02} shows the computed JSD signal for the target dataset and Figure \ref{fig:JSD-signal-zoom-test02} zooms in on the first 2 millionth events, before any distribution is changed. We observe that once again we have no false positives in the first 2 million events, which is ideal. 
 \begin{figure}[!htb]
 \centering
 \begin{subfigure}{.5\textwidth}
@@ -223,7 +223,7 @@ Figure \ref{fig:JSD-signal-test04} shows the computed JSD signal for the target 
 \subsubsection{An Attempt to Deceive our Method}
 In this experiment, we attempt to deceive our method by using a different distribution from the reference period but ensuring its domain is roughly the same as the reference one.
 
-We used the reference dataset R5 (Figure \ref{fig:timeseries-r5}) which had 5 million events, with a single-feature that followed a gaussian with  $\mu=100$ and $\sigma=10$. Our target dataset T5 is represented in Figure \ref{fig:timeseries-t5}. For the first 2 million events, the generating distribution used was similar to the one used in the reference dataset, a gaussian with $\mu=100$ and $\sigma=10$. However, at the 2 millionth event, we change the gaussian standard deviation to $\sigma=30$. Then, at the 4 millionth event, we change the distribution type. We use an uniform distribution with lower bound $a=80$ and upper bound $b=120$. Note in Figure \ref{fig:timeseries-t5} that this last portion resembles the first one, the reference.
+We used the reference dataset R5 (Figure \ref{fig:timeseries-r5}) which had 5 million events, with a single feature that followed a gaussian with  $\mu=100$ and $\sigma=10$. Our target dataset T5 is represented in Figure \ref{fig:timeseries-t5}. For the first 2 million events, the generating distribution used was similar to the one used in the reference dataset, a gaussian with $\mu=100$ and $\sigma=10$. However, at the 2 millionth event, we change the gaussian standard deviation to $\sigma=30$. Then, at the 4 millionth event, we change the distribution type. We use an uniform distribution with lower bound $a=80$ and upper bound $b=120$. Note in Figure \ref{fig:timeseries-t5} that this last portion resembles the first one, the reference.
 \begin{center}
 \begin{minipage}{.5\textwidth}
   \centering
@@ -265,10 +265,10 @@ Before moving to real data, we performed one last experiment, using synthetic da
         \begin{tabular}{|c|c|c|ll}
         \cline{1-3}
         \textbf{Feature} & \textbf{Reference Distribution} & \textbf{Parameters} &  &  \\ \cline{1-3}
-        x1               & Gaussian/Normal                 & $\mu=100$, $\sigma=5$  &  &  \\ \cline{1-3}
-        x2               & Gaussian/Normal                 & $\mu=100$, $\sigma=5$  &  &  \\ \cline{1-3}
-        x3               & Uniform                         & $a=200$, $b=250$       &  &  \\ \cline{1-3}
-        x4               & Uniform                         & $a=50$, $b=125$        &  &  \\ \cline{1-3}
+        $x_1$               & Gaussian/Normal                 & $\mu=100$, $\sigma=5$  &  &  \\ \cline{1-3}
+        $x_2$               & Gaussian/Normal                 & $\mu=100$, $\sigma=5$  &  &  \\ \cline{1-3}
+        $x_3$               & Uniform                         & $a=200$, $b=250$       &  &  \\ \cline{1-3}
+        $x_4$               & Uniform                         & $a=50$, $b=125$        &  &  \\ \cline{1-3}
         \end{tabular}
     \end{center}
     \caption{Multi feature reference dataset and feature distributions}
@@ -280,36 +280,36 @@ Before moving to real data, we performed one last experiment, using synthetic da
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-r6-x1.pdf} 
-    \caption{Feature x1 reference time-series} 
+    \caption{Feature $x_1$ reference time-series} 
     \label{fig:timeseries-r6-x1} 
     \vspace{4ex}
   \end{minipage}%%
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-r6-x2.pdf} 
-    \caption{Feature x2 reference time-series} 
+    \caption{Feature $x_2$ reference time-series} 
     \label{fig:timeseries-r6-x2} 
     \vspace{4ex}
   \end{minipage} 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-r6-x3.pdf} 
-    \caption{Feature x3 reference time-series} 
+    \caption{Feature $x_3$ reference time-series} 
     \label{fig:timeseries-r6-x3} 
     \vspace{4ex}
   \end{minipage}%% 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-r6-x4.pdf} 
-    \caption{Feature x4 reference time-series} 
+    \caption{Feature $x_4$ reference time-series} 
     \label{fig:timeseries-r6-x4} 
     \vspace{4ex}
   \end{minipage} 
 \end{figure}
 
-We used a target dataset T6 with 5 million events and the same four features ($x_1$, $x_2$, $x_3$ and $x_4$). Feature x1 followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature $x_1$.
+We used a target dataset T6 with 5 million events and the same four features ($x_1$, $x_2$, $x_3$ and $x_4$). Feature $x_1$ followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature $x_1$.
 
-Feature x2's underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature $x_2$. Feature $x_2$ followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event. Table \ref{tbl:multi-feat-x2-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature x2.
+Feature $x_2$'s underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature $x_2$. Feature $x_2$ followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event. Table \ref{tbl:multi-feat-x2-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_2$.
 \begin{table}[!htb]
     \begin{center}
     \begin{tabular}{|c|c|c|c|l}
@@ -322,11 +322,11 @@ Feature x2's underlying distribution changed four times and returned to normal, 
     4,000,000           & 5,000,000         & Gaussian              & $\mu=100, \sigma=5$                      &  \\ \cline{1-4}
     \end{tabular}
     \end{center}
-    \caption{Feature x2 generating distributions}
+    \caption{Feature $x_2$ generating distributions}
     \label{tbl:multi-feat-x2-changes}
 \end{table}
 
-Feature x3's underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature x3. Feature x3 followed a uniform distribution with $a=200$ and $b=250$ like in the reference period up to the 1.5 millionth event mark, then a uniform distribution with $a=200$ and $b=220$ up to the 2 millionth event, then a uniform distribution with $a=180$ and $b=200$ until the 3.5 millionth event and finally a gaussian with $\mu=50$ and $\sigma=20$ until the last event. Table \ref{tbl:multi-feat-x3-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature x3.
+Feature $x_3$'s underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature $x_3$. Feature $x_3$ followed a uniform distribution with $a=200$ and $b=250$ like in the reference period up to the 1.5 millionth event mark, then a uniform distribution with $a=200$ and $b=220$ up to the 2 millionth event, then a uniform distribution with $a=180$ and $b=200$ until the 3.5 millionth event and finally a gaussian with $\mu=50$ and $\sigma=20$ until the last event. Table \ref{tbl:multi-feat-x3-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_3$.
 \begin{table}[!htb]
     \begin{center}
     \begin{tabular}{|c|c|c|c|l}
@@ -338,11 +338,11 @@ Feature x3's underlying distribution changed three times and never returned to n
     3,500,000           & 5,000,000         & Gaussian              & $\mu=50, \sigma=20$                      &  \\ \cline{1-4}
     \end{tabular}
     \end{center}
-    \caption{Feature x3 generating distributions}
+    \caption{Feature $x_3$ generating distributions}
     \label{tbl:multi-feat-x3-changes}
 \end{table}
 
-Feature x4's underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature x4. Feature x4 followed a uniform distribution like the reference one, with $a=50$ and $b=125$ up until the 1.5 millionth event. After that, it followed a uniform distribution with $a=125$ and $b=200$ until the 3 millionth event where it resumed its original uniform distribution (with $a=50$ and $b=125$) until the end. Table \ref{tbl:multi-feat-x4-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature x4.
+Feature $x_4$'s underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature $x_4$. Feature $x_4$ followed a uniform distribution like the reference one, with $a=50$ and $b=125$ up until the 1.5 millionth event. After that, it followed a uniform distribution with $a=125$ and $b=200$ until the 3 millionth event where it resumed its original uniform distribution (with $a=50$ and $b=125$) until the end. Table \ref{tbl:multi-feat-x4-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_4$.
 \begin{table}[!htb]
     \begin{center}
     \begin{tabular}{|c|c|c|c|l}
@@ -353,7 +353,7 @@ Feature x4's underlying distribution changed two times and returned to normal, s
     3,000,000           & 5,000,000         & Uniform               & $a=50, b=125$                            &  \\ \cline{1-4}
     \end{tabular}
     \end{center}
-    \caption{Feature x4 generating distributions}
+    \caption{Feature $x_4$ generating distributions}
     \label{tbl:multi-feat-x4-changes}
 \end{table}
 
@@ -362,36 +362,36 @@ Feature x4's underlying distribution changed two times and returned to normal, s
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-t6-x1.pdf} 
-    \caption{Feature x1 target time-series} 
+    \caption{Feature $x_1$ target time-series} 
     \label{fig:timeseries-t6-x1} 
     \vspace{4ex}
   \end{minipage}%%
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-t6-x2.pdf} 
-    \caption{Feature x2 target time-series} 
+    \caption{Feature $x_2$ target time-series} 
     \label{fig:timeseries-t6-x2} 
     \vspace{4ex}
   \end{minipage} 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-t6-x3.pdf} 
-    \caption{Feature x3 target time-series} 
+    \caption{Feature $x_3$ target time-series} 
     \label{fig:timeseries-t6-x3} 
     \vspace{4ex}
   \end{minipage}%% 
   \begin{minipage}[b]{0.5\linewidth}
     \centering
     \includegraphics[width=1\linewidth]{figures/timeseries-t6-x4.pdf} 
-    \caption{Feature x4 target time-series} 
+    \caption{Feature $x_4$ target time-series} 
     \label{fig:timeseries-t6-x4} 
     \vspace{4ex}
   \end{minipage} 
 \end{figure}
 
-In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.} sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of doing 1000 samples as we did previously in an ad-hoc way, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum. Using 300 Spark executors, each given 3G of memory, we finished the batch phase in 418 seconds.
+In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.}, sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:holmbonferroni} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of doing 1000 samples as we did previously in an ad-hoc way, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:nsamples}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum. Using 300 Spark executors, each given 3G of memory, we finished the batch phase in 418 seconds.
 
-In Section \ref{sec:stream-phase}, we mention that, in our stream analysis, we perform our multiple hypothesis divergence tests on a fixed user-defined frequency. Finding an optimal frequency value for the test falls out of scope for this Thesis, but ideally, we set it to be large enough so that we do fewer computations and achieve higher throughput but still get alerts in useful time. In this experiment, we performed the divergence test with the Holm-Bonferroni correction \ref{sec:holmbonferroni} for every new event (frequency of 1 event). We did this to collect a list of ordered corrected p-values for each feature. A corrected p-value (derived from Equation \ref{eq:corrected-pvalue}) is given by:
+In Section \ref{sec:stream-phase}, we mention that, in our stream analysis, we perform our multiple hypothesis divergence tests on a fixed user-defined frequency. Finding an optimal frequency value for the test falls out of scope for this thesis, but ideally, we set it to be large enough so that we do fewer computations and achieve higher throughput but still get alerts in useful time. In this experiment, we performed the divergence test with the Holm-Bonferroni correction \ref{sec:holmbonferroni} for every new event (frequency of 1 event). We did this to collect a list of ordered corrected p-values for each feature. A corrected p-value (derived from Equation \ref{eq:corrected-pvalue}) is given by:
 \begin{equation}
     p-value_{corrected} = p-value_{distance_{x}} * (m - k)
     \label{for:corrected-pvalue}
@@ -400,68 +400,68 @@ With this list, for each feature, we can plot the corrected p-values on each eve
 
 In the following plots, unlike the JSD signal plots presented before, a feature is in a divergent state if its p-value is below the threshold, according to Equation \ref{eq:corrected-pvalue}. Working with corrected p-values (Formula \ref{for:corrected-pvalue}), a feature is considered divergent if its corrected p-value is below the threshold.
 
-In Figure \ref{fig:x1-corrected-pvalues} we see the plot of corrected p-values for feature x1 and the probability threshold black horizontal line at the bottom. Recall that feature x1' values were generated by a Gaussian distribution for both the reference period (Figure \ref{fig:timeseries-r6-x1}) and the target period (Figure \ref{fig:timeseries-t6-x1}), with the same parameters. We observe that the corrected p-values never pass below the threshold, as we expected. Hence, this feature is never alerted as divergent.
+In Figure \ref{fig:x1-corrected-pvalues} we see the plot of corrected p-values for feature $x_1$ and the probability threshold black horizontal line at the bottom. Recall that feature $x_1$'s values were generated by a Gaussian distribution for both the reference period (Figure \ref{fig:timeseries-r6-x1}) and the target period (Figure \ref{fig:timeseries-t6-x1}), with the same parameters. We observe that the corrected p-values never pass below the threshold, as we expected. Hence, this feature is never alerted as divergent.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.8]{figures/x1-corrected-pvalues.png}
-      \caption{Feature x1 corrected p-values and threshold}
+      \caption{Feature $x_1$ corrected p-values and threshold}
       \label{fig:x1-corrected-pvalues}
     \end{center}
 \end{figure}
 
-Figure \ref{fig:x2-corrected-pvalues} shows a plot of feature x2's corrected p-values and the FWER threshold. Feature x2 underlying distribution was changed four times (Table \ref{tbl:multi-feat-x2-changes}): at the 1, 2.5, 3 and 4 millionth events. The first change is consistent with the sudden drop in corrected p-value for this feature, as we cross below the threshold and enter a divergent state. Around a thousand events after the change we saw p-values of 0.2\% (or 0.002). The values keep dropping as time passes and as we introduce bigger changes in distribution.
+Figure \ref{fig:x2-corrected-pvalues} shows a plot of feature $x_2$'s corrected p-values and the FWER threshold. Feature $x_2$ underlying distribution was changed four times (Table \ref{tbl:multi-feat-x2-changes}): at the 1, 2.5, 3 and 4 millionth events. The first change is consistent with the sudden drop in corrected p-value for this feature, as we cross below the threshold and enter a divergent state. Around a thousand events after the change we saw p-values of 0.2\% (or 0.002). The values keep dropping as time passes and as we introduce bigger changes in distribution.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.8]{figures/x2-corrected-pvalues.png}
-      \caption{Feature x2 corrected p-values and threshold}
+      \caption{Feature $x_2$ corrected p-values and threshold}
       \label{fig:x2-corrected-pvalues}
     \end{center}
 \end{figure}
-We resume the reference or original distribution at the 4 millionth event. However, as we can see from a close-up on the original plot (Figure \ref{fig:x2-corrected-pvalues-zoom}), it takes around 600,000 events for the target sliding histogram aggregation to once again resemble the reference one, resulting in a high enough p-value and thus stop alerting x2 as divergent.
+We resume the reference or original distribution at the 4 millionth event. However, as we can see from a close-up on the original plot (Figure \ref{fig:x2-corrected-pvalues-zoom}), it takes around 600,000 events for the target sliding histogram aggregation to once again resemble the reference one, resulting in a high enough p-value and thus stop alerting $x_2$ as divergent.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.8]{figures/x2-corrected-pvalues-zoom2.png}
-      \caption{Feature x2 zoomed in corrected p-values and threshold}
+      \caption{Feature $x_2$ zoomed in corrected p-values and threshold}
       \label{fig:x2-corrected-pvalues-zoom}
     \end{center}
 \end{figure}
 
 
-Feature x3 was the only feature that never returned to its original distribution and is the only one that should be reported until the end as divergent. This is in fact the case as illustrated in Figure \ref{fig:x3-corrected-pvalues}. The first change to x3's generating distribution was introduced at the 1.5 millionth event and we clearly see the corrected p-value rapidly approaching values close to zero. For the rest of the dataset, this x3's p-value remains below the threshold, as we never swap to its original distribution.
+Feature $x_3$ was the only feature that never returned to its original distribution and is the only one that should be reported until the end as divergent. This is in fact the case as illustrated in Figure \ref{fig:x3-corrected-pvalues}. The first change to $x_3$'s generating distribution was introduced at the 1.5 millionth event and we clearly see the corrected p-value rapidly approaching values close to zero. For the rest of the dataset, this $x_3$'s p-value remains below the threshold, as we never swap to its original distribution.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.8]{figures/x3-corrected-pvalues.png}
-      \caption{Feature x3 corrected p-values and threshold}
+      \caption{Feature $x_3$ corrected p-values and threshold}
       \label{fig:x3-corrected-pvalues}
     \end{center}
 \end{figure}
 
 
-Finally, feature x4's corrected p-value plot is given by Figure \ref{fig:x4-corrected-pvalues}. Similarly to feature x2, we resume the original distribution at a certain point, in this case at the 3-millionth event. However, as we can see from a close-up on the original plot (Figure \ref{fig:x4-corrected-pvalues-zoom}), it takes around 810,000 events for the target sliding window aggregation to be considered similar enough to the reference one and stop alerting x4 as divergent.
+Finally, feature $x_4$'s corrected p-value plot is given by Figure \ref{fig:x4-corrected-pvalues}. Similarly to feature $x_2$, we resume the original distribution at a certain point, in this case at the 3-millionth event. However, as we can see from a close-up on the original plot (Figure \ref{fig:x4-corrected-pvalues-zoom}), it takes around 810,000 events for the target sliding window aggregation to be considered similar enough to the reference one and stop alerting $x_4$ as divergent.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.8]{figures/x4-corrected-pvalues.png}
-      \caption{Feature x4 corrected p-values and threshold}
+      \caption{Feature $x_4$ corrected p-values and threshold}
       \label{fig:x4-corrected-pvalues}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.8]{figures/x4-corrected-pvalues-zoom2.png}
-      \caption{Feature x4 zoomed in corrected p-values and threshold}
+      \caption{Feature $x_4$ zoomed in corrected p-values and threshold}
       \label{fig:x4-corrected-pvalues-zoom}
     \end{center}
 \end{figure}
 
 
-With this experiment, we further validate that the p-value is a measure of how divergent a feature is: the closer to zero, the lower the probability of the statistical test result and hence the more divergent a feature is considered to be. At the 1.5 millionth event, we swap both x3 and x4's distribution. For the first 2,535,000 events, x4 has a lower p-value than x3 and hence is considered more divergent. However, after that, we change x3's distribution so aggressively that x3 starts being reported as most divergent, with a lower p-value than x4.
+With this experiment, we further validate that the p-value is a measure of how divergent a feature is: the closer to zero, the lower the probability of the statistical test result and hence the more divergent a feature is considered to be. At the 1.5 millionth event, we swap both $x_3$ and $x_4$'s distribution. For the first 2,535,000 events, $x_4$ has a lower p-value than $x_3$ and hence is considered more divergent. However, after that, we change $x_3$'s distribution so aggressively that $x_3$ starts being reported as most divergent, with a lower p-value than $x_4$.
 
 \clearpage
 \section{Experiments with Real Data}
 
 Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to confidentiality reasons.
 
-Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that, combined, covered a period of roughly 1 year and 9 months. In this experiment, we used the older one as the reference dataset and the more recent one as the target period. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus numerically encoded categorical features (\textit{e.g.} one-hot encoded or ordinal encoded \cite{categoricalencoding}). Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
+Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that, combined, covered a period of roughly 1 year and 9 months. In this experiment, we used the older one as the reference dataset and the more recent one as the target period. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus numerically encoded categorical features (\textit{e.g.}, one-hot encoded or ordinal encoded \cite{categoricalencoding}). Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
 \begin{table}[!htb]
     \begin{center}
         \begin{tabular}{|c|c|c|c|}
@@ -475,7 +475,7 @@ Feedzai provides a fraud detection solution for this merchant and had stored two
     \end{center}
 \end{table}
 
-In the batch phase, we used 100 Spark executors, each with 12G of memory. We determined that one week's worth of data for this merchant was on average equivalent to 37,803 events. We set the half-life to be $n_{1/2}=37,803$ and discard events whose EMA weight is 6\% or less, which is equivalent to using sampling windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}). Hence, our samples' windows had 151,212 events. Using Equation \ref{eq:optimal-n-samples}, we determined that for 183 features, a FWER of 1\% and $\gamma$ (as defined in Section \ref{sec:nsamples}) of 10\% we needed to make a minimum of 42,137 samples. Our batch analysis took 5 hours and 34 minutes.
+In the batch phase, we used 100 Spark executors, each with 12G of memory. We determined that one week's worth of data for this merchant was on average equivalent to 37,803 events. We set the half-life to be $n_{1/2}=37,803$ and discard events whose EMA weight is 6\% or less, which is equivalent to using sampling windows of data of four times the half-life (as detailed in Section \ref{sec:ema-hist}). Hence, our samples's windows had 151,212 events. Using Equation \ref{eq:optimal-n-samples}, we determined that for 183 features, a FWER of 1\% and $\gamma$ (as defined in Section \ref{sec:nsamples}) of 10\% we needed to make a minimum of 42,137 samples. Our batch analysis took 5 hours and 34 minutes.
 
 After the batch phase, we had the necessary inputs for the streaming phase (detailed in Section \ref{sec:batch-artifacts-summary}), namely, for each feature, the reference histograms, the list of observed divergence values and the last sample's histogram. We then used the target dataset, simulating a stream of ordered events. Our monitoring system processed the dataset event by event in sequential, time-ordered fashion, emulating a stream computation and reported divergent features with associated p-values. We performed our multiple hypotheses with the Holm-Bonferroni correction (Section \ref{sec:holmbonferroni}) for every 1000 events. It took us 382,363 milliseconds (roughly 6 minutes) to process the 4,032,505 transactions, amounting to a throughput of 10,546 transactions per second (TPS).
 
@@ -485,14 +485,14 @@ Figure \ref{fig:merchant-x1-reference} is a plot of the reference time-series of
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x1-reference.pdf}
-      \caption{Merchant feature x1 reference time-series}
+      \caption{Merchant feature $x_1$ reference time-series}
       \label{fig:merchant-x1-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x1-target.pdf}
-      \caption{Merchant feature x1 target time-series}
+      \caption{Merchant feature $x_1$ target time-series}
       \label{fig:merchant-x1-target}
     \end{center}
 \end{figure}
@@ -500,86 +500,86 @@ In Figure \ref{fig:merchant-x1-correctedpvalues} we plot the corrected p-values 
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x1-correctedpvalues.pdf}
-      \caption{Merchant feature x1 corrected p-values}
+      \caption{Merchant feature $x_1$ corrected p-values}
       \label{fig:merchant-x1-correctedpvalues}
     \end{center}
 \end{figure}
 Furthermore, the alarms appear to be roughly in the middle portion of the time-series, where in fact the target period appears to have less points. We can see roughly three alarms. The first one in early January 2019 for a few days, the second one lasting about a week at the end of January 2019 and the last one in the second half of February 2019 again for a few days.
 
-Now let us look at features $x_2$ and $x_3$. Figures \ref{fig:merchant-x2-reference} and \ref{fig:merchant-x2-target} show feature $x_2$' time-series plots for the reference and target periods, respectively.
+Now let us look at features $x_2$ and $x_3$. Figures \ref{fig:merchant-x2-reference} and \ref{fig:merchant-x2-target} show feature $x_2$'s time-series plots for the reference and target periods, respectively.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x2-reference.pdf}
-      \caption{Merchant feature x2 reference time-series}
+      \caption{Merchant feature $x_2$ reference time-series}
       \label{fig:merchant-x2-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x2-target.pdf}
-      \caption{Merchant feature x2 target time-series}
+      \caption{Merchant feature $x_2$ target time-series}
       \label{fig:merchant-x2-target}
     \end{center}
 \end{figure}
-Figures \ref{fig:merchant-x3-reference} and \ref{fig:merchant-x3-target} show feature $x_3$' time-series plots for the reference and target periods, respectively.
+Figures \ref{fig:merchant-x3-reference} and \ref{fig:merchant-x3-target} show feature $x_3$'s time-series plots for the reference and target periods, respectively.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x3-reference.pdf}
-      \caption{Merchant feature x3 reference time-series}
+      \caption{Merchant feature $x_3$ reference time-series}
       \label{fig:merchant-x3-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x3-target.pdf}
-      \caption{Merchant feature x3 target time-series}
+      \caption{Merchant feature $x_3$ target time-series}
       \label{fig:merchant-x3-target}
     \end{center}
 \end{figure}
 \clearpage
-Relative to $x_1$, features $x_2$ and $x_3$ also have very similar reference and target periods. Just like feature x1, we expect to have some alarms but still not too many. Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature x2' corrected p-values and the FWER threshold of 1\%. Likewise, Figure \ref{fig:merchant-x3-correctedpvalues} shows the same plot but for feature x3.
+Relative to $x_1$, features $x_2$ and $x_3$ also have very similar reference and target periods. Just like feature $x_1$, we expect to have some alarms but still not too many. Once again, to visualize the alarms, we plot the corrected p-values for each event of the target time-series for each feature. Figure \ref{fig:merchant-x2-correctedpvalues} is a plot of feature $x_2$'s corrected p-values and the FWER threshold of 1\%. Likewise, Figure \ref{fig:merchant-x3-correctedpvalues} shows the same plot but for feature $x_3$.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x2-correctedpvalues.pdf}
-      \caption{Merchant feature x2 corrected p-values}
+      \caption{Merchant feature $x_2$ corrected p-values}
       \label{fig:merchant-x2-correctedpvalues}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x3-correctedpvalues.pdf}
-      \caption{Merchant feature x3 corrected p-values}
+      \caption{Merchant feature $x_3$ corrected p-values}
       \label{fig:merchant-x3-correctedpvalues}
     \end{center}
 \end{figure}
 The corrected p-values plot shows us once again that both $x_2$ and $x_3$ features had some alarms but eventually rose above the threshold and resumed their reference distribution. This is expected from features whose reference and target time-series plots look so similar.
 
-Next, we analyze a feature with very different reference and target time-series. Feature x4' reference time-series is presented in Figure \ref{fig:merchant-x4-reference} and its target period in Figure \ref{fig:merchant-x4-target}.
+Next, we analyze a feature with very different reference and target time-series. Feature $x_4$'s reference time-series is presented in Figure \ref{fig:merchant-x4-reference} and its target period in Figure \ref{fig:merchant-x4-target}.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x4-reference.pdf}
-      \caption{Merchant feature x4 reference time-series}
+      \caption{Merchant feature $x_4$ reference time-series}
       \label{fig:merchant-x4-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x4-target.pdf}
-      \caption{Merchant feature x4 target time-series}
+      \caption{Merchant feature $x_4$ target time-series}
       \label{fig:merchant-x4-target}
     \end{center}
 \end{figure}
-Notice that even if for the most part both reference and target periods values belong to a domain between 0 and 1, at a certain point in time, in the target time-series, a lot of -1 values appear. In Figure \ref{fig:merchant-x4-correctedpvalues} we plot the corrected p-values for feature x4 target time-series.
+Notice that even if for the most part both reference and target periods values belong to a domain between 0 and 1, at a certain point in time, in the target time-series, a lot of -1 values appear. In Figure \ref{fig:merchant-x4-correctedpvalues} we plot the corrected p-values for feature $x_4$ target time-series.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x4-correctedpvalues.pdf}
-      \caption{Merchant feature x4 corrected p-values}
+      \caption{Merchant feature $x_4$ corrected p-values}
       \label{fig:merchant-x4-correctedpvalues}
     \end{center}
 \end{figure}
-Like the previous analyzed features, x4 also drops below the threshold some times. However, unlike the other features, where feature values return to normal and alarms stopped being raised, x4 remains below the threshold line until the end of the target period, where a small spike occurs. The last time feature x4 was ever above the threshold line (and hence considered normal) was before the appearance of the -1 values in the target period. This seems to work as expected: -1 values were so off the reference domain that for here on out, as long as these values keep appearing, we will not stop reporting x4 as divergent.
+Like the previous analyzed features, $x_4$ also drops below the threshold some times. However, unlike the other features, where feature values return to normal and alarms stopped being raised, $x_4$ remains below the threshold line until the end of the target period, where a small spike occurs. The last time feature $x_4$ was ever above the threshold line (and hence considered normal) was before the appearance of the -1 values in the target period. This seems to work as expected: -1 values were so off the reference domain that for here on out, as long as these values keep appearing, we will not stop reporting $x_4$ as divergent.
 
-The -1 value is often used as a placeholder for missing values, \textit{i.e.} if some problem occurs and the value for a feature is missing at a given timestamp or event, -1 is used. A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. However, we discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain device responsible for reporting one feature stops working, we want to know that. This scenario is likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data. 
+The -1 value is often used as a placeholder for missing values, \textit{i.e.}, if some problem occurs and the value for a feature is missing at a given timestamp or event, -1 is used. A follow-up question that is raised is if we should include some mechanism of dealing with missing values in our method. However, we discard this idea and defend that we should not: missing values are indeed something we want to detect. For instance, if a certain device responsible for reporting one feature stops working, we want to know that. This scenario is likely to happen in a distributed Internet-of-Things (IoT) system with hundreds of devices transmitting data. 
 
 %feats = [max_amt_rate_per_location_72h, num_preauths_per_card_1w, user_avg_amount_completions_1h, completions_rate_per_location_zip3_72h, completion_rate_per_card_72h]
 %low drift:
@@ -594,52 +594,52 @@ In this experiment, we set out to test our system in a low drift scenario. To gu
 
 We first show the corrected p-value plots when both reference and target periods are the same, for the previous features $x_1$, $x_2$ and $x_3$ in Figures \ref{fig:merchant2-x1-correctedpvalues}, \ref{fig:merchant2-x2-correctedpvalues} and \ref{fig:merchant2-x3-correctedpvalues}, respectively. 
 
-Feature x1 has less alerts in this experiment where we use equal reference and target periods. However, the alarms last for about two months. This is unexpected as we predicted we would see no alarms or few ones with short duration. Likewise, we observe that for feature x2 (Figure \ref{fig:merchant2-x2-correctedpvalues}) and x3 (Figure \ref{fig:merchant2-x3-correctedpvalues}) we still have many alarms and some lasting up to one month.
+Feature $x_1$ has less alerts in this experiment where we use equal reference and target periods. However, the alarms last for about two months. This is unexpected as we predicted we would see no alarms or few ones with short duration. Likewise, we observe that for feature $x_2$ (Figure \ref{fig:merchant2-x2-correctedpvalues}) and $x_3$ (Figure \ref{fig:merchant2-x3-correctedpvalues}) we still have many alarms and some lasting up to one month.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x1-correctedpvalues.pdf}
-      \caption{Merchant feature x1 corrected p-values with equal reference and target periods}
+      \caption{Merchant feature $x_1$ corrected p-values with equal reference and target periods}
       \label{fig:merchant2-x1-correctedpvalues}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x2-correctedpvalues.pdf}
-      \caption{Merchant feature x2 corrected p-values with equal reference and target periods}
+      \caption{Merchant feature $x_2$ corrected p-values with equal reference and target periods}
       \label{fig:merchant2-x2-correctedpvalues}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x3-correctedpvalues.pdf}
-      \caption{Merchant feature x3 corrected p-values with equal reference and target periods}
+      \caption{Merchant feature $x_3$ corrected p-values with equal reference and target periods}
       \label{fig:merchant2-x3-correctedpvalues}
     \end{center}
 \end{figure}
 We do not have a clear explanation for this and due to time constraints we leave further tests to future work. We suspect the issue may be that there is a difference between the batch and streaming phases. In batch we have subsets of events and compute EMA-like histogram aggregations based on those. In streaming, however, we have a continuous stream of data and never expire the 6\% of data that in batch is not present, because it is a finite window.
 
-Now we analyze feature x4 from the previous experiment, as this one was the one with the highest measured drift. Recall that feature x4' target time-series (Figure \ref{fig:merchant-x4-target}) was significantly different from the reference one (Figure \ref{fig:merchant-x4-reference}). Because of this, the corrected p-values plot from the previous experiment (Figure \ref{fig:merchant-x4-correctedpvalues}) crossed our threshold line multiple times and remained in an alert state for most of the target time-series. In this new experiment, we used the reference period twice. Because of this, the corrected p-values plot is now different. Figure \ref{fig:merchant2-x4-correctedpvalues} shows the corrected p-values plot for feature x4 when we used the reference period for both phases.
+Now we analyze feature $x_4$ from the previous experiment, as this one was the one with the highest measured drift. Recall that feature $x_4$'s target time-series (Figure \ref{fig:merchant-x4-target}) was significantly different from the reference one (Figure \ref{fig:merchant-x4-reference}). Because of this, the corrected p-values plot from the previous experiment (Figure \ref{fig:merchant-x4-correctedpvalues}) crossed our threshold line multiple times and remained in an alert state for most of the target time-series. In this new experiment, we used the reference period twice. Because of this, the corrected p-values plot is now different. Figure \ref{fig:merchant2-x4-correctedpvalues} shows the corrected p-values plot for feature $x_4$ when we used the reference period for both phases.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x4-correctedpvalues.pdf}
-      \caption{Merchant feature x4 corrected p-values with equal reference and target periods}
+      \caption{Merchant feature $x_4$ corrected p-values with equal reference and target periods}
       \label{fig:merchant2-x4-correctedpvalues}
     \end{center}
 \end{figure}
-Using the same period twice theoretically means we have no drift at all. Hence, we expected to see no alerts. Figure \ref{fig:merchant2-x4-correctedpvalues} shows that we have a few alerts but significantly less than in Figure \ref{fig:merchant-x4-correctedpvalues}. Furthermore, in this new experiment, x4 eventually stops being reported at all until the end of the dataset and ends at a high p-value. Recall that the higher the p-value the less divergent a feature is. Overall, we see that this feature has fewer alarms and stabilizes well above our alarm threshold which is coherent since we used the same dataset as reference and target periods.
+Using the same period twice theoretically means we have no drift at all. Hence, we expected to see no alerts. Figure \ref{fig:merchant2-x4-correctedpvalues} shows that we have a few alerts but significantly less than in Figure \ref{fig:merchant-x4-correctedpvalues}. Furthermore, in this new experiment, $x_4$ eventually stops being reported at all until the end of the dataset and ends at a high p-value. Recall that the higher the p-value the less divergent a feature is. Overall, we see that this feature has fewer alarms and stabilizes well above our alarm threshold which is coherent since we used the same dataset as reference and target periods.
 
-We now introduce a new feature, x5. Feature x5 also suffers from a large amount of drift. In the reference and target datasets presented in Table \ref{tbl:merchant1-datasets-summary}, feature x5 reference time-series plot is given by Figure \ref{fig:merchant-x5-reference} and the target time-series by Figure \ref{fig:merchant-x5-target}.
+We now introduce a new feature, $x_5$. Feature $x_5$ also suffers from a large amount of drift. In the reference and target datasets presented in Table \ref{tbl:merchant1-datasets-summary}, feature $x_5$ reference time-series plot is given by Figure \ref{fig:merchant-x5-reference} and the target time-series by Figure \ref{fig:merchant-x5-target}.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x5-reference.pdf}
-      \caption{Merchant feature x5 reference time-series}
+      \caption{Merchant feature $x_5$ reference time-series}
       \label{fig:merchant-x5-reference}
     \end{center}
 \end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x5-target.pdf}
-      \caption{Merchant feature x5 target time-series}
+      \caption{Merchant feature $x_5$ target time-series}
       \label{fig:merchant-x5-target}
     \end{center}
 \end{figure}
@@ -647,7 +647,7 @@ The density in the upper domain of values is clearly different in both reference
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant-x5-correctedpvalues.pdf}
-      \caption{Merchant feature x5 corrected p-values}
+      \caption{Merchant feature $x_5$ corrected p-values}
       \label{fig:merchant-x5-correctedpvalues}
     \end{center}
 \end{figure}
@@ -656,7 +656,7 @@ However, when using the same reference and target periods, in this case using th
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/merchant2-x5-correctedpvalues.pdf}
-      \caption{Merchant feature x5 corrected p-values with equal reference and target periods}
+      \caption{Merchant feature $x_5$ corrected p-values with equal reference and target periods}
       \label{fig:merchant2-x5-correctedpvalues}
     \end{center}
 \end{figure}
