@@ -119,14 +119,14 @@ In the query above, the
 
 A sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. A SWAG algorithm may restrict the set of computable aggregations based on their properties. Different SWAG algorithms use different data structures for the window contents and the incremental aggregation state.
 
-Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)} and \textit{Subtract-On-Evict (SOE)}. Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. Recall that the combine function is represented by $\oplus$ and the identity or neutral element of the aggregation by $\overline{\theta}$. Pseudocode for the Recalculate-From-Scratch algorithm is shown in Algorithm \ref{pseudo:rfs}.
+Two of the most basic SWAG algorithms are Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE). Recalculate-From-Scratch (RFS) is the simplest and most general SWAG algorithm. As the name suggests, this algorithm recomputes the aggregation over the entire window for each update. For instance, the computation of a sum over a sliding window using RFS means that whenever the window changes all elements are summed. This approach works for every aggregation. However, given \textit{n} as the window size, this algorithm takes \textit{O(n)} space and time complexity which makes it unfit in most scenarios of large scale data processing. Recall that the combine function is represented by $\oplus$ and the identity or neutral element of the aggregation by $\overline{\theta}$. Pseudocode for the Recalculate-From-Scratch algorithm is shown in Algorithm \ref{pseudo:rfs}, assuming all functions have access to a \textit{vals} array which holds the window contents.
   
 
 \begin{algorithm}
     \caption[Recalculate-From-Scratch]{Recalculate-From-Scratch insert, evict and query methods}
     \label{pseudo:rfs}
     \begin{algorithmic}[1]
-        \Function{query}{vals}
+        \Function{query}{}
             \State $agg\gets\overline{\theta}$
             \ForEach {$v \in vals$}
                 \State $agg \gets agg \oplus v$
@@ -134,41 +134,32 @@ Two of the most basic SWAG algorithms are \textit{Recalculate-From-Scratch (RFS)
             \State \Return $agg$
         \EndFunction
         
-        
-        \Function{insert}{vals, v}
-        
+        \Function{insert}{v}
             \State $vals.pushBack(v)$
         \EndFunction
         
-        
-        \Function{evict}{vals}
-        
+        \Function{evict}{}
             \State $vals.popFront()$
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
-Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element inserted or evicted from the window, the aggregation value is updated without recomputing the entire aggregation like in RFS. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations, that is, a function $\ominus$ exists such that $(x \oplus y) \ominus y = x$, for all $x$ and $y$. To illustrate the differences between SOE and RFS, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the current total sum plus ($\oplus$) the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed thus far minus ($\ominus$) the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable. Algorithm \ref{pseudo:soe} shows pseudocode for SOE.
+Subtract-On-Evict (SOE) on the other hand, is a SWAG algorithm that incrementally computes the aggregation value. For each element inserted or evicted from the window, the aggregation value is updated without recomputing the entire aggregation like in RFS. SOE relies on expiring the evicted elements from the aggregation state. Hence, SOE only works for \textit{invertible} aggregations, that is, a function $\ominus$ exists such that $(x \oplus y) \ominus y = x$, for all $x$ and $y$. To illustrate the differences between SOE and RFS, consider the computation of a sum aggregation over a sliding window. The total sum of the window will be the aggregation state or value. When inserting an element, the updated total window sum equals the current total sum plus ($\oplus$) the new element. The sum aggregation is considered \textit{invertible} because, when evicting an element, the new aggregation state is the total sum computed thus far minus ($\ominus$) the evicted element. With window size of \textit{n}, SOE has \textit{O(n)} space complexity and \textit{O(1)} time complexity. However, aggregations are not always invertible thus making this algorithm very restrictive and not always applicable. Algorithm \ref{pseudo:soe} shows pseudocode for SOE assuming all functions have access to the window contents through the \textit{vals} array and access to the current aggregation state \textit{agg}.
 
 \begin{algorithm}
     \caption[Subtract-On-Evict]{Subtract-On-Evict insert, evict and query methods}
     \label{pseudo:soe}
     \begin{algorithmic}[1]
         \Function{query}{}
-        
             \State \Return $agg$
         \EndFunction
         
-        
-        \Function{insert}{vals, v}
-        
+        \Function{insert}{v}
             \State $vals.pushBack(v)$
             \State $agg \gets agg \oplus v$
         \EndFunction
         
-        
-        \Function{evict}{vals}
-        
+        \Function{evict}{}
             \State $v \gets vals.popFront()$
             \State $agg \gets agg \ominus val$
         \EndFunction

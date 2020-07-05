@@ -188,7 +188,7 @@ Even though SAMM is not directly applicable in our context, it provides us with 
 As discussed in Section \ref{sec:back-swag-algs}, a sliding window aggregation algorithm allows the computation of an exact or approximate aggregation over a sliding window. We want to find an aggregation that is suitable to encode our reference and streaming periods so we avoid keeping the entire sliding window in memory. Furthermore, we need an efficient algorithm to incrementally maintain this aggregation. We have presented Recalculate-From-Scratch (RFS) and Subtract-On-Evict (SOE) as the two most basic generic stream processing algorithms. In this section, we analyze other more sophisticated SWAG algorithms that fit different use cases, restraining the set of computable aggregations to certain families, as defined in Table \ref{tbl:aggregations-properties}.
 
 \subsection{Two-Stacks} \label{sec:2stacks}
-The Two-Stacks SWAG algorithm works for \textit{associative} aggregations (recall Table \ref{tbl:aggregations-properties}) in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.}, elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Algorithm \ref{pseudo:2-stacks}, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
+The Two-Stacks SWAG algorithm works for \textit{associative} aggregations (recall Table \ref{tbl:aggregations-properties}) in scenarios where the sliding window has First-In First-Out (FIFO) semantics --- \textit{i.e.}, elements are evicted in the same order they were inserted. Two-Stacks \cite{Tangwongsan-DABA} implements the FIFO queue using two stacks, namely the front stack F and the back stack B. Each element in each of the stacks is a pair \textit{<val, agg>} where \textit{val} is the item's value and \textit{agg} is the aggregation value of everything below it on the stack. The pseudocode for Two-Stacks can be seen in Algorithm \ref{pseudo:2-stacks}, assuming all functions have access to stacks F and B, with $\oplus$ as the \textit{combine} function and $\overline{\theta}$ as the identity value of the \textit{combine} function, such that $\overline{\theta} \oplus x$ = $x \oplus \overline{\theta}$ = x. For example, if $\oplus$ is the arithmetic sum then $\overline{\theta}$ is 0. If $\oplus$ is the arithmetic multiplication then $\overline{\theta}$ is 1.
 
 Insertion of a new item is always made on stack B. The updated aggregation state is computed using the \textit{combine} function $\oplus$ taking as arguments the aggregation value \textit{agg} of the top element of stack B and the item's value \textit{val}. The pair pushed onto stack B is a pair with \textit{val} and the new aggregation value $\textit{agg} \oplus \textit{val}$.
 
@@ -208,18 +208,17 @@ Computing the sliding window aggregation is done by applying the \textit{combine
         \EndIf
         \EndFunction
         
-        \Function{query}{F, B}
+        \Function{query}{}
             \State \Return{getStackAggregationValue(F) $\oplus$ getStackAggregationValue(B)}
         \EndFunction
         
         
-        \Function{insert}{B, v}
+        \Function{insert}{v}
             \State{B.push( \{val: v, agg: getStackAggregationValue(B) $\oplus$ v\} }
         \EndFunction
         
         
-        \Function{evict}{F, B}
-        
+        \Function{evict}{}
             \If{F.isEmpty()} \Comment{// Flip B onto F and update top aggregation value}
                 \While {\textbf{not} B.isEmpty()}
                     \State{F.push( \{val: B.top().val, agg: B.top().val $\oplus$ getStackAggregationValue(F) \})}
@@ -648,7 +647,7 @@ The main idea behind this implementation is to replace every HLL counter with a 
 
 The adaptation of the original HLL to work under a sliding window scenario requires the storage of additional information. The original HLL maintained \textit{m} integer counters, each storing the maximum for the leftmost 1-bit position of the analyzed binary strings.  The counter held the maximum value for all the seen binary strings so far but there was no way to expire old items. To allow eviction, the proposed data structure is very similar to the original \textit{m} integer counters but keeps a list of values per bucket and associates a timestamp to each. 
 
-The stochastic averaging process of HLL remains unchanged: incoming items are hashed and distributed across \textit{m} buckets. However, the authors propose keeping a short list of \textit{packets} per bucket instead of a single integer count. A \textit{packet} is defined as a pair <\textit{t\textsubscript{i}, p\textsubscript{i}}> where \textit{t\textsubscript{i}} is the arrival timestamp of the packet and \textit{p\textsubscript{i}} the position of the leftmost 1-bit in the binary hash representation of the associated value. Packets are only kept in the list if they are possible maxima over future windows. Because of that, the authors name this list a \textit{"List of Future Possible Maxima (LFPM)"}.
+The stochastic averaging process of HLL remains unchanged: incoming items are hashed and distributed across \textit{m} buckets. However, the authors propose keeping a short list of \textit{packets} per bucket instead of a single integer count. A \textit{packet} is defined as a pair <\textit{t\textsubscript{i}, p\textsubscript{i}}> where \textit{t\textsubscript{i}} is the arrival timestamp of the packet and \textit{p\textsubscript{i}} the position of the leftmost 1-bit in the binary hash representation of the associated value. Packets are only kept in the list if they are possible maxima over future windows. Because of that, the authors name this list a ``List of Future Possible Maxima (LFPM)''.
 
 \subsubsection*{Element Insertion \& Eviction}
 Similarly to the original HLL, incoming elements are hashed and the first \textit{n} bits of the string are used to map the new element to one of the \textit{m} buckets. The first \textit{n} bits are then discarded and the bit-pattern observable \textit{p} is computed from the remaining string. 
