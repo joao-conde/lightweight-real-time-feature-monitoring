@@ -728,7 +728,7 @@ Despite having the same time and space complexities, the Sliding HLL DRV approac
 \section{Summary}
 In this chapter, we presented state of the art outlier detection methods and classified them according to Blázquez-García \emph{et al.} taxonomy \cite{Blazquez-Garcia-Review-Anomaly-Detection}. Additionally, we presented sliding window aggregation algorithms, probabilistic data structures and their respective sliding window implementations, with the intent of researching how to incrementally maintain an aggregation in a streaming environment.
 
-In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource-intensive (both time and memory-wise), provided no measure of how divergent and outlier was or because they evolved their reference period.
+In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However, we found most of them inapplicable in our scenario, because they were resource-intensive (both time and memory-wise), provided no measure of how divergent an outlier was or because they evolved their reference period.
 
 In Section \ref{sec:sota-swag-algs}, we presented sliding window aggregation algorithms that we intended on using to compute our aggregations. However, their time or memory complexities did not meet our sub-linear requirements.
 

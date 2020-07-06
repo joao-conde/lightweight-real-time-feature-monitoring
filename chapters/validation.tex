@@ -271,7 +271,7 @@ Before moving to real data, we performed one last experiment, using synthetic da
         $x_4$               & Uniform                         & $a=50$, $b=125$        &  &  \\ \cline{1-3}
         \end{tabular}
     \end{center}
-    \caption{Multi feature reference dataset and feature distributions}
+    \caption{Multi-feature reference dataset and feature distributions}
     \label{tbl:multi-feat-ref-dataset-distros}
 \end{table}
 
@@ -665,6 +665,6 @@ However, when using the same reference and target periods, in this case using th
 \section{Conclusions}
 In this section, we summarize our experimental tests, results and uncovered issues.
 
-We began by performing a single-feature analysis of synthetic data. The results obtained with this set of experiments were what we expected, in the sense that the artificially introduced anomalies in the datasets were all correctly reported. Still working with synthetic data, we performed our first multi-feature analysis. In this scenario, we applied the Holm-Bonferroni multiple test correction to the p-values of each hypothesis. Once again, each feature was correctly reported as divergent at the timestamps where we changed the underlying generating distribution.
+We began by performing single-feature analysis of synthetic data. The results obtained with this set of experiments were what we expected, in the sense that the artificially introduced anomalies in the datasets were all correctly reported. Still working with synthetic data, we performed our first multi-feature analysis. In this scenario, we applied the Holm-Bonferroni multiple test correction to the p-values of each hypothesis. Once again, each feature was correctly reported as divergent at the timestamps where we changed the underlying generating distribution.
 
 Finally, we moved on to real data. Due to time constraints and the scope of this thesis, we experimented only with data from one merchant. In our first experiment with real data, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as this dataset contained a lot of drift. In our last experiment, we attempted to reduce concept drift to a maximum by using the same period as reference and target. To our surprise, we still produced a large number of long-lasting alarms. We defer the investigation of the root cause of the problem to future work and leave a few untested hypotheses as solutions for this issue, like the possibility that the EMA-like histograms in batch work with subsets of data and the streaming ones work with infinite amounts of data. In other words, for the streaming EMAs, the previous events never have their contribution set to zero, even though the weights tend to zero, whereas the batch EMAs worked with a finite dataset. Additionally, our sampling may have been insufficient. To test this, an experiment with a lower $\gamma$ and hence a higher number of samples should be carried out.
