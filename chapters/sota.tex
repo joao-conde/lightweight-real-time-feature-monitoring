@@ -154,7 +154,7 @@ In this thesis, we want to detect and alert data pattern shifts with a low memor
 However, this two-window paradigm encodes a static normal or reference period in one window and the observed streaming values in a sliding one. Since in this thesis we want to report streaming data pattern shifts relatively to a reference period, we use a similar two-windowed model, but use lightweight and incrementally maintainable aggregations over both windows.
 
 
-\subsubsection{SAMM: Automatic Model Monitoring for Data Streams}
+\subsubsection{SAMM: Automatic Model Monitoring for Data Streams} \label{sec:SAMM}
 
 Sampaio \emph{et al.} present SAMM \cite{SAMM}, an automatic model monitoring system for data streams. Similarly to the method presented in Section \ref{kifer}, SAMM uses two windows: the reference window R and the target window T. Window T contains the last $n_t$ elements and window R the $n_r$ elements of a reference period, which is prior to T. SAMM has two main components that interest us: the one responsible for computing the signal and the one that defines the signal threshold. 
 

@@ -99,12 +99,33 @@ In Section \ref{sec:emas} we discussed Exponential Moving Averages (EMAs) and ho
 \[ 2^{- \frac{1}{n_{1/2}}} \]
 where $n_{1/2}$ is commonly denoted as a tuple-based half-life. 
 
+Algorithm \ref{pseudo:ema-hist} shows how we update our EMA histogram. We assume we have access to global \textit{counts} and \textit{bins} arrays and use a suppression factor of $2^{- \frac{1}{n_{1/2}}}$ with $n_{1/2}$ as the tuple-based half-life. 
+The histogram aggregation is updated for each new streaming value \texttt{val} using the \texttt{processValue(val)} function, that increments the correct histogram bin (note that the \textit{bins} array defines the bin boundaries while the \textit{counts} array actually holds each bin's count) and applies the EMA suppression to every bin.
+\begin{algorithm}[!htb]
+    \caption[EMA histogram]{EMA histogram sliding window emulation}
+    \label{pseudo:ema-hist}
+    \begin{algorithmic}[1]
+        \Function{getBin}{val}
+            \State \Return{binarySearch(bins, val)}
+        \EndFunction
+        
+        \Function{processValue}{val}
+            \State $bin \gets getBin(val)$
+            \State $counts[bin] \gets counts[bin] + 1$ \Comment{// Increment correct bin}
+            
+            \ForEach {$count \in counts$} \Comment{// Apply EMA suppression to all bins}
+                \State $count \gets count \times 2^{- \frac{1}{n_{1/2}}}$
+            \EndFor
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
 After processing \textit{x} tuples the oldest tuple is \emph{smoothed} by a factor of $2^{- \frac{x}{n_{1/2}}}$. If we process $x = 4n_{1/2}$ tuples the oldest tuple would have its contribution reduced by
 \[ 2^{- \dfrac{4n_{1/2}}{n_{1/2}}} = 2^{-4} \]
 which is approximately 0.06. In other words, the \textit{x-th} event would have 6\% contribution towards the EMA state or value meaning older events would have even less weight.
 
 We choose to emulate windows with four times the half-life size (or $4n_{1/2}$), meaning we discard events whose contribution is less than 6\%. We set the half-life to be one-quarter of the size of the window we want to emulate. The size of the window we want to monitor varies from situation to situation, but in the limited scope of this thesis we set to monitor a period extending up to one month (at an error level of about 6\%) so we set the half-life to be the number of tuples that correspond to one week worth of data. This will give more weight to the most recent week but it will include contributions decaying to 6\% in the fourth oldest week.
+
 
 \subsection{Batch Analysis Phase} \label{sec:batch-phase}
 The goal of the batch phase will be to build our reference aggregation for each feature and get to know the distribution of divergence or distance values between the reference and EMA-like aggregations. In other words, we:
@@ -220,9 +241,7 @@ or:
 \end{equation}
 
 \subsubsection*{Multiple Test Correction} \label{sec:multi-test}
-Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test or simultaneous statistical inference problem \cite{MultiTestProblem-Pubmed}
-\cite{MultiTestProblem-Dickhaus2014}
-\cite{MultiTestProblem-Miller1966}  \cite{multiple-test-correction-geoffrey} arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction because it is a simple and easy to compute correction that can reduce the number of false negatives while having as target to control the number of false positives. Furthermore, it does not require to assume any independence between the tested hypothesis (as other methods do) which would almost surely be a wrong assumption for realistic datasets. Therefore we leave as future work the testing of other correction methods. In statistics, Family-Wise Error Rate (FWER) \cite{MultivariateMT} \cite{MultitestTamhane2018AdvancesIP} is the probability of having one or more false positives when performing multiple hypotheses tests, \textit{i.e.}, considering one hypothesis true when it is not. The Holm-Bonferroni method \cite{HolmBonferroni} is one of many approaches for controlling the Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
+Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test or simultaneous statistical inference problem \cite{MultiTestProblem-Pubmed, MultiTestProblem-Dickhaus2014, MultiTestProblem-Miller1966, multiple-test-correction-geoffrey} arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction because it is a simple and easy to compute correction that can reduce the number of false negatives while having as target to control the number of false positives. Furthermore, it does not require to assume any independence between the tested hypothesis (as other methods do) which would almost surely be a wrong assumption for realistic datasets. Therefore we leave as future work the testing of other correction methods. In statistics, Family-Wise Error Rate (FWER) \cite{MultivariateMT, MultitestTamhane2018AdvancesIP} is the probability of having one or more false positives when performing multiple hypotheses tests, \textit{i.e.}, considering one hypothesis true when it is not. The Holm-Bonferroni method \cite{HolmBonferroni} is one of many approaches for controlling the Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
 
 
 \subsubsection*{Holm-Bonferroni Correction} \label{sec:holmbonferroni}
@@ -249,3 +268,17 @@ In \cite{SAMM}, the authors prove that the minimum number of samples $S$ needed 
     \label{eq:optimal-n-samples}
     \textit{S} = \ceil[\bigg]{\frac{\log\gamma}{log(1 - \frac{\alpha}{n_{features}})}}
 \end{equation}
+
+
+\subsubsection*{Method classification}
+Similarly to the methods presented in Sections \ref{kifer} and \ref{sec:SAMM}, we use a two-windowed model that can take uni or multivariate input. However, we perform a multivariate analysis of all feature's time-series with the use of the Holm-Bonferroni correction. Hence, we say our method is multivariate. We also alert entire windows or subsequences as anomalous. Thus, according to the taxonomy presented in Section \ref{sec:outliers}, our method is a dissimilarity-based multivariate subsequence outlier detection method.
+
+
+\subsubsection*{Time complexity of the streaming phase}
+The critical phase of our method is the stream analysis because it has to process new events and alert for possible deviations in real-time.
+
+For each event and for each feature, we update our EMA histogram using Algorithm \ref{pseudo:ema-hist} which has to perform a binary search to find the correct bin to insert our new value and traverses all bins to apply a suppression factor. Using $n$ as the number of bins, we have a time complexity of $O(log(n) + n)$, for each feature. However, since $n$ is a fixed and small constant, \textit{i.e.}, more or less 100 bins, we say that this algorithm has constant time complexity. In other words, our time complexity does not depend on the size of the emulated streaming windows.
+
+\subsubsection*{Space complexity of the streaming phase}
+We store $n$ bins per feature, so we have a space complexity of $O(n)$ per feature. Again, since $n$ is a small and fixed constant, we claim to have constant space complexity for ever-growing volumes of data.
+ 
