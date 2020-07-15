@@ -662,9 +662,60 @@ However, when using the same reference and target periods, in this case using th
 \end{figure}
 
 
+\subsection{Building an Accurate Divergence Measure Distribution}
+Our method comprises two-phases: the batch and the streaming analysis. We can not conclude in which phase an error that could possibly explain the last experiment's results exists. To isolate both phases, we conduct this last experiment where instead of using the distribution of divergence measures built in the batch phase we use a distribution we know to be the best fit for the streaming period. 
+
+Our best fit divergence distribution was built over the streaming period. To do this, we processed the streaming events once and saved all the JSD measures. We binned these JSD values with 50,000 bins all with equal heights (or counts). Then we performed once again the streaming analysis over the same period but this time using the previously built distribution for which we know it is the best possible fit, since it was computed over the exact same period, built event by event. We set the FWER to be 1\% so we expect to see some alarms, \textit{i.e.}, for JSD measures above the 99th percentile.
+
+Recall that in the last experiment, for feature $x_1$, using the same target and reference periods, we had two large alarms that lasted months (Figure \ref{fig:merchant2-x1-correctedpvalues}). Using the same periods but with the newly computed distribution of divergence measures we obtain the corrected p-values plot shown in Figure \ref{fig:merchant3-x1-correctedpvalues}.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant3-x1-correctedpvalues.pdf}
+      \caption{Merchant feature $x_1$ corrected p-values with equal reference and target periods and using the best-fit divergence distribution}
+      \label{fig:merchant3-x1-correctedpvalues}
+    \end{center}
+\end{figure}
+This plot actually makes sense and represents expected behavior. Notice that we have only a few short-lasting alarms, which correspond to the JSD measures above the 99th percentile. These can be thought of as false positives. In reality, the definition of the multi-test we perform is exactly this: alert events above the 99th percentile (FWER=1\%).
+
+Figures \ref{fig:merchant3-x2-correctedpvalues}, \ref{fig:merchant3-x3-correctedpvalues}, \ref{fig:merchant3-x4-correctedpvalues} and \ref{fig:merchant3-x5-correctedpvalues} show the corrected p-value plots for this experiment for features $x_2$, $x_3$, $x_4$ and $x_5$, respectively.
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant3-x2-correctedpvalues.pdf}
+      \caption{Merchant feature $x_2$ corrected p-values with equal reference and target periods and using the best-fit divergence distribution}
+      \label{fig:merchant3-x2-correctedpvalues}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant3-x3-correctedpvalues.pdf}
+      \caption{Merchant feature $x_3$ corrected p-values with equal reference and target periods and using the best-fit divergence distribution}
+      \label{fig:merchant3-x3-correctedpvalues}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant3-x4-correctedpvalues.pdf}
+      \caption{Merchant feature $x_4$ corrected p-values with equal reference and target periods and using the best-fit divergence distribution}
+      \label{fig:merchant3-x4-correctedpvalues}
+    \end{center}
+\end{figure}
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.5]{figures/merchant3-x5-correctedpvalues.pdf}
+      \caption{Merchant feature $x_5$ corrected p-values with equal reference and target periods and using the best-fit divergence distribution}
+      \label{fig:merchant3-x5-correctedpvalues}
+    \end{center}
+\end{figure}
+The analysis performed for feature $x_1$ applies for all of these features. Notice that for all plots we have very few alarms of very short durations. This coherency in results across multiple features seems to indicate that our streaming analysis is accurate and detects the outliers accurately if the divergence measure distribution used is well built.
+
+\newpage
 \section{Conclusions}
 In this section, we summarize our experimental tests, results and uncovered issues.
 
 We began by performing single-feature analysis of synthetic data. The results obtained with this set of experiments were what we expected, in the sense that the artificially introduced anomalies in the datasets were all correctly reported. Still working with synthetic data, we performed our first multi-feature analysis. In this scenario, we applied the Holm-Bonferroni multiple test correction to the p-values of each hypothesis. Once again, each feature was correctly reported as divergent at the timestamps where we changed the underlying generating distribution.
 
-Finally, we moved on to real data. Due to time constraints and the scope of this thesis, we experimented only with data from one merchant. In our first experiment with real data, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as this dataset contained a lot of drift. In our last experiment, we attempted to reduce concept drift to a maximum by using the same period as reference and target. To our surprise, we still produced a large number of long-lasting alarms. We defer the investigation of the root cause of the problem to future work and leave a few untested hypotheses as solutions for this issue, like the possibility that the EMA-like histograms in batch work with subsets of data and the streaming ones work with infinite amounts of data. In other words, for the streaming EMAs, the previous events never have their contribution set to zero, even though the weights tend to zero, whereas the batch EMAs worked with a finite dataset. Additionally, our sampling may have been insufficient. To test this, an experiment with a lower $\gamma$ and hence a higher number of samples should be carried out.
+We then moved on to real data. Due to time constraints and the scope of this thesis, we experimented only with data from one merchant. In our first experiment with real data, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as this dataset contained a lot of drift. 
+
+In our second experiment with real data, we attempted to reduce concept drift to a maximum by using the same period as reference and target. To our surprise, we still produced a large number of long-lasting alarms. We defer the investigation of the root cause of the problem to future work and leave a few untested hypotheses as solutions for this issue, like the possibility that the EMA-like histograms in batch work with subsets of data and the streaming ones work with infinite amounts of data. In other words, for the streaming EMAs, the previous events never have their contribution set to zero, even though the weights tend to zero, whereas the batch EMAs worked with a finite dataset. Additionally, our sampling may have been insufficient and hence the divergence measure distribution was inaccurate. To test the first hypothesis, experiments with higher smoothing factors for streaming EMAs should be carried out. To test the second one, a lower $\gamma$ parameter should be used in the batch phase, hence increasing the number of samples to be made, potentially building a more accurate distribution of JSD values.
+
+In our final experiment, we aim to build the most accurate as possible distribution of divergence measures by building it based on the measured divergences observed in streaming. In our second streaming run, we used this distribution and observed that the alarms produced were very few and short-lasting ones. The few alarms raised correspond to divergence measures above the 99th percentile. With this experiment we conclude our streaming analysis is correctly built but depends a lot on how accurate the divergence measure distribution is. As discussed, future tests should be carried out where more samples are made, to ensure a more accurate divergence measure distribution is computed.
