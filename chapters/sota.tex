@@ -616,23 +616,6 @@ In Section \ref{sec:pds} we presented a set of probabilistic data structures con
 
 The probabilistic data structures studied can be implemented under generic sliding window aggregation algorithms like Recalculate-From-Scratch or DABA. However, doing so means we lose the main advantage of using these approximate aggregators: the constant space complexity. For example, cardinality estimation of a sliding window can be done employing the HyperLogLog heuristic of estimating cardinality as $2^\textit{p}$, with \textit{p} as the maximum position seen for the leftmost 1-bit, using DABA \ref{sec:daba} for the computation of \textit{p} per sliding window. With this approach, despite computing the aggregation state in constant time, we have a linear in window size space complexity solution. Thus, in this section, we explore sliding window implementations of the previously discussed probabilistic data structures that keep the space and time complexity at the very least logarithmic.
 
-%\subsection{Sliding Bloom Filter}
-%\subsection*{Data Structure}
-%\subsection*{Element Insertion}
-%\subsection*{Element Eviction}
-%\subsection*{Time complexity analysis}
-%\subsection*{Space complexity analysis}
-%\subsection*{Applicability to our Hypothesis}
-
-%\subsection{Sliding Count-Min Sketch}
-%\subsection*{Data Structure}
-%\subsection*{Element Insertion}
-%\subsection*{Element Eviction}
-%\subsection*{Time complexity analysis}
-%\subsection*{Space complexity analysis}
-%\subsection*{Applicability to our Hypothesis}
-
-
 \subsection{Sliding HyperLogLog}
 
 The HyperLogLog (HLL) aggregator presented in Section \ref{sec:hyper-log-log} will only be useful to us if it can be implemented efficiently in a sliding window fashion. The HLL aggregator estimates the set's cardinality assuming it is close to $2^\textit{p}$, where \textit{p} is the maximum position seen for the leftmost 1-bit in the binary values of all of the set items' hashes. In practice, all the aggregator has to compute is \textit{p}, the maximum value of all observables. Stochastic averaging is applied by emulating the effects of \textit{m} experiments using \textit{m} buckets to store \textit{m} bit-pattern observables. 
@@ -732,6 +715,6 @@ In Section \ref{sec:outliers}, we reviewed outlier detection algorithms. However
 
 In Section \ref{sec:sota-swag-algs}, we presented sliding window aggregation algorithms that we intended on using to compute our aggregations. However, their time or memory complexities did not meet our sub-linear requirements.
 
-We then discussed probabilistic data structures (Section \ref{sec:pds}) and their sliding window implementations (Section \ref{sec:sliding-pds}). Despite being efficient, both time and memory-wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use to us.
+In Section \ref{sec:pds}, we discussed probabilistic data structures. Then, in Section \ref{sec:sliding-pds}, we explored some probabilistic data structure sliding window implementations. We explored only sliding window versions of the HyperLogLog, but sliding versions of other probabilistic data structures exist, such as the Sliding Bloom Filter \cite{SlidingBloom} and the Sliding Count-Min Sketch \cite{SlidingCMS}. Despite being efficient, both time and memory-wise, each probabilistic data structure allows for one type of aggregation, and none of them happened to be of particular use to us.
 
 In the next chapter, we formally define the problem we aim to solve and the issues with current state of the art solutions. Then, we formulate our proposal along with the assumptions we make when approaching this problem. Finally, we pose some research questions we aim to answer by the end of this thesis.
