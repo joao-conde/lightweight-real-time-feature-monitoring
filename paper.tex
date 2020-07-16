@@ -86,17 +86,19 @@
 	\institution{Feedzai}
 }
 
+\author[Restivo]{André Restivo}
+\email{arestivo@fe.up.pt}
+\affiliation{%
+	\institution{University of Porto}
+}
+
 \author[Ribeiro]{Pedro Ribeiro}
 \email{pribeiro@dcc.fc.up.pt}
 \affiliation{%
   \institution{University of Porto}
 }
 
-\author[Restivo]{André Restivo}
-\email{arestivo@fe.up.pt}
-\affiliation{%
-	\institution{University of Porto}
-}
+
     
 
 
@@ -104,12 +106,12 @@
 % By default, the full list of authors will be used in the page headers. Often, this list is too long, and will overlap
 % other information printed in the page headers. This command allows the author to define a more concise list
 % of authors' names for this purpose.
-\renewcommand{\shortauthors}{Trovato and Tobin, et al.}
+%\renewcommand{\shortauthors}{Trovato and Tobin, et al.}
 
 %
 % The abstract is a short summary of the work to be presented in the article.
 \begin{abstract}
-Many real-time stream monitoring systems are static once deployed in a production environment. Over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. Data pattern shift detection refers to the process of finding patterns in data that do not conform to expected or usual behavior. Accurate and timely detection of data pattern deviations allow for immediate measures to be taken. Thus, the problem at hand is to determine when to reconfigure the system, \textit{e.g.}, a Machine Learning model, based on an analysis of the drifts in the stream of data. In this paper, we present a method that makes use of constant time & memory streaming aggregations and distribution divergence functions to alert deviations in data patterns in real-time. We generate alerts based on a user-defined probability threshold, for each of an event's fields, denominated features in our context. We evaluate our method through a series of tests, some with synthetic data sets and some with real data. We further split the tests into single and multi-feature analysis. Our method accurately detected the introduced anomalies in the experiments using synthetic datasets while maintaining high throughput, for single and multi-feature analysis. However, experiments with real data were not as accurate. Despite not knowing the specific reasons for that, we detail further investigation to future work and formulate a set of hypotheses that might explain the latter results and hence are worthy of pursuing next. Moreover, our set of experiments support the claim that sliding window aggregations and distribution divergence methods can be combined to detect data pattern shifts in streaming scenarios with constant time and memory complexity.
+Many real-time stream monitoring systems are static once deployed in a production environment. Over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. Accurate and timely detection of data pattern deviations allow for immediate measures to be taken. Thus, the problem at hand is to determine when to reconfigure the system, \textit{e.g.}, a Machine Learning model, based on an analysis of the drifts in the stream of data. In this paper, we present a method that makes use of constant time and memory streaming aggregations and distribution divergence functions to alert deviations in data patterns in real-time. We generate alerts based on a user-defined probability threshold, for each of an event's numerical fields, denominated features in our context. We evaluate our method through a series of tests, some with synthetic data sets and some with real data. We further split the tests into single and multi-feature analysis. Our method accurately detected the introduced anomalies in the experiments using synthetic datasets while maintaining high throughput, for single and multi-feature analysis. However, experiments with real data were not as accurate. Despite not knowing the specific reasons for that, we detail further investigation to future work and formulate a set of hypotheses that might explain the latter results and hence are worthy of pursuing next.
 \end{abstract}
 
 %
@@ -146,11 +148,11 @@ Many real-time stream monitoring systems are static once deployed in a productio
 \maketitle
 
 \section{Introduction}
-In the past decade, applications have become increasingly data-driven, placing data at the center of application design. For different use cases, the data is processed in different ways for different purposes. For instance, e-commerce platforms such as Alibaba\footnote{https://alibaba.com} need to process a large number of daily transactions while ensuring that sales run smoothly and that products are delivered to customers' homes. Streaming services, like YouTube\footnote{https://youtube.com} and Netflix\footnote{https://netflix.com}, try to guarantee that media content reaches up to millions of users simultaneously. Social networks are responsible for generating large volumes of data. Twitter\footnote{https://twitter.com}, for example, generates more than 500 million \textit{tweets} (posts in Twitter) per day\footnote{https://blog.twitter.com/engineering/en\_us/a/2013/new-tweets-per-second-record-and-how.html}. \textit{Tweets} may contain text, media content or both. Cybersecurity applications are yet another example of time-sensitive, data-driven applications. The entities that work in these use cases need to monitor user accesses and their actions in the network, where timely detection of intruders is critical to prevent them from tampering with the underlying system.
+In the past decade, applications have become increasingly data-driven, placing data at the center of application design. For different use cases, the data is processed in different ways for different purposes. For instance, e-commerce platforms such as Alibaba need to process a large number of daily transactions while ensuring that sales run smoothly and that products are delivered to customers' homes. Streaming services, like YouTube and Netflix, try to guarantee that media content reaches up to millions of users simultaneously. Social networks are responsible for generating large volumes of data. Twitter, for example, generates more than 500 million \textit{tweets} (posts in Twitter) per day. \textit{Tweets} may contain text, media content or both. Cybersecurity applications are yet another example of time-sensitive, data-driven applications. The entities that work in these use cases need to monitor user accesses and their actions in the network, where timely detection of intruders is critical to prevent them from tampering with the underlying system.
 
 All of these applications generate large volumes of data which lead to the creation of multiple real-time unbounded datasets, also known as data streams. The information that flows through such a stream can be analyzed on-the-fly or stored for later processing. The former is best known as stream processing, whereas the latter is known as batch processing. Streaming data is known for being non-stationary \cite{Gama-Knowledge-Discovery} where the value of the produced information lies in its recency \cite{Kolajo-Big-data-stream-SLR}. \textit{Recency} is measured under different scales for different use cases. For instance, consider the monitoring of geological data to forecast possible natural disasters such as earthquakes versus the monitoring of a computer network for intruder detection. In the former case, after the forecast of a future earthquake, governmental authorities need a couple of days to launch an evacuation plan and keep the population safe. However, in the intruder detection scenario, the decision of removing access to a user must be done as soon as possible, preferably in a few seconds. Hence, while in the first scenario information retrieved within a day would still be recent, in the second scenario, information is considered recent and relevant if delivered within seconds (or even milliseconds).
 
-Consider the use case where we want to detect credit card fraud on the data stream of all the transactions made on Amazon\footnote{https://amazon.com} by every US citizen on a single day. In this case, Amazon's transaction stream will need to be monitored by another system, a fraud detection one. Such a system would have to process all incoming transactions and decide, in a fraction of a second, if a transaction is fraudulent or not. Unlike the fraud detection system, our system is not mission-critical. Hence, it must monitor the data stream looking for data pattern deviations in real-time but with a low memory footprint.
+Consider the use case where we want to detect credit card fraud on the data stream of all the transactions made on Amazon by every US citizen on a single day. In this case, Amazon's transaction stream will need to be monitored by another system, a fraud detection one. Such a system would have to process all incoming transactions and decide, in a fraction of a second, if a transaction is fraudulent or not. Unlike the fraud detection system, our system is not mission-critical. Hence, it must monitor the data stream looking for data pattern deviations in real-time but with a low memory footprint.
 
 In this paper, we present a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period. The motivation to detect data stream pattern deviations in real-time is to know when to reconfigure the mission-critical system (\textit{e.g.}, retrain the Machine Learning model) before its performance decays. We want to build a lightweight enough solution that can be integrated into existing workflows since having a real-time system monitoring other real-time systems consuming as many resources as the latter would be far too costly.
 
@@ -160,27 +162,36 @@ In this paper, we present a lightweight real-time system that monitors a stream 
 
 \section{Method}
 \label{sec:Method}
-A data stream is a continuous collection of events, each timestamped and with multiple fields. In this paper, we refer to the event's fields as features. Our goal is to detect data pattern deviations for each feature in a streaming fashion. To that end, we devise a method that works with two windows and comprises two phases, a batch analysis phase and a stream analysis one. The batch analysis is performed on a static in time window which we call the reference window. The stream analysis is performed over a sliding window that groups data stream events. We aggregate the contents of the reference window with an exact histogram and the sliding window with an approximate histogram aggregation based on Exponential Moving Averages (EMAs) \cite{EMA-Everett2011, EMA-Hunter, EMA-MarcusB}. We then apply a statistical distribution divergence function to both histogram aggregations to obtain a divergence value. In the batch phase, we build the distribution of these values so we can define a percentile threshold for the newly measured divergence values in streaming.
+A data stream is a continuous collection of events, each timestamped and with multiple fields. In this paper, we refer to the event's fields as features. Our goal is to detect data pattern deviations for each feature in a streaming fashion. To that end, we devise a method that works with two windows and comprises two phases, a batch analysis phase and a stream analysis one. The batch analysis is performed on a static in time window which we call the reference window. The stream analysis is performed over an emulated sliding window that groups data stream events. We aggregate the contents of the reference window with an exact histogram and the sliding window with an approximate histogram aggregation based on Exponential Moving Averages (EMAs). We then apply a statistical distribution divergence function to both histogram aggregations to obtain a divergence value. In the batch phase, we build the distribution of these values so we can define a percentile threshold for the newly measured divergence values in streaming. We raise alerts for features above certain percentiles, \textit{e.g.}, the 99th percentile.
 
-\subsection{Batch Analysis Phase} \label{sec:batch-phase}
-The goal of the batch phase is to build our reference aggregation for each feature and get to know the distribution of divergence or distance values. In other words, for each feature, we:
-\begin{enumerate}
-    \item Compute the reference histogram using all data in the reference period
-    \item Compute the distribution of distances between the reference histogram and random samples of data
-\end{enumerate}
-This distribution of values can then later be compared to a given value of divergence for a single sample to find out how probable that value is to occur (if it is very low an alert may be raised).
+\subsection{EMA-based histogram} \label{sec:ema-hist}
+Exponential Moving Averages (EMAs) \cite{EMA-Everett2011, EMA-Hunter, EMA-MarcusB} are a type of reduce functions applied to a sequence of elements in an orderly fashion to compute a weighted average, using different weights for each element. These weights decrease exponentially with the age of the observations. EMAs are recursive: $EMA_t$ depends only on the $val_t$ plus a smoothed $EMA_{t-1}$. This recursive property allows us to store only one EMA value and continuously update it for each new value $val_t$, based on the following recursion formula:
+\begin{definition}
+EMA\textsubscript{t} = EMA\textsubscript{t-1} * $2^{-\frac{1}{n_{1/2}}}$ + $val_t$
+\label{def:tuple-ema}
+\end{definition} where $n_{1/2}$ is the tuple-based half-life of the EMA. 
+The half-life $n_{1/2}$ controls how fast old events are forgotten. The tuple-based half-life is the amount of tuples or events the EMA must process before a certain element has its weight reduced by half. For example, with a tuple-based half-life of $n_{1/2}=1$ tuple, for each new tuple, all weights are reduced by half. 
 
-\subsubsection{Building the Reference Histogram}
-First, for each feature, we compute the reference histogram from the reference period dataset. This is an exact histogram aggregation. When building it we ensure the histogram has equal counts for all bins which often results in different sized bins. Equal height histograms adjust better to wildly varying distributions. Equal height means we have more bins covering very dense regions and fewer bins in lower density regions. 
-
-\subsubsection{Finding the Distribution of Divergence Values} \label{sec:sampling-batch}
-Secondly, we aim to build the histogram that encodes the distribution of expected distance or divergence values, to later on threshold the observed distance values during the streaming phase. To that end, we make $S$ samples of transactions, each with the same tuple-based size of the sliding window we emulate in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
-
-\textcolor{red}{DEFINE S}
-
-For each sample, and each feature, we compute the approximated EMA histogram using the bins from the reference histogram. We also add two extra bins that will cover the region to the left and the right of our histogram, respectively. In other words, we add a bin that covers the region between $-\infty$ and our first bin and another that covers values from the last bin to $+\infty$. This way, observed values outside of the reference period will be placed in these special bins, either left or right.
-
-Each of the sample's histograms is an EMA-like histogram. An EMA-like histogram is essentially a collection of EMA-counts, as described in Section \ref{sec:ema-hist}. Each sample is processed event by event and a discount factor is applied per event to each bin (EMA expiration factor), thus building an approximated histogram aggregation, using the reference bins, for each feature of that sample. This procedure is illustrated in Figure \ref{fig:EMA-hist-build}.
+Each count of our EMA-based histogram is essentially an EMA-count. Algorithm \ref{pseudo:ema-hist} shows how we update our EMA histogram. We assume we have access to global \textit{counts} and \textit{bins} arrays and use a suppression factor of $2^{- \frac{1}{n_{1/2}}}$. The histogram aggregation is updated for each new streaming value \texttt{val} using the \texttt{processValue(val)} function, that increments the correct histogram bin (note that the \textit{bins} array defines the bin boundaries while the \textit{counts} array actually holds each bin's count) and applies the EMA suppression to every bin.
+\begin{algorithm}[!htb]
+    \caption[EMA histogram]{EMA histogram sliding window emulation}
+    \label{pseudo:ema-hist}
+    \begin{algorithmic}[1]
+        \Function{getBin}{val}
+            \State \Return{binarySearch(bins, val)}
+        \EndFunction
+        
+        \Function{processValue}{val}
+            \State $bin \gets getBin(val)$
+            \State $counts[bin] \gets counts[bin] + 1$ \Comment{//Increment correct bin}
+            
+            \ForEach {$count \in counts$} \Comment{//EMA suppression}
+                \State $count \gets count \times 2^{- \frac{1}{n_{1/2}}}$
+            \EndFor
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+This procedure is illustrated in Figure \ref{fig:EMA-hist-build}.
 \begin{figure}[!htb]
     \begin{center}
     %\hspace{6cm}
@@ -189,23 +200,35 @@ Each of the sample's histograms is an EMA-like histogram. An EMA-like histogram 
       \label{fig:EMA-hist-build}
     \end{center}
 \end{figure}
-\textcolor{red}{DEFINE EMA LIKE HIST}
 
-We compute multiple sample histograms to encode distributions over smaller time periods that may exist within the large reference period. We use an approximated histogram to mimic the target approximated histogram we will incrementally maintain in the streaming environment.
+The EMA-based approximate histogram emulates a sliding window as an exponential tail. This aggregation shows constant memory and time complexity regarding window size, making it ideal for our lightweight real-time system.
 
-For each feature, we have now \textit{S} histograms, one for each sample. We compute the divergence or distance between each of the \textit{S} histograms and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our distance function for each sample histogram and the reference histogram, obtaining \textit{S} divergence measurements.
+\subsection{Batch Analysis Phase} \label{sec:batch-phase}
+The main goals of the batch phase are to build our reference aggregation and the distribution of divergence values, for each feature. Streaming divergence values will be compared to this distribution of values later to find out how probable a value is to occur (if it is very low, an alert is raised).
+
+\subsubsection{Building the Reference Histogram}
+First, for each feature, we compute the reference histogram from the reference period. When building it we ensure the histogram has equal counts for all bins which results in different sized bins. Equal height histograms adjust better to wildly varying distributions. Equal height means we have more bins covering very dense regions and fewer bins in lower density regions. 
+
+\subsubsection{Building the Distribution of Divergence Values} \label{sec:sampling-batch}
+Secondly, we aim to build the distribution of expected distance or divergence values, to later on threshold the observed distance values during the streaming phase. To that end, we make $S$ samples of transactions, each with the same tuple-based size of the sliding window we emulate in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. With this sampling we aim to build a distribution of divergence values and reliably estimate the upper tail of that distribution. In \cite{SAMM}, the authors show how many samples must be made to have at least one value in the upper tail of the distribution. Defining $\alpha$ as our threshold and $\frac{\alpha}{n_{features}}$ as our threshold corrected by the Holm Bonferroni multiple test correction, $\gamma$ is defined as the probability of \textbf{not} having at least one point in the $\frac{\alpha}{n_{features}}$ upper tail of the distribution and the minimum number of samples $S$ to make is given by:
+\begin{equation*}
+    \label{eq:optimal-n-samples}
+    \textit{S} = \ceil[\bigg]{\frac{\log\gamma}{log(1 - \frac{\alpha}{n_{features}})}}
+\end{equation*}
+For each sample, and each feature, we compute the approximated EMA histogram using the bins from the reference histogram. We also add two extra bins that will cover the region to the left and the right of our histogram, respectively. This way, observed values outside of the reference period will be placed in these special bins, either left or right. We compute multiple sample histograms to encode distributions over smaller time periods that may exist within the large reference period. We use an approximated histogram to mimic the target approximated histogram we will incrementally maintain in the streaming environment.
+
+For each feature, we have now \textit{S} histograms, one for each sample. We compute the divergence between each of the \textit{S} histograms and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our divergence or distance function for each sample's EMA-based histogram and the reference histogram, obtaining \textit{S} divergence measurements.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.4]{figures/compute-sample-distances.png}
-      \caption[Compute sample's distance values]{Compute as many distance values as samples, one for each sample-reference histogram pair}
+      \caption[Compute sample's distance values]{Compute divergence values between reference and samples}
       \label{fig:compute-sample-distances}
     \end{center}
 \end{figure}
-
-For each feature, we end up with \textit{S} distance or divergence values. These $S$ measurements are distance measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if the probability is below a certain threshold. Note that the histograms for each sample are EMA-like histograms (as detailed in Section \ref{sec:ema-hist}) just like the target sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
+These $S$ measurements are divergence measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if the probability is below a certain threshold. Note that the histograms for each sample are EMA-based histograms just like the emulated sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
 
 \subsubsection{Burn-In Period at System Initialization}
-When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
+When we boot up our system in the streaming phase we initially have empty histogram aggregations. To avoid this burn-in period, we propose saving the last sample's histogram for each feature so that the sliding window EMA-based histogram aggregation is initialized with it.
 
 \subsubsection{Batch Phase Artifacts} \label{sec:batch-artifacts-summary}
 By the end of the batch phase, for each feature, we have: 
@@ -219,33 +242,27 @@ By the end of the batch phase, for each feature, we have:
 \subsection{Streaming Phase} \label{sec:stream-phase}
 In the streaming phase, the system will process event by event and perform a change detection test periodically. For each feature, we initialize the approximate histogram with the last sample's data, from the batch phase. Then, for each incoming event and each of the event's features, we update our streaming approximate histogram for that feature by adding the new value and then "cutting a slice" from the top of the histogram bars to simulate eviction, as described in Section \ref{sec:ema-hist}. This is all we do, regarding event processing.
 
-\textcolor{red}{DEFINE EMA HIST}
-
-We periodically perform a multi-feature change detection test. The test is done by first computing the distance between the reference histogram for a feature \textit{x} and the target sliding window histogram of the same feature. This distance value is then tested against the known distribution of distance values for feature \textit{x}. In other words, we test to see if the percentile of the computed distance is in the distribution of distance values and alert if above a certain percentile. When we perform the test, for each feature \textit{x}, we compute the percentile of the distance measured between the reference and target sliding window histogram aggregations. The probability value or \textit{p-value} of a distance value is: 
-
-\[\textit{p-value\textsubscript{distance\textsubscript{x}}} = 1 - percentile(\textit{distance\textsubscript{x}})\]
-
-For example, if we define alerts to have 1\% or less probability to happen, it means the system will raise an alert for distance values above the 99th-percentile or \textit{p-value} = 0.01. Generally speaking, we alert a feature \textit{x} as divergent at a given timestamp if for a given probability threshold $\alpha$:
-\[ \textit{percentile(distance\textsubscript{x})} > 1 - \alpha \]
+We periodically perform a multi-feature change detection test. The test is done by first computing the divergence between the reference histogram for a feature \textit{x} and the sliding window EMA-based histogram of the same feature. This value is tested against the known distribution of distance values for feature \textit{x}. We test to see if the percentile of the computed distance relative to the distribution of divergence is above a certain percentile. The probability of a divergence value $val_x$ (or \textit{p-value}) is:
+\[pvalue(val_x) = 1 - percentile(val_x)\]
+For example, if we define alerts to have 1\% or less probability to happen, it means the system will raise an alert for distance values above the 99th-percentile or \textit{p-value} = 0.01. We alert a feature \textit{x} as divergent at a given timestamp if for a given probability threshold $\alpha$:
+\[ percentile(val_x) > 1 - \alpha \]
 or:
 \begin{equation}
     \label{eq:alert-test}
-    \textit{p-value\textsubscript{distance\textsubscript{x}}} < \alpha
+    pvalue(val_x) < \alpha
 \end{equation}
 
 \subsubsection{Multiple Test Correction} \label{sec:multi-test}
-Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test or simultaneous statistical inference problem \cite{MultiTestProblem-Pubmed, MultiTestProblem-Dickhaus2014, MultiTestProblem-Miller1966, multiple-test-correction-geoffrey} arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction because it is a simple and easy to compute correction that can reduce the number of false negatives while having as target to control the number of false positives. Furthermore, it does not require to assume any independence between the tested hypothesis (as other methods do) which would almost surely be a wrong assumption for realistic datasets. In statistics, the Family-Wise Error Rate (FWER) \cite{MultivariateMT, MultitestTamhane2018AdvancesIP} is the probability of having one or more false positives when performing multiple hypotheses tests, \textit{i.e.}, considering one hypothesis true when it is not. The Holm-Bonferroni method \cite{HolmBonferroni} is one of many approaches for controlling the Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
+Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises \cite{MultiTestProblem-Pubmed, MultiTestProblem-Dickhaus2014, MultiTestProblem-Miller1966, multiple-test-correction-geoffrey}: the more hypotheses are checked, the higher the probability of obtaining false positives. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction because it is a simple and easy to compute correction that can reduce the number of false negatives while having as target to control the number of false positives. Furthermore, it does not require to assume any independence between the tested hypothesis (as other methods do) which would almost surely be a wrong assumption for realistic datasets. In statistics, the Family-Wise Error Rate (FWER) \cite{MultivariateMT, MultitestTamhane2018AdvancesIP} is the probability of having one or more false positives when performing multiple hypotheses tests, \textit{i.e.}, considering one hypothesis true when it is not. The Holm-Bonferroni method \cite{HolmBonferroni} is one of many approaches for controlling the Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
 
 
 \subsubsection*{Holm-Bonferroni Correction} \label{sec:holmbonferroni}
-The Holm-Bonferroni correction takes Equation \ref{eq:alert-test} and corrects the right-side threshold $\alpha$ for each feature. This correction is done by dividing the threshold $\alpha$ by a correction factor, as described next.
-
-First, we compute the \textit{p-value} of each feature. We then order our features by \textit{p-value}, in ascending order. Next, starting from the first feature, the one with the smallest \textit{p-value}, and proceeding until the end of the list of features, we check if:
+The Holm-Bonferroni correction takes Equation \ref{eq:alert-test} and corrects the right-side threshold $\alpha$ for each feature. This correction is done by dividing the threshold $\alpha$ by a correction factor. First, we compute the \textit{p-value} of each feature. We then order our features by \textit{p-value}, in ascending order. Next, starting from the first feature, the one with the smallest \textit{p-value}, and proceeding until the end of the list of features, we check if:
 \begin{equation}
-    p-value_{distance_{x}} < \alpha / (m - k)
+    pvalue(val_x) < \alpha / (m - k)
     \label{eq:corrected-pvalue}
 \end{equation}
-with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test, in our case the number of features and corresponding \textit{p-values} and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and alerts are raised.
+with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test (in our case the number of features) and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and alerts are raised.
 
 
 \section{Experiments}
