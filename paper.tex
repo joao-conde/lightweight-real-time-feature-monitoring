@@ -152,7 +152,7 @@ All of these applications generate large volumes of data which lead to the creat
 
 Consider the use case where we want to detect credit card fraud on the data stream of all the transactions made on Amazon\footnote{https://amazon.com} by every US citizen on a single day. In this case, Amazon's transaction stream will need to be monitored by another system, a fraud detection one. Such a system would have to process all incoming transactions and decide, in a fraction of a second, if a transaction is fraudulent or not. Unlike the fraud detection system, our system is not mission-critical. Hence, it must monitor the data stream looking for data pattern deviations in real-time but with a low memory footprint.
 
-To summarize, in this paper we design a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period. The motivation to detect data stream pattern deviations in real-time is to know when to reconfigure the mission-critical system (\textit{e.g.}, retrain the Machine Learning model) before its performance decays. We want to build a lightweight enough solution that can be integrated into existing workflows since having a real-time system monitoring other real-time systems consuming as many resources as the latter would be far too costly.
+In this paper, we present a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period. The motivation to detect data stream pattern deviations in real-time is to know when to reconfigure the mission-critical system (\textit{e.g.}, retrain the Machine Learning model) before its performance decays. We want to build a lightweight enough solution that can be integrated into existing workflows since having a real-time system monitoring other real-time systems consuming as many resources as the latter would be far too costly.
 
 \section{Related Work}
 \label{sec:RelatedWork}
@@ -160,7 +160,7 @@ To summarize, in this paper we design a lightweight real-time system that monito
 
 \section{Method}
 \label{sec:Method}
-A data stream is a continuous collection of events, each timestamped and with multiple fields. In this paper, we refer to the event's fields as features. Our goal is to detect data pattern deviations for each feature in a streaming fashion. To that end, we devise a method that works with two windows and comprises two phases, a batch analysis phase and a stream analysis one. The batch analysis is performed on a static in time window which we call the reference window. The stream analysis is performed over a sliding window that groups data stream events. We aggregate the contents of the reference and sliding windows using an approximate histogram aggregation based on Exponential Moving Averages (EMAs) \cite{EMA-Everett2011, EMA-Hunter, EMA-MarcusB}. We then apply a statistical distribution divergence function to both aggregations to obtain a divergence value. In the batch phase, we build the distribution of these values so we can define a percentile threshold for newly measured divergence values.
+A data stream is a continuous collection of events, each timestamped and with multiple fields. In this paper, we refer to the event's fields as features. Our goal is to detect data pattern deviations for each feature in a streaming fashion. To that end, we devise a method that works with two windows and comprises two phases, a batch analysis phase and a stream analysis one. The batch analysis is performed on a static in time window which we call the reference window. The stream analysis is performed over a sliding window that groups data stream events. We aggregate the contents of the reference window with an exact histogram and the sliding window with an approximate histogram aggregation based on Exponential Moving Averages (EMAs) \cite{EMA-Everett2011, EMA-Hunter, EMA-MarcusB}. We then apply a statistical distribution divergence function to both histogram aggregations to obtain a divergence value. In the batch phase, we build the distribution of these values so we can define a percentile threshold for the newly measured divergence values in streaming.
 
 \subsection{Batch Analysis Phase} \label{sec:batch-phase}
 The goal of the batch phase is to build our reference aggregation for each feature and get to know the distribution of divergence or distance values. In other words, for each feature, we:
@@ -168,93 +168,85 @@ The goal of the batch phase is to build our reference aggregation for each featu
     \item Compute the reference histogram using all data in the reference period
     \item Compute the distribution of distances between the reference histogram and random samples of data
 \end{enumerate}
-
 This distribution of values can then later be compared to a given value of divergence for a single sample to find out how probable that value is to occur (if it is very low an alert may be raised).
 
-\subsubsection*{Building the Reference Histogram for each Feature}
+\subsubsection{Building the Reference Histogram}
+First, for each feature, we compute the reference histogram from the reference period dataset. This is an exact histogram aggregation. When building it we ensure the histogram has equal counts for all bins which often results in different sized bins. Equal height histograms adjust better to wildly varying distributions. Equal height means we have more bins covering very dense regions and fewer bins in lower density regions. 
 
-First, for each feature, we compute the reference histogram from the reference period dataset. This is an exact histogram aggregation. When building it we ensure the histogram has equal counts (or equal height) for all bins which often results in different sized bins. We make no assumption on the dataset distributions and hence use equal height histograms because they adjust better to wildly varying ones. Equal height means we have more bins covering very dense regions (regions with many data points) and fewer bins in lower density regions. 
+\subsubsection{Finding the Distribution of Divergence Values} \label{sec:sampling-batch}
+Secondly, we aim to build the histogram that encodes the distribution of expected distance or divergence values, to later on threshold the observed distance values during the streaming phase. To that end, we make $S$ samples of transactions, each with the same tuple-based size of the sliding window we emulate in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
 
+\textcolor{red}{DEFINE S}
+
+For each sample, and each feature, we compute the approximated EMA histogram using the bins from the reference histogram. We also add two extra bins that will cover the region to the left and the right of our histogram, respectively. In other words, we add a bin that covers the region between $-\infty$ and our first bin and another that covers values from the last bin to $+\infty$. This way, observed values outside of the reference period will be placed in these special bins, either left or right.
+
+Each of the sample's histograms is an EMA-like histogram. An EMA-like histogram is essentially a collection of EMA-counts, as described in Section \ref{sec:ema-hist}. Each sample is processed event by event and a discount factor is applied per event to each bin (EMA expiration factor), thus building an approximated histogram aggregation, using the reference bins, for each feature of that sample. This procedure is illustrated in Figure \ref{fig:EMA-hist-build}.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.4]{figures/ref-hist.png}
-      \caption[]{Reference equal-height histogram}
-      \label{fig:ref-hist}
-    \end{center}
-\end{figure}
-
-
-\subsubsection*{Finding the Distribution of Distances for each Feature} \label{sec:sampling-batch}
-
-Secondly, we aim to build the histogram that encodes the distribution of expected distance values, to later on threshold the observed distance values during the online phase. To that end, we make $S$ samples of transactions (in Section \ref{sec:nsamples} we discuss the minimum number $S$ of samples to make), each with the same tuple-based size of the target sliding window we will use in streaming. Each sample is a contiguous block of transactions, thus preserving the order of transactions and the time-dependency property of a time-series. 
-
-For each sample, and each feature, we compute the approximated histogram using the bins computed for the reference histogram (Figure \ref{fig:ref-hist-bins}). We also add two extra bins that will cover the region to the left and the right of our histogram, respectively. In other words, we add a bin that covers the region between $-\infty$ and our first bin and another that covers values from the last bin to $+\infty$. This way, observed values outside of the reference period will be placed in these special bins, either left or right.
-
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.4]{figures/ref-bins.png}
-      \caption[]{Reference equal-height histogram}
-      \label{fig:ref-hist-bins}
-    \end{center}
-\end{figure}
-
-Each of the histograms is an EMA-like histogram. An EMA-like histogram is essentially a collection of EMA-counts, as described in Section \ref{sec:ema-hist}. Each sample is processed event by event and a discount factor is applied per event to each bin (EMA expiration factor), thus building an approximated histogram aggregation, using the reference bins, for each feature of that sample. This procedure is illustrated in Figure \ref{fig:EMA-hist-build}.
-\begin{figure}[!htb]
-    \begin{center}
-    \hspace{2cm}
-      \includegraphics[scale=0.8]{figures/ema-hist.png}
+    %\hspace{6cm}
+      \includegraphics[scale=0.6]{figures/ema-hist.png}
       \caption[]{Reference equal-height histogram}
       \label{fig:EMA-hist-build}
     \end{center}
 \end{figure}
+\textcolor{red}{DEFINE EMA LIKE HIST}
+
 We compute multiple sample histograms to encode distributions over smaller time periods that may exist within the large reference period. We use an approximated histogram to mimic the target approximated histogram we will incrementally maintain in the streaming environment.
 
-For each feature, we have now \textit{S} histograms, one for each sample. For each of the \textit{S} histograms, we compute the distance between it and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our distance function for each sample histogram and the reference histogram, obtaining \textit{S} distance measurements.
-
+For each feature, we have now \textit{S} histograms, one for each sample. We compute the divergence or distance between each of the \textit{S} histograms and the reference histogram. Figure \ref{fig:compute-sample-distances} illustrates this process as we apply our distance function for each sample histogram and the reference histogram, obtaining \textit{S} divergence measurements.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.7]{figures/compute-sample-distances.png}
+      \includegraphics[scale=0.4]{figures/compute-sample-distances.png}
       \caption[Compute sample's distance values]{Compute as many distance values as samples, one for each sample-reference histogram pair}
       \label{fig:compute-sample-distances}
     \end{center}
 \end{figure}
 
-For each feature, we end up with \textit{S} distance values. These $S$ measurements are distance measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if the probability is below a certain threshold. Note that the histograms for each sample are EMA-like histograms (as detailed in Section \ref{sec:ema-hist}) just like the target sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
+For each feature, we end up with \textit{S} distance or divergence values. These $S$ measurements are distance measurements between random samples of data and the reference period. Hence, we claim we now know the distribution of expected distance values. Given a new distance value measured between another random window and the reference window, we can compute its probability and produce alerts if the probability is below a certain threshold. Note that the histograms for each sample are EMA-like histograms (as detailed in Section \ref{sec:ema-hist}) just like the target sliding window histogram. This ensures a certain degree of fidelity in the test we make in streaming because we measure the divergence between a random sample of data (our streaming histogram or any of the sample's histogram) and the reference one.
 
+\subsubsection{Burn-In Period at System Initialization}
+When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
 
-It is important to understand why we want to know the distribution of divergence values instead of just thresholding the divergence value itself. For instance, given that JSD values vary between 0 and 1, why not just set to alert if the measured JSD value is 0.7? The reason is that a divergence value may fall on different percentiles for different features. In other words, the same \textit{i-th} percentile will correspond to a different divergence value for different features. Consider the following left and right-skewed distance distributions represented by Figures \ref{fig:skewed-left-distro} and \ref{fig:skewed-right-distro}, respectively. 
-
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.4]{figures/skewed-left-distro.png}
-      \caption[]{Left skewed distribution of distance values}
-      \label{fig:skewed-left-distro}
-    \end{center}
-\end{figure}
-
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.4]{figures/skewed-right-distro.png}
-      \caption[]{Right skewed distribution of distance values}
-      \label{fig:skewed-right-distro}
-    \end{center}
-\end{figure}
-
-Let's assume that the histogram from Figure \ref{fig:skewed-left-distro} encodes the distribution of expected distance values for a feature \textit{x1} and Figure \ref{fig:skewed-right-distro} does the same but for a feature \textit{x2}. Setting a user-defined threshold of \textit{$\alpha$=0.6} for both features would yield very different results. For feature \textit{x1} we would be reporting distance values above the 100th-percentile which would not be the case for feature \textit{x2}. Instead, we define our threshold as a percentile of the distribution and not as a hard-coded distance constant. For instance, in this case, we would define the threshold to be the \textit{i}-th percentile, which would correspond to a threshold value of 0.4 for feature \textit{x1} and 0.6 for feature \textit{x2}.
-
-Hard-coding a threshold value to be used for all features is cumbersome, impractical and error-prone. The distance threshold must be computed based on the distribution of distances.
-
-
-\subsubsection*{Burn-In Period at System Initialization}
-When we boot up our system in the streaming phase we initially have empty histogram aggregations. The period of time where you discard the alerts produced by the system until it processes enough data to produce accurate reports is commonly denoted as the burn-in period. To avoid this burn-in period we propose that the target sliding window approximate histogram aggregation for each feature is initialized using the last sample's histogram for that feature.
-
-\subsubsection*{Batch Phase Artifacts} \label{sec:batch-artifacts-summary}
-By the end of the batch phase, we should have, for each feature: 
-\begin{itemize}
+\subsubsection{Batch Phase Artifacts} \label{sec:batch-artifacts-summary}
+By the end of the batch phase, for each feature, we have: 
+\begin{enumerate}
     \item a reference histogram
-    \item a list of distance values that represent its distribution
-    \item the last sample's histogram, to be used as burn-in period for the target sliding window histogram
-\end{itemize}
+    \item a distribution of divergence values
+    \item the last sample's histogram
+\end{enumerate}
+
+
+\subsection{Streaming Phase} \label{sec:stream-phase}
+In the streaming phase, the system will process event by event and perform a change detection test periodically. For each feature, we initialize the approximate histogram with the last sample's data, from the batch phase. Then, for each incoming event and each of the event's features, we update our streaming approximate histogram for that feature by adding the new value and then "cutting a slice" from the top of the histogram bars to simulate eviction, as described in Section \ref{sec:ema-hist}. This is all we do, regarding event processing.
+
+\textcolor{red}{DEFINE EMA HIST}
+
+We periodically perform a multi-feature change detection test. The test is done by first computing the distance between the reference histogram for a feature \textit{x} and the target sliding window histogram of the same feature. This distance value is then tested against the known distribution of distance values for feature \textit{x}. In other words, we test to see if the percentile of the computed distance is in the distribution of distance values and alert if above a certain percentile. When we perform the test, for each feature \textit{x}, we compute the percentile of the distance measured between the reference and target sliding window histogram aggregations. The probability value or \textit{p-value} of a distance value is: 
+
+\[\textit{p-value\textsubscript{distance\textsubscript{x}}} = 1 - percentile(\textit{distance\textsubscript{x}})\]
+
+For example, if we define alerts to have 1\% or less probability to happen, it means the system will raise an alert for distance values above the 99th-percentile or \textit{p-value} = 0.01. Generally speaking, we alert a feature \textit{x} as divergent at a given timestamp if for a given probability threshold $\alpha$:
+\[ \textit{percentile(distance\textsubscript{x})} > 1 - \alpha \]
+or:
+\begin{equation}
+    \label{eq:alert-test}
+    \textit{p-value\textsubscript{distance\textsubscript{x}}} < \alpha
+\end{equation}
+
+\subsubsection{Multiple Test Correction} \label{sec:multi-test}
+Note that we periodically apply this test (Equation \ref{eq:alert-test}) for each feature, effectively repeating the analysis. When considering several hypotheses, the problem of multiplicity arises: the more hypotheses are checked, the higher the probability of obtaining false positives. In other words, when repeating a test multiple times the multiple test or simultaneous statistical inference problem \cite{MultiTestProblem-Pubmed, MultiTestProblem-Dickhaus2014, MultiTestProblem-Miller1966, multiple-test-correction-geoffrey} arises which states that the more inferences are made, the more likely erroneous inferences are to occur. In the literature, many multiple test correction methods are proposed, but we opted to use the Holm-Bonferroni multiple test correction because it is a simple and easy to compute correction that can reduce the number of false negatives while having as target to control the number of false positives. Furthermore, it does not require to assume any independence between the tested hypothesis (as other methods do) which would almost surely be a wrong assumption for realistic datasets. In statistics, the Family-Wise Error Rate (FWER) \cite{MultivariateMT, MultitestTamhane2018AdvancesIP} is the probability of having one or more false positives when performing multiple hypotheses tests, \textit{i.e.}, considering one hypothesis true when it is not. The Holm-Bonferroni method \cite{HolmBonferroni} is one of many approaches for controlling the Family-Wise Error Rate \textit{(FWER)} by adjusting the rejection criteria for each hypothesis.
+
+
+\subsubsection*{Holm-Bonferroni Correction} \label{sec:holmbonferroni}
+The Holm-Bonferroni correction takes Equation \ref{eq:alert-test} and corrects the right-side threshold $\alpha$ for each feature. This correction is done by dividing the threshold $\alpha$ by a correction factor, as described next.
+
+First, we compute the \textit{p-value} of each feature. We then order our features by \textit{p-value}, in ascending order. Next, starting from the first feature, the one with the smallest \textit{p-value}, and proceeding until the end of the list of features, we check if:
+\begin{equation}
+    p-value_{distance_{x}} < \alpha / (m - k)
+    \label{eq:corrected-pvalue}
+\end{equation}
+with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test, in our case the number of features and corresponding \textit{p-values} and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and alerts are raised.
+
 
 \section{Experiments}
 \label{sec:Experiments}
@@ -268,75 +260,7 @@ Fight
 
 \section{Conclusions}
 \label{sec:Conclusions}
-\cite{ApacheFlink}
 Thesis done, PogU
-
-\section{CCS Concepts and User-Defined Keywords}
-
-Two elements of the ``acmart'' document class provide powerful taxonomic tools for you to help readers find your work in an online search. 
-
-The ACM Computing Classification System --- \url{https://www.acm.org/publications/class-2012} --- is a set of classifiers and concepts that describe the computing discipline. Authors can select entries from this classification system, via \url{https://dl.acm.org/ccs/ccs.cfm}, and generate the commands to be included in the \LaTeX\ source. 
-
-User-defined keywords are a comma-separated list of words and phrases of the authors' choosing, providing a more flexible way of describing the research being presented.
-
-CCS concepts and user-defined keywords are required for all short- and full-length articles, and optional for two-page abstracts. 
-
-\section{Tables}
-
-The ``\verb|acmart|'' document class includes the ``\verb|booktabs|'' package --- \url{https://ctan.org/pkg/booktabs} --- for preparing high-quality tables. 
-
-Table captions are placed {\it above} the table.
-
-Because tables cannot be split across pages, the best placement for them is typically the top of the page nearest their initial cite.  To ensure this proper ``floating'' placement of tables, use the environment \textbf{table} to enclose the table's contents and the table caption.  The contents of the table itself must go in the \textbf{tabular} environment, to be aligned properly in rows and columns, with the desired horizontal and vertical rules.  Again, detailed instructions on \textbf{tabular} material are found in the \textit{\LaTeX\ User's Guide}.
-
-Immediately following this sentence is the point at which Table~\ref{tab:freq} is included in the input file; compare the placement of the table here with the table in the printed output of this document.
-
-\begin{table}
-  \caption{Frequency of Special Characters}
-  \label{tab:freq}
-  \begin{tabular}{ccl}
-    \toprule
-    Non-English or Math&Frequency&Comments\\
-    \midrule
-    \O & 1 in 1,000& For Swedish names\\
-    $\pi$ & 1 in 5& Common in math\\
-    \$ & 4 in 5 & Used in business\\
-    $\Psi^2_1$ & 1 in 40,000& Unexplained usage\\
-  \bottomrule
-\end{tabular}
-\end{table}
-
-To set a wider table, which takes up the whole width of the page's live area, use the environment \textbf{table*} to enclose the table's contents and the table caption.  As with a single-column table, this wide table will ``float'' to a location deemed more desirable. Immediately following this sentence is the point at which Table~\ref{tab:commands} is included in the input file; again, it is instructive to compare the placement of the table here with the table in the printed output of this document.
-
-\begin{table*}
-  \caption{Some Typical Commands}
-  \label{tab:commands}
-  \begin{tabular}{ccl}
-    \toprule
-    Command &A Number & Comments\\
-    \midrule
-    \texttt{{\char'134}author} & 100& Author \\
-    \texttt{{\char'134}table}& 300 & For tables\\
-    \texttt{{\char'134}table*}& 400& For wider tables\\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\section{Figures}
-
-The ``\verb|figure|'' environment should be used for figures. One or more images can be placed within a figure. If your figure contains third-party material, you must clearly identify it as such, as shown in the example below.
-\iffalse
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{sample-franklin}
-  \caption{1907 Franklin Model D roadster. Photograph by Harris \& Ewing, Inc. [Public domain], via Wikimedia Commons. (\url{https://goo.gl/VLCRBB}).}
-  \Description{The 1907 Franklin Model D roadster.}
-\end{figure}
-\fi 
-Your figures should contain a caption which describes the figure to the reader. Figure captions go below the figure. Your figures should {\bf also} include a description suitable for screen readers, to assist the visually-challenged to better understand your work.
-
-Figure captions are placed {\it below} the figure.
-
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{myrefs.bib}
