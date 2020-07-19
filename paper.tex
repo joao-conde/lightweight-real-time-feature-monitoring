@@ -506,7 +506,7 @@ Let's take a look at the signal computed for the target period. Figure \ref{fig:
 
 
 \subsection{Multi-Feature Analysis}
-Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the underlying generating distributions and parameters for each of the four features ($x_1$, $x_2$, $x_3$ and $x_4$) in the reference multi-feature dataset R6. Figures \ref{fig:timeseries-r6-x1}, \ref{fig:timeseries-r6-x2}, \ref{fig:timeseries-r6-x3} and \ref{fig:timeseries-r6-x4} show the reference time-series for features $x_1$, $x_2$, $x_3$ and $x_4$ on the reference dataset R6, respectively.
+Before moving to real data, we performed one last experiment, using synthetic data but this time performing a multi-feature analysis. Table \ref{tbl:multi-feat-ref-dataset-distros} shows the underlying generating distributions and parameters for each of the four features ($x_1$, $x_2$, $x_3$ and $x_4$) in the reference multi-feature dataset R6.
 \begin{table}[!htb]
     \begin{center}
         \begin{tabular}{|c|c|c|ll}
@@ -521,37 +521,11 @@ Before moving to real data, we performed one last experiment, using synthetic da
     \caption{Multi-feature reference dataset and feature distributions}
     \label{tbl:multi-feat-ref-dataset-distros}
 \end{table}
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.5]{figures/timeseries-r6-x1.pdf} 
-      \caption{$x_1$ reference time-series} 
-      \label{fig:timeseries-r6-x1} 
-    \end{center}
-\end{figure}
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.5]{figures/timeseries-r6-x2.pdf} 
-      \caption{$x_2$ reference time-series} 
-      \label{fig:timeseries-r6-x2} 
-    \end{center}
-\end{figure}
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.5]{figures/timeseries-r6-x3.pdf} 
-      \caption{$x_3$ reference time-series} 
-      \label{fig:timeseries-r6-x3} 
-    \end{center}
-\end{figure}
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.5]{figures/timeseries-r6-x4.pdf} 
-      \caption{$x_4$ reference time-series} 
-      \label{fig:timeseries-r6-x4} 
-    \end{center}
-\end{figure}
-We used a target dataset T6 with 5 million events and the same four features ($x_1$, $x_2$, $x_3$ and $x_4$). Feature $x_1$ followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one. Figure \ref{fig:timeseries-t6-x1} shows the time-series for the target dataset T6 and feature $x_1$.
+We used a target dataset T6 with 5 million events and the same four features ($x_1$, $x_2$, $x_3$ and $x_4$). 
 
-Feature $x_2$'s underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature $x_2$. Feature $x_2$ followed a gaussian with $\mu=100$ and $\sigma=5$ like in the reference period up to the 1 millionth event mark, then a gaussian with $\mu=100$ and $\sigma=10$ up to the 2.5 millionth event, then a gaussian $\mu=100$ and $\sigma=15$ until the 3 millionth event, then a gaussian $\mu=100$ and $\sigma=20$ until the 4 millionth event and finally returned to the original gaussian with $\mu=100$ and $\sigma=5$ until the last event. Table \ref{tbl:multi-feat-x2-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_2$.
+Feature $x_1$ followed the reference distribution for the 5 million events of the target dataset. We did not change this feature underlying distribution to serve as a control, \textit{i.e.}, we expect no alerts for this one.
+
+Feature $x_2$'s underlying distribution changed four times and returned to normal, so we expect to see alarms with increasing divergence values but eventually no more alarms. Figure \ref{fig:timeseries-t6-x2} shows the time-series for the target dataset T6 and feature $x_2$. Table \ref{tbl:multi-feat-x2-changes} sums up the distributions used and its parameters for each interval.
 \begin{table}[!htb]
     \begin{center}
     \begin{tabular}{|c|c|c|c|l}
@@ -568,7 +542,7 @@ Feature $x_2$'s underlying distribution changed four times and returned to norma
     \label{tbl:multi-feat-x2-changes}
 \end{table}
 
-Feature $x_3$'s underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature $x_3$. Feature $x_3$ followed a uniform distribution with $a=200$ and $b=250$ like in the reference period up to the 1.5 millionth event mark, then a uniform distribution with $a=200$ and $b=220$ up to the 2 millionth event, then a uniform distribution with $a=180$ and $b=200$ until the 3.5 millionth event and finally a gaussian with $\mu=50$ and $\sigma=20$ until the last event. Table \ref{tbl:multi-feat-x3-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_3$.
+Feature $x_3$'s underlying distribution changed three times and never returned to normal, so we expect to see alarms with increasing divergence values up until the end of the stream analysis. Figure \ref{fig:timeseries-t6-x3} shows the time-series for the target dataset T6 and feature $x_3$. Table \ref{tbl:multi-feat-x3-changes} sums up the distributions used and its parameters for each interval.
 \begin{table}[!htb]
     \begin{center}
     \begin{tabular}{|c|c|c|c|l}
@@ -584,7 +558,7 @@ Feature $x_3$'s underlying distribution changed three times and never returned t
     \label{tbl:multi-feat-x3-changes}
 \end{table}
 
-Feature $x_4$'s underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature $x_4$. Feature $x_4$ followed a uniform distribution like the reference one, with $a=50$ and $b=125$ up until the 1.5 millionth event. After that, it followed a uniform distribution with $a=125$ and $b=200$ until the 3 millionth event where it resumed its original uniform distribution (with $a=50$ and $b=125$) until the end. Table \ref{tbl:multi-feat-x4-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_4$.
+Feature $x_4$'s underlying distribution changed two times and returned to normal, so we expect to see no alarms towards the end of the stream analysis. Figure \ref{fig:timeseries-t6-x4} shows the time-series for the target dataset T6 and feature $x_4$. Table \ref{tbl:multi-feat-x4-changes} sums up the distributions used and its parameters for each interval of the reference dataset for feature $x_4$.
 \begin{table}[!htb]
     \begin{center}
     \begin{tabular}{|c|c|c|c|l}
@@ -598,13 +572,6 @@ Feature $x_4$'s underlying distribution changed two times and returned to normal
     \caption{Feature $x_4$ generating distributions}
     \label{tbl:multi-feat-x4-changes}
 \end{table}
-\begin{figure}[!htb]
-    \begin{center}
-      \includegraphics[scale=0.5]{figures/timeseries-t6-x1.pdf} 
-      \caption{$x_1$ target time-series} 
-      \label{fig:timeseries-t6-x1} 
-    \end{center}
-\end{figure}
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/timeseries-t6-x2.pdf} 
@@ -626,19 +593,18 @@ Feature $x_4$'s underlying distribution changed two times and returned to normal
       \label{fig:timeseries-t6-x4} 
     \end{center}
 \end{figure}
-
 In this experiment, we used a tuple-based half-life $n_{1/2}=62500$, \textit{i.e.}, sampling and target windows of 250,000 tuples. We used 100 bins for the reference histogram plus the two special infinity bins. In this multi-feature scenario, we used the Holm-Bonferroni correction discussed in Section \ref{sec:multi-test} and set the Family-Wise Error Rate (FWER) to 1\% (FWER = 0.01). Furthermore, instead of doing 1000 samples as we did previously in an ad-hoc way, we use Equation \ref{eq:optimal-n-samples} to determine the minimum number of samples to make while ensuring $\gamma=1\%$ (recall Section \ref{sec:sampling-batch}). For our four feature analysis scenario, using as inputs  $\gamma=0.01$ and $FWER=0.01$ in Equation \ref{eq:optimal-n-samples} tells us we need to make 1840 samples minimum. Using 300 Spark executors, each given 3G of memory, we finished the batch phase in 418 seconds.
 
-In Section \ref{sec:stream-phase}, we mention that, in our stream analysis, we perform our multiple hypothesis divergence tests on a fixed user-defined frequency. Finding an optimal frequency value for the test falls out of scope for this thesis, but ideally, we set it to be large enough so that we do fewer computations and achieve higher throughput but still get alerts in useful time. In this experiment, we performed the divergence test with the Holm-Bonferroni correction for every new event (frequency of 1 event). We did this to collect a list of ordered corrected p-values for each feature. A corrected p-value (derived from Equation \ref{eq:corrected-pvalue}) is given by:
+In this experiment, we performed the divergence test with the Holm-Bonferroni correction for every new event (frequency of 1 event). We did this to collect a list of ordered corrected p-values for each feature. A corrected p-value (derived from Equation \ref{eq:corrected-pvalue}) is given by:
 \begin{equation}
-    p-value_{corrected} = p-value_{distance_{x}} * (m - k)
+    pvalue_{corrected} = pvalue * (m - k)
     \label{for:corrected-pvalue}
 \end{equation}
-With this list, for each feature, we can plot the corrected p-values on each event and compare it with the FWER threshold $\alpha$. Note that despite performing the test at the maximum frequency (in real-time) we still achieved a throughput of 17,921 transactions per second (TPS), even if only for four features.
+With this list, for each feature, we can plot the corrected p-values on each event and compare it with the FWER threshold $\alpha$.
 
 In the following plots, unlike the JSD signal plots presented before, a feature is in a divergent state if its p-value is below the threshold, according to Equation \ref{eq:corrected-pvalue}. Working with corrected p-values (Formula \ref{for:corrected-pvalue}), a feature is considered divergent if its corrected p-value is below the threshold.
 
-In Figure \ref{fig:x1-corrected-pvalues} we see the plot of corrected p-values for feature $x_1$ and the probability threshold black horizontal line at the bottom. Recall that feature $x_1$'s values were generated by a Gaussian distribution for both the reference period (Figure \ref{fig:timeseries-r6-x1}) and the target period (Figure \ref{fig:timeseries-t6-x1}), with the same parameters. We observe that the corrected p-values never pass below the threshold, as we expected. Hence, this feature is never alerted as divergent.
+In Figure \ref{fig:x1-corrected-pvalues} we see the plot of corrected p-values for feature $x_1$ and the probability threshold black horizontal line at the bottom. Recall that feature $x_1$'s values were generated by a Gaussian distribution for both the reference period and the target period, with the same parameters. We observe that the corrected p-values never pass below the threshold, as we expected. Hence, this feature is never alerted as divergent.
 \begin{figure}[!htb]
     \begin{center}
       \includegraphics[scale=0.5]{figures/x1-corrected-pvalues.png}
@@ -946,27 +912,60 @@ Figures \ref{fig:merchant3-x2-correctedpvalues}, \ref{fig:merchant3-x3-corrected
 The analysis performed for feature $x_1$ applies for all of these features. Notice that for all plots we have very few alarms of very short durations. This coherency in results across multiple features seems to indicate that our streaming analysis is accurate and detects the outliers accurately if the divergence measure distribution used is well built.
 
 
-\section{Conclusions}
-In this section, we summarize our experimental tests, results and uncovered issues.
-
+\section{Discussion} \label{sec:Discussion}
 We began by performing single-feature analysis of synthetic data. The results obtained with this set of experiments were what we expected, in the sense that the artificially introduced anomalies in the datasets were all correctly reported. Still working with synthetic data, we performed our first multi-feature analysis. In this scenario, we applied the Holm-Bonferroni multiple test correction to the p-values of each hypothesis. Once again, each feature was correctly reported as divergent at the timestamps where we changed the underlying generating distribution.
 
-We then moved on to real data. Due to time constraints and the scope of this thesis, we experimented only with data from one merchant. In our first experiment with real data, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as this dataset contained a lot of drift. 
+We then moved on to real data. We experimented only with data from one merchant. In our first experiment with real data, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as these datasets contained a lot of drift. 
 
 In our second experiment with real data, we attempted to reduce concept drift to a maximum by using the same period as reference and target. To our surprise, we still produced a large number of long-lasting alarms. We defer the investigation of the root cause of the problem to future work and leave a few untested hypotheses as solutions for this issue, like the possibility that the EMA-like histograms in batch work with subsets of data and the streaming ones work with infinite amounts of data. In other words, for the streaming EMAs, the previous events never have their contribution set to zero, even though the weights tend to zero, whereas the batch EMAs worked with a finite dataset. Additionally, our sampling may have been insufficient and hence the divergence measure distribution was inaccurate. To test the first hypothesis, experiments with higher smoothing factors for streaming EMAs should be carried out. To test the second one, a lower $\gamma$ parameter should be used in the batch phase, hence increasing the number of samples to be made, potentially building a more accurate distribution of JSD values.
 
 In our final experiment, we aim to build the most accurate as possible distribution of divergence measures by building it based on the measured divergences observed in streaming. In our second streaming run, we used this distribution and observed that the alarms produced were very few and short-lasting ones. The few alarms raised correspond to divergence measures above the 99th percentile. With this experiment, we conclude our streaming analysis is correctly built but depends a lot on how accurate the divergence measure distribution is. As discussed, future tests should be carried out where more samples are made, to ensure a more accurate divergence measure distribution is computed.
 
 
+\section{Conclusions} \label{sec:Conclusions}
+We summarize our contributions as follows:
 
-\section{Discussion}
-\label{sec:Discussion}
-\textcolor{red}{TODO}
-Fight
+\begin{enumerate}
+    \item a two-phased and two-windowed univariate subsequence outlier detection method, classified according to the taxonomy in Section \ref{sec:uni-sub-out} and detailed in Chapter \ref{chap:my-work}, that is lightweight and works for real-time stream monitoring
+    
+    \item a histogram aggregation based on Exponential Moving Averages, that replaces the entire sliding window contents by a lighter representation, resulting in a constant in time and space complexity sliding window aggregation
+    
+    \item a set of synthetic datasets and experiments where the method in question accurately detected anomalies
+    
+    \item experiments on real data that showed unexpected results but where we provide insights and possible hypotheses to test for future work
+\end{enumerate}
 
-\section{Conclusions}
-\label{sec:Conclusions}
-Thesis done, PogU
+\subsection{Future Work}
+
+First and foremost, we believe the next steps are to reason about the obtained results in the real data experiments and find the root cause for the existence of many and large alert periods. As a possible hypothesis to test, we suggest testing with EMAs with higher smoothing factors, so that past events are forgotten faster; additionally, we suggest decreasing $\gamma$, which further increases the number of samples to make in the batch phase, improving the accuracy of the divergence measure distribution built.
+
+In this thesis, we used the Jensen–Shannon Divergence (JSD) as a statistical test to measure the distance or divergence between our reference and target sliding window aggregation. We chose to use the JSD metric due to its simplicity and because it was used in previous work successfully \cite{SAMM}. We believe that future work comprises testing new distances in the literature. In particular, we believe the Wasserstein distance is worth trying next, and illustrate why with Figure \ref{fig:wasserteinvsjsd} and Table \ref{tbl:wassertein-vs-jsd}. 
+\begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[scale=0.3]{figures/wasserstein-vs-jsd.pdf}
+      \caption{Wassertein vs Jensen–Shannon distances}
+      \label{fig:wasserteinvsjsd}
+    \end{center}
+\end{figure}
+\begin{table}[!htb]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Distribution \#1} & \textbf{Distribution \#2} & \textbf{Wasserstein} & \textbf{JSD} \\ \hline
+        a                         & a'                        & 2.0                         & 0.4451                         \\ \hline
+        b                         & b'                        & 0.5                         & 0.4451                         \\ \hline
+        \end{tabular}
+    \end{center}
+    \caption[Wasserstein and Jensen-Shannon divergences output comparison]{Wasserstein and Jensen-Shannon divergences for both distribution pairs}
+    \label{tbl:wassertein-vs-jsd}
+\end{table}
+The Wasserstein distance measures the work required to transport the probability mass from one histogram to another. This measure will be larger the further way the probability mass is. In Figure \ref{fig:wasserteinvsjsd}, we show two pairs of histograms, \textit{Histogram (a)} paired with \textit{Histogram (a')} and \textit{Histogram (b)} paired with \textit{Histogram (b')}. Table \ref{tbl:wassertein-vs-jsd} shows the output values for both pairs by each divergence function. The JSD measure is the same for both cases, whereas the Wasserstein distance is larger for the first pair because the probability mass has to be transported further.
+
+In this thesis, we had to deal with the multiple test problem and apply a multiple test correction. In our case, we used Holm-Bonferroni due to its simplicity and because it controls the family-wise error rate with larger power than some other methods (thus providing a good trade-off between simplicity and power). There are many other multiple test correction methods, and we leave the testing of each as future work.
+
+Besides testing new methods for distribution divergence measurement or multiple test correction methods, we have a set of parameters to work with. Experiments where only one of the parameters is changed should be carried out. Our method has lots of parameters to fine-tune and experiment with, as defined in Section \ref{sec:batch-phase}, such as the tuple-based half-life, the size of the samples we make, the $\gamma$ probability (which defines the probability of not having at least one sample divergence measure in the upper tail of the distribution) and the Family-Wise Error Rate.
+
+Lastly, we propose another type of validation method. We mentioned in the beginning that our objective is to detect data pattern shifts before the performance of the systems that rely on the data declines. We propose a test where we train a Machine Learning model on a reference period and measure its prediction accuracy on a target period. Then, we propose running our method on reference and target periods to find out timestamps with a high number of divergent features. We propose that the model is retrained at these timestamps (tantamount to system reconfiguration) and then used to predict for the remaining target period. Finally, we propose that the accuracy should be compared to the previously observed model performance, expecting it to be higher after retraining in one of the high divergent timestamps.
 
 
 
