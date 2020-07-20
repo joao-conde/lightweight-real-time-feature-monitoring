@@ -195,8 +195,7 @@ Each count of our EMA-based histogram is essentially an EMA-count. Algorithm \re
 This procedure is illustrated in Figure \ref{fig:EMA-hist-build}.
 \begin{figure}[!htb]
     \begin{center}
-    %\hspace{6cm}
-      \includegraphics[scale=0.6]{figures/ema-hist.png}
+      \includegraphics[scale=0.6]{figures/ema-hist-paper.png}
       \caption[]{Reference equal-height histogram}
       \label{fig:EMA-hist-build}
     \end{center}
@@ -272,7 +271,7 @@ Note that we periodically apply this test (Equation \ref{eq:alert-test}) for eac
 \end{equation}
 with $\alpha$ as the probability to reject the null hypothesis, \textit{m} as the number of hypotheses to test (in our case the number of features) and \textit{k} as the 0-based index of the current feature. We stop at the first feature that fails this test, and every feature processed up until this one is considered to be a divergent feature and an alert per feature is logged with corresponding probability value.
 
-
+\iffalse
 \section{Experiments with Synthetic Data}
 \label{sec:SyntheticExperiments}
 In order to test our proposed system, we generated multiple synthetic datasets before moving on to real data.
@@ -660,6 +659,8 @@ Finally, feature $x_4$'s corrected p-value plot is given by Figure \ref{fig:x4-c
 
 With this experiment, we further validate that the p-value is a measure of how divergent a feature is: the closer to zero, the lower the probability of the statistical test result and hence the more divergent a feature is considered to be. At the 1.5 millionth event, we swap both $x_3$ and $x_4$'s distribution. For the first 2,535,000 events, $x_4$ has a lower p-value than $x_3$ and hence is considered more divergent. However, after that, we change $x_3$'s distribution so aggressively that $x_3$ starts being reported as most divergent, with a lower p-value than $x_4$.
 
+\fi
+
 \section{Experiments with Real Data}
 
 Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to confidentiality reasons.
@@ -800,7 +801,7 @@ We first show the corrected p-value plots when both reference and target periods
 Feature $x_1$ has less alerts in this experiment where we use equal reference and target periods. However, the alarms last for about two months. This is unexpected as we predicted we would see no alarms or few ones with short duration. Likewise, we observe that for feature $x_2$ (Figure \ref{fig:merchant2-x2-correctedpvalues}) and $x_3$ (Figure \ref{fig:merchant2-x3-correctedpvalues}) we still have many alarms and some lasting up to one month.
 \begin{figure}[!htb]
     \begin{center}
-      \includegraphics[scale=0.5]{figures/merchant2-x1-correctedpvalues.pdf}
+      \includegraphics[scale=0.25]{figures/merchant2-x1-correctedpvalues.pdf}
       \caption{Merchant feature $x_1$ corrected p-values with equal reference and target periods}
       \label{fig:merchant2-x1-correctedpvalues}
     \end{center}
