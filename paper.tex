@@ -157,9 +157,7 @@ Consider the use case where we want to detect credit card fraud on the data stre
 
 In this paper, we present a lightweight real-time system that monitors a stream of high volumes of high velocity, highly skewed and seasonal data and detects pattern shifts relative to a reference period. The motivation to detect data stream pattern deviations in real-time is to know when to reconfigure the mission-critical system (\textit{e.g.}, retrain the Machine Learning model) before its performance decays. We want to build a lightweight enough solution that can be integrated into existing workflows since having a real-time system monitoring other real-time systems consuming as many resources as the latter would be far too costly.
 
-\section{Related Work}
-\label{sec:RelatedWork}
-
+%\section{Related Work} \label{sec:RelatedWork}
 
 \section{Method}
 \label{sec:Method}
@@ -661,11 +659,8 @@ With this experiment, we further validate that the p-value is a measure of how d
 
 \fi
 
-\section{Experiments with Real Data}
-
-Due to time constraints, we experimented with data from only one merchant. The merchant's entity as well as feature names will remain anonymous due to confidentiality reasons.
-
-Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that, combined, covered a period of roughly 1 year and 9 months. In this experiment, we used the older one as the reference dataset and the more recent one as the target period. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus numerically encoded categorical features (\textit{e.g.}, one-hot encoded or ordinal encoded \cite{categoricalencoding}). Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
+\section{Experimental Results}
+We experimented with data from only one merchant and its name as well as feature names will remain anonymous due to confidentiality reasons. Feedzai provides a fraud detection solution for this merchant and had stored two contiguous in time datasets of credit card transactions that, combined, covered a period of roughly 1 year and 9 months. In this experiment, we used the older one as the reference dataset and the more recent one as the target period. Both datasets were already feature-engineered \cite{Domingos-ML-Feat-Eng} and had a total of 183 numerical plus numerically encoded categorical features (\textit{e.g.}, one-hot encoded or ordinal encoded \cite{categoricalencoding}). Table \ref{tbl:merchant1-datasets-summary} shows summary statistics for both datasets.
 \begin{table}[!htb]
     \begin{center}
         \begin{tabular}{|c|c|c|c|}
@@ -914,9 +909,7 @@ The analysis performed for feature $x_1$ applies for all of these features. Noti
 
 
 \section{Discussion} \label{sec:Discussion}
-We began by performing single-feature analysis of synthetic data. The results obtained with this set of experiments were what we expected, in the sense that the artificially introduced anomalies in the datasets were all correctly reported. Still working with synthetic data, we performed our first multi-feature analysis. In this scenario, we applied the Holm-Bonferroni multiple test correction to the p-values of each hypothesis. Once again, each feature was correctly reported as divergent at the timestamps where we changed the underlying generating distribution.
-
-We then moved on to real data. We experimented only with data from one merchant. In our first experiment with real data, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as these datasets contained a lot of drift. 
+In our first experiment, we ran our method with what we thought was an ideal set of parameters and produced a lot of alarms. A close analysis of the reference and target time-series of each feature revealed that some alarms indeed made sense, as these datasets contained a lot of drift. 
 
 In our second experiment with real data, we attempted to reduce concept drift to a maximum by using the same period as reference and target. To our surprise, we still produced a large number of long-lasting alarms. We defer the investigation of the root cause of the problem to future work and leave a few untested hypotheses as solutions for this issue, like the possibility that the EMA-like histograms in batch work with subsets of data and the streaming ones work with infinite amounts of data. In other words, for the streaming EMAs, the previous events never have their contribution set to zero, even though the weights tend to zero, whereas the batch EMAs worked with a finite dataset. Additionally, our sampling may have been insufficient and hence the divergence measure distribution was inaccurate. To test the first hypothesis, experiments with higher smoothing factors for streaming EMAs should be carried out. To test the second one, a lower $\gamma$ parameter should be used in the batch phase, hence increasing the number of samples to be made, potentially building a more accurate distribution of JSD values.
 
