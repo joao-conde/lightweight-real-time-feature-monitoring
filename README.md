@@ -4,7 +4,7 @@ Final submitted thesis document can be found here:
 
 - Conde, J. (July 24, 2020). Master Thesis [*"Lightweight Real-Time Feature Monitoring"*](https://hdl.handle.net/10216/128535)
 
-As a result of this master thesis project, two patents were made:
+As a result of this master thesis project, two patents were issued:
 
 - WIPO Patent WO2022150062A1, filed July 28, 2021, and issued July 14, 2022. [*"Automated feature monitoring for data streams"*](https://patents.google.com/patent/WO2022150062A1/en)
 - WIPO Patent WO2022150061A1, filed July 28, 2021, and issued July 14, 2022. [*"Generation of divergence distributions for automated data analysis"*](https://patents.google.com/patent/WO2022150061A1/en)
