@@ -12,6 +12,8 @@ As a result of this master thesis project, two patents were issued:
 Additionally, one paper was submitted and presented at [KDD 2022](https://kdd.org/kdd2022/):
 - Conde, J., Moreira, R., Torres, J., Cardoso, P., Ferreira, H., Sampaio, M., Ascensão, J., & Bizarro, P. (July 19, 2022). [*"Lightweight Automated Feature Monitoring for Data Streams"*](https://arxiv.org/abs/2207.08640)
 
+All the previously mentioned documents can be found in the ["pdfs" folder](./pdfs).
+
 ## Abstract
 
 Many real-time stream monitoring systems are static once deployed in a production environment. The engineers of those systems configure them under the assumption that future data flowing through the system roughly follows the same distribution as previously seen data. They do so consciously, to the best of their knowledge and available tools, keeping in mind that in the future they may need to reconfigure the system. Thus, even though the initial configuration of the system may be one of the best fits, over time, due to data pattern shifts, the initially deployed static system's performance gradually deteriorates. Data pattern shift detection refers to the process of finding patterns in data that do not conform to expected or usual behavior. Accurate and timely detection of data pattern deviations allows for immediate measures to be taken. Thus, the problem at hand is to determine when to reconfigure the system, *e.g.*, a Machine Learning model, based on an analysis of the drifts in the stream of data.
